@@ -1,8 +1,0 @@
-<div class="row" id="teacherList">
-    <h3>Registered Teachers</h3>
-    <!-- Cards populated via JS -->
-</div>
-<div class="row" id="studentList">
-    <h3>Registered Students</h3>
-    <!-- Cards populated via JS -->
-</div>
