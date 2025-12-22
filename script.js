@@ -2,7 +2,7 @@ const adminUser = "elazaro14";
 const adminPass = "503812el";
 
 let teachers = [];
-let currentTeacher = null;
+let students = [];
 
 function login(e) {
   e.preventDefault();
@@ -15,27 +15,27 @@ function login(e) {
     openDashboard("admin");
   } 
   else if (r === "teacher") {
-    const teacher = teachers.find(t => t.username === u && p === "teacher123");
-    if (teacher) {
-      currentTeacher = teacher;
-      openDashboard("teacher");
-      teacherInfo.innerText =
-        `Name: ${teacher.name} | Subject: ${teacher.subject} | Role: ${teacher.role} | Class: ${teacher.class}`;
-    } else {
-      alert("Invalid teacher login");
-    }
+    const t = teachers.find(x => x.username === u && p === "teacher123");
+    if (t) openDashboard("teacher");
+    else errorMsg.innerText = "Invalid teacher login";
   } 
   else {
-    alert("Invalid login");
+    errorMsg.innerText = "Invalid login details";
   }
 }
 
-function openDashboard(type) {
+function openDashboard(role) {
   loginPage.style.display = "none";
-  dashboard.style.display = "block";
-  adminLink.style.display = type === "admin" ? "block" : "none";
-  teacherLink.style.display = type === "teacher" ? "block" : "none";
-  showPage("home");
+  dashboard.style.display = "flex";
+
+  if (role === "teacher") {
+    adminOnly1.style.display = "none";
+    adminOnly2.style.display = "none";
+  }
+}
+
+function logout() {
+  location.reload();
 }
 
 function showPage(id) {
@@ -43,35 +43,31 @@ function showPage(id) {
   document.getElementById(id).style.display = "block";
 }
 
-function logout() {
-  location.reload();
-}
-
 function addTeacher(e) {
   e.preventDefault();
-
   const name = tName.value;
-  const subject = tSubject.value;
-  const role = tRole.value;
-  const cls = tClass.value;
-
-  const username = name.toLowerCase().replace(/\s/g, "");
-
-  teachers.push({
+  const teacher = {
     name,
-    subject,
-    role,
-    class: cls,
-    username
-  });
-
-  teacherList.innerHTML += `
-    <li>${name} | ${subject} | ${role} | ${cls} | Username: <b>${username}</b></li>
-  `;
-
-  alert("Teacher registered.\nPassword: teacher123");
+    username: name.toLowerCase().replace(/\s/g, "")
+  };
+  teachers.push(teacher);
+  teacherList.innerHTML += `<li>${name} (${tRole.value})</li>`;
 }
 
-function saveMarks() {
-  marksList.innerHTML += `<li>${studentName.value} - ${marks.value}</li>`;
+function addStudent(e) {
+  e.preventDefault();
+  students.push(sName.value);
+  studentList.innerHTML += `<li>${sName.value} - ${sClass.value}</li>`;
+  markStudent.innerHTML += `<option>${sName.value}</option>`;
+  attStudent.innerHTML += `<option>${sName.value}</option>`;
+}
+
+function addMarks(e) {
+  e.preventDefault();
+  marksList.innerHTML += `<li>${markStudent.value}: ${markScore.value}</li>`;
+}
+
+function addAttendance(e) {
+  e.preventDefault();
+  attendanceList.innerHTML += `<li>${attStudent.value}: ${attStatus.value}</li>`;
 }
