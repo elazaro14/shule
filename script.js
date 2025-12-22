@@ -1,80 +1,57 @@
-const adminAccount = {
-  username: "elazaro14",
-  password: "503812el"
-};
+// ADMIN CREDENTIALS
+const ADMIN_USERNAME = "elazaro14";
+const ADMIN_PASSWORD = "503812el";
 
-let teachers = [];
-let currentUser = null;
+function login(e) {
+  e.preventDefault();
 
-function login() {
-  const u = username.value;
-  const p = password.value;
-  const r = role.value;
-  loginError.textContent = "";
+  const u = document.getElementById("username").value;
+  const p = document.getElementById("password").value;
+  const r = document.getElementById("role").value;
 
-  if (r === "admin") {
-    if (u === adminAccount.username && p === adminAccount.password) {
-      openDashboard("admin");
-    } else {
-      loginError.textContent = "Invalid admin credentials";
-    }
+  if (u === ADMIN_USERNAME && p === ADMIN_PASSWORD && r === "admin") {
+    document.getElementById("loginPage").style.display = "none";
+    document.getElementById("dashboard").style.display = "block";
+  } else {
+    document.getElementById("loginError").innerText = "Invalid username or password";
   }
-
-  if (r === "teacher") {
-    const t = teachers.find(x => x.username === u && p === "teacher123");
-    if (t) {
-      currentUser = t;
-      openDashboard("teacher");
-      teacherInfo.textContent =
-        `Name: ${t.name} | Role: ${t.role} | Subject: ${t.subject} | Class: ${t.class}`;
-    } else {
-      loginError.textContent = "Invalid teacher login";
-    }
-  }
-}
-
-function openDashboard(type) {
-  loginPage.style.display = "none";
-  dashboard.style.display = "flex";
-  showPage("home");
-
-  adminBtn.style.display = type === "admin" ? "block" : "none";
-  teacherBtn.style.display = type === "teacher" ? "block" : "none";
-}
-
-function showPage(p) {
-  document.querySelectorAll(".page").forEach(x => x.style.display = "none");
-  document.getElementById(p).style.display = "block";
 }
 
 function logout() {
   location.reload();
 }
 
-function addTeacher() {
+function showPage(page) {
+  document.querySelectorAll(".page").forEach(p => p.style.display = "none");
+  document.getElementById(page).style.display = "block";
+}
+
+/* TEACHERS */
+function addTeacher(e) {
+  e.preventDefault();
+
   const name = tName.value;
   const subject = tSubject.value;
   const role = tRole.value;
-  const cls = tClass.value;
+  const cls = tClass.value || "N/A";
 
-  const username = name.toLowerCase().replace(" ", "") + teachers.length;
+  const li = document.createElement("li");
+  li.textContent = `${name} | ${subject} | ${role} | ${cls}`;
+  teacherList.appendChild(li);
 
-  const teacher = {
-    name,
-    subject,
-    role,
-    class: cls,
-    username
-  };
+  e.target.reset();
+}
 
-  teachers.push(teacher);
+/* STUDENTS */
+function addStudent(e) {
+  e.preventDefault();
 
-  teacherList.innerHTML += `
-    <li>
-      ${name} | ${subject} | ${role} | ${cls}
-      <br>Username: <b>${username}</b> | Password: <b>teacher123</b>
-    </li>
-  `;
+  const name = sName.value;
+  const cls = sClass.value;
 
-  tName.value = tSubject.value = tRole.value = tClass.value = "";
+  const li = document.createElement("li");
+  li.textContent = `${name} - ${cls}`;
+  studentList.appendChild(li);
+
+  e.target.reset();
 }
