@@ -1,94 +1,133 @@
+// Simple demo users
+const users = {
+  admin: { username: "admin", password: "1234" },
+  teacher: { username: "teacher", password: "1234" }
+};
+
+// Load stored data
 let teachers = JSON.parse(localStorage.getItem("teachers")) || [];
 let students = JSON.parse(localStorage.getItem("students")) || [];
 let marks = JSON.parse(localStorage.getItem("marks")) || [];
 let attendance = JSON.parse(localStorage.getItem("attendance")) || [];
 
-let loggedTeacher = null;
+// LOGIN
+function login(e) {
+  e.preventDefault();
 
-// Login
-function login(event) {
-  event.preventDefault();
   const username = document.getElementById("username").value;
   const password = document.getElementById("password").value;
   const role = document.getElementById("role").value;
 
-  if (role === "admin" && username === "admin" && password === "admin123") {
+  if (
+    users[role] &&
+    users[role].username === username &&
+    users[role].password === password
+  ) {
     document.getElementById("loginForm").style.display = "none";
-    document.getElementById("adminPanel").style.display = "block";
-    renderTeachers();
-    renderStudents();
-  } else if (role === "teacher" && username === "teacher" && password === "teacher123") {
-    document.getElementById("loginForm").style.display = "none";
-    document.getElementById("teacherPanel").style.display = "block";
-    loggedTeacher = teachers.find(t => t.name === username) || { subject: "Mathematics" };
-    populateStudentDropdowns();
-    renderMarks();
-    renderAttendance();
+    document.getElementById(role + "Panel").style.display = "block";
+    loadStudentsToSelect();
+    renderLists();
   } else {
-    alert("Invalid credentials!");
+    alert("Invalid login details");
   }
 }
 
-// Admin Functions
-function createTeacher(event) {
-  event.preventDefault();
-  const name = document.getElementById("teacherName").value;
-  const subject = document.getElementById("teacherSubject").value;
+// ADMIN: ADD TEACHER
+function createTeacher(e) {
+  e.preventDefault();
+  const name = teacherName.value;
+  const subject = teacherSubject.value;
+
   teachers.push({ name, subject });
   localStorage.setItem("teachers", JSON.stringify(teachers));
+
+  teacherName.value = "";
+  teacherSubject.value = "";
   renderTeachers();
 }
 
-function renderTeachers() {
-  document.getElementById("teacherList").innerHTML =
-    teachers.map(t => `<li>${t.name} - ${t.subject}</li>`).join("");
-}
+// ADMIN: ADD STUDENT
+function createStudent(e) {
+  e.preventDefault();
+  const name = studentName.value;
+  const cls = studentClass.value;
 
-function createStudent(event) {
-  event.preventDefault();
-  const name = document.getElementById("studentName").value;
-  const studentClass = document.getElementById("studentClass").value;
-  students.push({ name, studentClass });
+  students.push({ name, cls });
   localStorage.setItem("students", JSON.stringify(students));
+
+  studentName.value = "";
+  studentClass.value = "";
   renderStudents();
+  loadStudentsToSelect();
 }
 
-function renderStudents() {
-  document.getElementById("studentList").innerHTML =
-    students.map(s => `<li>${s.name} - ${s.studentClass}</li>`).join("");
-}
+// TEACHER: ADD MARKS
+function addMarks(e) {
+  e.preventDefault();
+  const student = markStudent.value;
+  const score = markScore.value;
 
-// Teacher Functions
-function populateStudentDropdowns() {
-  const studentOptions = students.map(s => `<option>${s.name}</option>`).join("");
-  document.getElementById("markStudent").innerHTML = `<option value="">Select Student</option>` + studentOptions;
-  document.getElementById("attStudent").innerHTML = `<option value="">Select Student</option>` + studentOptions;
-}
-
-function addMarks(event) {
-  event.preventDefault();
-  const student = document.getElementById("markStudent").value;
-  const score = document.getElementById("markScore").value;
-  marks.push({ student, subject: loggedTeacher.subject, score });
+  marks.push({ student, score });
   localStorage.setItem("marks", JSON.stringify(marks));
+
+  markScore.value = "";
   renderMarks();
 }
 
-function renderMarks() {
-  document.getElementById("marksList").innerHTML =
-    marks.map(m => `<li>${m.student} (${m.subject}): ${m.score}</li>`).join("");
-}
+// TEACHER: ADD ATTENDANCE
+function addAttendance(e) {
+  e.preventDefault();
+  const student = attStudent.value;
+  const status = attStatus.value;
 
-function addAttendance(event) {
-  event.preventDefault();
-  const student = document.getElementById("attStudent").value;
-  const status = document.getElementById("attStatus").value;
-  attendance.push({ student, subject: loggedTeacher.subject, status });
+  attendance.push({ student, status, date: new Date().toLocaleDateString() });
   localStorage.setItem("attendance", JSON.stringify(attendance));
+
   renderAttendance();
 }
 
+// RENDER FUNCTIONS
+function renderTeachers() {
+  teacherList.innerHTML = "";
+  teachers.forEach(t =>
+    teacherList.innerHTML += `<li>${t.name} – ${t.subject}</li>`
+  );
+}
+
+function renderStudents() {
+  studentList.innerHTML = "";
+  students.forEach(s =>
+    studentList.innerHTML += `<li>${s.name} (${s.cls})</li>`
+  );
+}
+
+function renderMarks() {
+  marksList.innerHTML = "";
+  marks.forEach(m =>
+    marksList.innerHTML += `<li>${m.student}: ${m.score}</li>`
+  );
+}
+
 function renderAttendance() {
-  document.getElementById("attendanceList").innerHTML =
-    attendance.map(a => `<li>${a.student} (${a.subject}): ${a.status}</li>`).join("");
+  attendanceList.innerHTML = "";
+  attendance.forEach(a =>
+    attendanceList.innerHTML += `<li>${a.student}: ${a.status} (${a.date})</li>`
+  );
+}
+
+function loadStudentsToSelect() {
+  markStudent.innerHTML = `<option value="">Select Student</option>`;
+  attStudent.innerHTML = `<option value="">Select Student</option>`;
+
+  students.forEach(s => {
+    markStudent.innerHTML += `<option>${s.name}</option>`;
+    attStudent.innerHTML += `<option>${s.name}</option>`;
+  });
+}
+
+function renderLists() {
+  renderTeachers();
+  renderStudents();
+  renderMarks();
+  renderAttendance();
 }
