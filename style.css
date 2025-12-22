@@ -1,47 +1,67 @@
 body {
   font-family: Arial, sans-serif;
-  background: #f2f2f2;
-  padding: 20px;
+  margin: 0;
+  background: #f4f6f8;
 }
 
-h1 {
+/* LOGIN */
+.login-box {
+  width: 350px;
+  margin: 100px auto;
+  padding: 20px;
+  background: white;
+  box-shadow: 0 0 10px #ccc;
   text-align: center;
 }
 
-.box {
-  background: #ffffff;
-  padding: 20px;
-  margin: 20px auto;
-  width: 350px;
-  border-radius: 8px;
-  box-shadow: 0 0 10px rgba(0,0,0,0.1);
+.login-box input, .login-box select, .login-box button {
+  width: 100%;
+  margin: 8px 0;
+  padding: 10px;
 }
 
-input, select, button {
-  width: 100%;
-  padding: 8px;
-  margin: 8px 0;
+/* DASHBOARD */
+.sidebar {
+  width: 220px;
+  background: #1e3c72;
+  height: 100vh;
+  position: fixed;
+  color: white;
+  padding: 20px;
+}
+
+.sidebar a {
+  display: block;
+  color: white;
+  text-decoration: none;
+  margin: 15px 0;
+  cursor: pointer;
+}
+
+.sidebar a:hover {
+  background: #2a5298;
+  padding-left: 10px;
+}
+
+.content {
+  margin-left: 240px;
+  padding: 20px;
+}
+
+.page {
+  background: white;
+  padding: 20px;
+  box-shadow: 0 0 5px #ccc;
 }
 
 button {
-  background: #2e86de;
+  padding: 8px 15px;
+  background: #1e3c72;
   color: white;
   border: none;
   cursor: pointer;
 }
 
 button:hover {
-  background: #1b4f72;
-}
-
-ul {
-  list-style: none;
-  padding: 0;
-}
-
-li {
-  background: #ecf0f1;
-  padding: 6px;
-  margin: 4px 0;
-  border-radius: 4px;
+  background: #2a5298;
 }
