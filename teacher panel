@@ -1,0 +1,29 @@
+<!-- Teacher Panel -->
+<div id="teacherPanel" class="panel" style="display:none;">
+  <h2>Teacher Panel</h2>
+
+  <!-- Add Marks -->
+  <h3>Add Student Marks</h3>
+  <form onsubmit="addMarks(event)">
+    <select id="markStudent" required>
+      <option value="">Select Student</option>
+    </select>
+    <input type="number" id="markScore" placeholder="Score" required>
+    <button type="submit">Save Marks</button>
+  </form>
+  <ul id="marksList"></ul>
+
+  <!-- Add Attendance -->
+  <h3>Add Attendance</h3>
+  <form onsubmit="addAttendance(event)">
+    <select id="attStudent" required>
+      <option value="">Select Student</option>
+    </select>
+    <select id="attStatus">
+      <option value="Present">Present</option>
+      <option value="Absent">Absent</option>
+    </select>
+    <button type="submit">Save Attendance</button>
+  </form>
+  <ul id="attendanceList"></ul>
+</div>
