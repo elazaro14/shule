@@ -25,7 +25,7 @@
         </select>
         <button type="submit">Login</button>
       </form>
-      <small>Admin: elazaro14 / 503812el</small>
+      <small>Admin: elazaro14 / 503812el | Teacher default password: Olmotiss</small>
     </div>
   </div>
 
@@ -36,6 +36,7 @@
       <ul>
         <li onclick="showPanel('dashboard')"><i class="fas fa-tachometer-alt"></i> Dashboard</li>
         <li id="adminMenu" onclick="showPanel('adminPanel')"><i class="fas fa-user-shield"></i> Admin</li>
+        <li onclick="showPanel('teacherToolsPanel')"><i class="fas fa-chalkboard-teacher"></i> Teacher Tools</li>
         <li onclick="logout()"><i class="fas fa-sign-out-alt"></i> Logout</li>
       </ul>
       <div class="theme-toggle">
@@ -139,6 +140,40 @@
                 <th>Name</th>
                 <th>Sex</th>
                 <th>Class</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Teacher Tools Panel -->
+      <div id="teacherToolsPanel" class="panel" style="display:none;">
+        <h2>Teacher Tools - Class: <span id="teacherAssignedClass"></span></h2>
+
+        <div class="section">
+          <h3>Add/View Scores</h3>
+          <table class="table" id="scoresTable">
+            <thead>
+              <tr>
+                <th>Student Name</th>
+                <th>Sex</th>
+                <th>Score</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+
+        <div class="section" id="attendanceSection" style="display:none;">
+          <h3>Take Attendance</h3>
+          <table class="table" id="attendanceTable">
+            <thead>
+              <tr>
+                <th>Student Name</th>
+                <th>Status</th>
+                <th>Action</th>
               </tr>
             </thead>
             <tbody></tbody>
