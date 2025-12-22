@@ -1,72 +1,33 @@
 body {
-  margin: 0;
   font-family: Arial, sans-serif;
-  background: #f4f6f8;
+  margin: 20px;
 }
 
-.center {
-  width: 300px;
-  margin: 120px auto;
-  background: white;
-  padding: 25px;
-  box-shadow: 0 0 10px rgba(0,0,0,.1);
+h1, h2, h3 {
+  color: #333;
 }
 
 input, select, button {
-  width: 100%;
-  padding: 10px;
-  margin: 8px 0;
+  margin: 5px 0;
+  padding: 8px;
+  width: 200px;
 }
 
 button {
-  background: #1e88e5;
-  color: white;
-  border: none;
   cursor: pointer;
-}
-
-nav {
-  width: 200px;
-  height: 100vh;
-  background: #1e88e5;
-  color: white;
-  position: fixed;
-}
-
-nav h3 {
-  text-align: center;
-  padding: 15px 0;
-}
-
-nav ul {
-  list-style: none;
-  padding: 0;
-}
-
-nav li {
-  padding: 12px;
-  cursor: pointer;
-}
-
-nav li:hover {
-  background: #1565c0;
-}
-
-main {
-  margin-left: 200px;
-  padding: 20px;
-}
-
-.page {
-  background: white;
-  padding: 20px;
 }
 
 ul {
+  list-style: none;
+  padding-left: 0;
+}
+
+.panel {
+  border: 1px solid #ccc;
+  padding: 15px;
   margin-top: 10px;
 }
 
-#loginError {
-  color: red;
-  text-align: center;
+nav button {
+  margin-right: 10px;
 }
