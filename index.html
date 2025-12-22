@@ -25,12 +25,12 @@
         </select>
         <button type="submit">Login</button>
       </form>
-      <small>Hint: admin = elazaro14 / 503812el</small>
+      <small>Admin: elazaro14 / 503812el</small>
     </div>
   </div>
 
   <!-- Main App -->
-  <div id="app" style="display:none; display:flex;">
+  <div id="app" style="display:none;">
     <div class="sidebar">
       <h2><i class="fas fa-graduation-cap"></i> Shule ERP</h2>
       <ul>
@@ -39,11 +39,12 @@
         <li onclick="logout()"><i class="fas fa-sign-out-alt"></i> Logout</li>
       </ul>
       <div class="theme-toggle">
-        <button onclick="toggleTheme()" id="themeBtn"><i class="fas fa-moon"></i> Dark Mode</button>
+        <button onclick="toggleTheme()"><i class="fas fa-moon"></i> Dark Mode</button>
       </div>
     </div>
 
     <div class="main">
+      <!-- Dashboard -->
       <div id="dashboard" class="panel">
         <h2>Dashboard</h2>
         <div class="cards">
@@ -52,16 +53,17 @@
         </div>
       </div>
 
-      <!-- Admin Panel - Paste the clean version here -->
+      <!-- Admin Panel -->
       <div id="adminPanel" class="panel" style="display:none;">
         <h2>Admin Management</h2>
 
+        <!-- Register Teacher -->
         <div class="section">
           <h3>Register Teacher</h3>
           <form onsubmit="createTeacher(event)" class="form-grid">
             <input type="text" id="teacherName" placeholder="Full Name" required>
             <select id="teacherSex" required>
-              <option value="">Sex</option>
+              <option value="">Select Sex</option>
               <option>Male</option>
               <option>Female</option>
             </select>
@@ -80,7 +82,7 @@
               <option>Business Study</option>
             </select>
             <select id="teacherClass" required>
-              <option value="">Class</option>
+              <option value="">Assign Class</option>
               <option>Form 1</option>
               <option>Form 2</option>
               <option>Form 3</option>
@@ -98,54 +100,4 @@
             <thead>
               <tr>
                 <th>Name</th>
-                <th>Sex</th>
-                <th>Subjects</th>
-                <th>Class</th>
-                <th>Roles</th>
-                <th>Username</th>
-                <th>Password</th>
-              </tr>
-            </thead>
-            <tbody></tbody>
-          </table>
-        </div>
-
-        <div class="section">
-          <h3>Register Student</h3>
-          <form onsubmit="createStudent(event)" class="form-grid">
-            <input type="text" id="studentName" placeholder="Full Name" required>
-            <select id="studentSex" required>
-              <option value="">Sex</option>
-              <option>Male</option>
-              <option>Female</option>
-            </select>
-            <select id="studentClass" required>
-              <option value="">Class</option>
-              <option>Form 1</option>
-              <option>Form 2</option>
-              <option>Form 3</option>
-              <option>Form 4</option>
-            </select>
-            <button type="submit">Add Student</button>
-          </form>
-
-          <h3>Registered Students</h3>
-          <table class="table" id="studentTable">
-            <thead>
-              <tr>
-                <th>Name</th>
-                <th>Sex</th>
-                <th>Class</th>
-              </tr>
-            </thead>
-            <tbody></tbody>
-          </table>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-  <script src="script.js"></script>
-</body>
-</html>
+                <th>S
