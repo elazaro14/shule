@@ -8,16 +8,24 @@
 <body>
   <h1>School Management System</h1>
 
-  <!-- Role Selection -->
-  <div class="role-selector">
-    <button onclick="showPanel('admin')">Administrator</button>
-    <button onclick="showPanel('teacher')">Teacher</button>
+  <!-- Login Form -->
+  <div id="loginForm">
+    <h2>Login</h2>
+    <form onsubmit="login(event)">
+      <input type="text" id="username" placeholder="Username" required>
+      <input type="password" id="password" placeholder="Password" required>
+      <select id="role" required>
+        <option value="">Select Role</option>
+        <option value="admin">Administrator</option>
+        <option value="teacher">Teacher</option>
+      </select>
+      <button type="submit">Login</button>
+    </form>
   </div>
 
   <!-- Admin Panel -->
   <div id="adminPanel" class="panel" style="display:none;">
     <h2>Administrator Panel</h2>
-    <button onclick="signIn()">Sign In</button>
     <button onclick="createTeacher()">Create New Teacher</button>
     <button onclick="createStudent()">Create New Student</button>
     <button onclick="createClass()">Create New Class</button>
@@ -28,7 +36,6 @@
   <!-- Teacher Panel -->
   <div id="teacherPanel" class="panel" style="display:none;">
     <h2>Teacher Panel</h2>
-    <button onclick="signIn()">Sign In</button>
     <button onclick="addMarks()">Add Student Marks</button>
     <button onclick="addAttendance()">Add Student Attendance</button>
     <button onclick="connectParent()">Connect with Parent</button>
