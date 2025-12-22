@@ -7,64 +7,67 @@
 </head>
 <body>
 
-<!-- LOGIN PAGE -->
-<div id="loginPage" class="login-box">
+<div class="login-container" id="loginPage">
   <h2>Shule Management System</h2>
   <form onsubmit="login(event)">
     <input type="text" id="username" placeholder="Username" required>
     <input type="password" id="password" placeholder="Password" required>
+
     <select id="role" required>
       <option value="">Select Role</option>
       <option value="admin">Administrator</option>
       <option value="teacher">Teacher</option>
     </select>
+
     <button type="submit">Login</button>
+    <p id="errorMsg"></p>
   </form>
 </div>
 
 <!-- DASHBOARD -->
-<div id="dashboard" style="display:none;">
-  <div class="sidebar">
-    <h3>SMS</h3>
-    <a onclick="showPage('home')">🏠 Home</a>
-    <a onclick="showPage('admin')" id="adminLink">👨‍💼 Admin</a>
-    <a onclick="showPage('teacher')" id="teacherLink">👨‍🏫 Teacher</a>
-    <a onclick="logout()">🚪 Logout</a>
-  </div>
+<div class="dashboard" id="dashboard" style="display:none;">
 
-  <div class="content">
-    <!-- HOME -->
+  <aside>
+    <h3>Shule SMS</h3>
+    <button onclick="showPage('home')">Home</button>
+    <button onclick="showPage('teachers')" id="adminOnly1">Teachers</button>
+    <button onclick="showPage('students')" id="adminOnly2">Students</button>
+    <button onclick="showPage('marks')">Marks</button>
+    <button onclick="showPage('attendance')">Attendance</button>
+    <button onclick="logout()">Logout</button>
+  </aside>
+
+  <main>
     <div id="home" class="page">
-      <h2>Dashboard</h2>
+      <h2>Dashboard Home</h2>
       <p>Welcome to Shule Management System</p>
     </div>
 
-    <!-- ADMIN PANEL -->
-    <div id="admin" class="page" style="display:none;">
-      <h2>Administrator Panel</h2>
-
-      <h3>Register Teacher</h3>
+    <!-- TEACHERS -->
+    <div id="teachers" class="page" style="display:none;">
+      <h2>Register Teacher</h2>
       <form onsubmit="addTeacher(event)">
         <input type="text" id="tName" placeholder="Teacher Name" required>
+
         <select id="tSubject" required>
           <option value="">Subject</option>
           <option>Mathematics</option>
           <option>English</option>
           <option>Kiswahili</option>
-          <option>Physics</option>
-          <option>Chemistry</option>
           <option>Biology</option>
+          <option>Chemistry</option>
+          <option>Physics</option>
           <option>History</option>
-          <option>Civics</option>
-          <option>Business Studies</option>
-          <option>Bookkeeping</option>
+          <option>Geography</option>
         </select>
+
         <select id="tRole" required>
           <option value="">Teacher Role</option>
           <option>Subject Teacher</option>
           <option>Class Teacher</option>
           <option>Class Coordinator</option>
         </select>
+
         <select id="tClass">
           <option value="">Assigned Class</option>
           <option>Form 1</option>
@@ -72,26 +75,54 @@
           <option>Form 3</option>
           <option>Form 4</option>
         </select>
+
         <button>Add Teacher</button>
       </form>
-
       <ul id="teacherList"></ul>
     </div>
 
-    <!-- TEACHER PANEL -->
-    <div id="teacher" class="page" style="display:none;">
-      <h2>Teacher Panel</h2>
-      <p id="teacherInfo"></p>
+    <!-- STUDENTS -->
+    <div id="students" class="page" style="display:none;">
+      <h2>Add Student</h2>
+      <form onsubmit="addStudent(event)">
+        <input type="text" id="sName" placeholder="Student Name" required>
+        <select id="sClass" required>
+          <option>Form 1</option>
+          <option>Form 2</option>
+          <option>Form 3</option>
+          <option>Form 4</option>
+        </select>
+        <button>Add Student</button>
+      </form>
+      <ul id="studentList"></ul>
+    </div>
 
-      <h3>Enter Marks</h3>
-      <input type="text" id="studentName" placeholder="Student Name">
-      <input type="number" id="marks" placeholder="Marks">
-      <button onclick="saveMarks()">Save</button>
-
+    <!-- MARKS -->
+    <div id="marks" class="page" style="display:none;">
+      <h2>Enter Marks</h2>
+      <form onsubmit="addMarks(event)">
+        <select id="markStudent"></select>
+        <input type="number" id="markScore" placeholder="Score" required>
+        <button>Save</button>
+      </form>
       <ul id="marksList"></ul>
     </div>
 
-  </div>
+    <!-- ATTENDANCE -->
+    <div id="attendance" class="page" style="display:none;">
+      <h2>Attendance</h2>
+      <form onsubmit="addAttendance(event)">
+        <select id="attStudent"></select>
+        <select id="attStatus">
+          <option>Present</option>
+          <option>Absent</option>
+        </select>
+        <button>Save</button>
+      </form>
+      <ul id="attendanceList"></ul>
+    </div>
+
+  </main>
 </div>
 
 <script src="script.js"></script>
