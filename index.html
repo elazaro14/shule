@@ -7,8 +7,6 @@
   <link rel="stylesheet" href="style.css">
   <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 </head>
 <body>
 
@@ -38,7 +36,6 @@
       <ul>
         <li onclick="showPanel('dashboard')"><i class="fas fa-tachometer-alt"></i> Dashboard</li>
         <li id="adminMenu" onclick="showPanel('adminPanel')"><i class="fas fa-user-shield"></i> Admin</li>
-        <li onclick="showPanel('scoresPanel')"><i class="fas fa-clipboard-list"></i> Scores & Reports</li>
         <li onclick="logout()"><i class="fas fa-sign-out-alt"></i> Logout</li>
       </ul>
       <div class="theme-toggle">
@@ -59,12 +56,6 @@
       <!-- Admin Panel -->
       <div id="adminPanel" class="panel" style="display:none;">
         <h2>Admin Management</h2>
-
-        <div class="section">
-          <h3>Import Scores from Excel</h3>
-          <input type="file" id="excelUpload" accept=".xlsx">
-          <button onclick="importExcel()">Import MUFUMO ANN25.xlsx</button>
-        </div>
 
         <!-- Register Teacher -->
         <div class="section">
@@ -154,42 +145,9 @@
           </table>
         </div>
       </div>
-
-      <!-- Scores & Reports Panel -->
-      <div id="scoresPanel" class="panel" style="display:none;">
-        <h2>Scores & Report Cards</h2>
-        <div class="section">
-          <select id="selectForm">
-            <option value="">Select Form</option>
-            <option>Form 1</option>
-            <option>Form 2</option>
-            <option>Form 3</option>
-            <option>Form 4</option>
-          </select>
-          <button onclick="loadScores()">Load Scores</button>
-        </div>
-
-        <div id="scoresTableContainer"></div>
-
-        <div class="section">
-          <h3>Generate Report Card</h3>
-          <select id="reportStudent">
-            <option>Select Student (load form first)</option>
-          </select>
-          <button onclick="generateReportCard()">Download PDF Card</button>
-        </div>
-      </div>
     </div>
   </div>
 
   <script src="script.js"></script>
-  <script>
-    // Safe form listeners
-    document.addEventListener("DOMContentLoaded", () => {
-      document.getElementById("loginForm")?.addEventListener("submit", login);
-      document.getElementById("teacherForm")?.addEventListener("submit", createTeacher);
-      document.getElementById("studentForm")?.addEventListener("submit", createStudent);
-    });
-  </script>
 </body>
 </html>
