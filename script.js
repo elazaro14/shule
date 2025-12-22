@@ -37,12 +37,60 @@ function startApp() {
   updateDashboard();
 
   if (currentRole === "teacher") {
+    const subject = currentTeacher.subjects[0] || "Unknown";
+    document.getElementById("teacherSubjectHeader").textContent = subject.toUpperCase();
     document.getElementById("teacherAssignedClass").textContent = currentTeacher.assignedClass;
-    loadTeacherTools(currentTeacher);
+    loadTeacherReport(currentTeacher);
     showPanel('teacherToolsPanel');
   } else {
     showPanel('dashboard');
   }
+}
+
+function loadTeacherReport(teacher) {
+  const assignedClass = teacher.assignedClass;
+  const isClassTeacher = teacher.roles.includes("Class Teacher");
+  document.getElementById("attendanceSection").style.display = isClassTeacher ? "block" : "none";
+
+  const classStudents = data.students.filter(s => s.sclass === assignedClass);
+
+  const tbody = document.querySelector("#subjectReportTable tbody");
+  tbody.innerHTML = "";
+  classStudents.forEach((s, i) => {
+    tbody.innerHTML += `<tr>
+      <td>${i + 1}</td>
+      <td>${s.name.toUpperCase()}</td>
+      <td contenteditable="true"></td>
+      <td contenteditable="true"></td>
+      <td contenteditable="true"></td>
+      <td contenteditable="true"></td>
+      <td></td>
+      <td></td>
+    </tr>`;
+  });
+
+  if (isClassTeacher) {
+    const attTbody = document.querySelector("#attendanceTable tbody");
+    attTbody.innerHTML = "";
+    classStudents.forEach(s => {
+      attTbody.innerHTML += `<tr>
+        <td>${s.name}</td>
+        <td>
+          <select id="att-${s.name}">
+            <option value="Present">Present</option>
+            <option value="Absent">Absent</option>
+            <option value="Permitted">Permitted</option>
+            <option value="Sick">Sick</option>
+          </select>
+        </td>
+        <td><button onclick="saveAttendance('${s.name}')">Save</button></td>
+      </tr>`;
+    });
+  }
+}
+
+function printReport() {
+  window.print();
 }
 
 function createTeacher(e) {
@@ -99,66 +147,10 @@ function createStudent(e) {
   alert("Student added!");
 }
 
-function loadTeacherTools(teacher) {
-  const assignedClass = teacher.assignedClass;
-  const isClassTeacher = teacher.roles.includes("Class Teacher");
-
-  document.getElementById("attendanceSection").style.display = isClassTeacher ? "block" : "none";
-
-  const classStudents = data.students.filter(s => s.sclass === assignedClass);
-
-  const scoresTbody = document.querySelector("#scoresTable tbody");
-  scoresTbody.innerHTML = "";
-  classStudents.forEach(s => {
-    scoresTbody.innerHTML += `<tr>
-      <td>${s.name}</td>
-      <td>${s.sex}</td>
-      <td><input type="number" id="score-${s.name}" min="0" max="100" placeholder="Score"></td>
-      <td><button onclick="saveScore('${s.name}')">Save</button></td>
-    </tr>`;
-  });
-
-  if (isClassTeacher) {
-    const attTbody = document.querySelector("#attendanceTable tbody");
-    attTbody.innerHTML = "";
-    classStudents.forEach(s => {
-      attTbody.innerHTML += `<tr>
-        <td>${s.name}</td>
-        <td>
-          <select id="att-${s.name}">
-            <option value="Present">Present</option>
-            <option value="Absent">Absent</option>
-            <option value="Permitted">Permitted</option>
-            <option value="Sick">Sick</option>
-          </select>
-        </td>
-        <td><button onclick="saveAttendance('${s.name}')">Save</button></td>
-      </tr>`;
-    });
-  }
-}
-
-function saveScore(studentName) {
-  const scoreInput = document.getElementById(`score-${studentName}`);
-  const score = scoreInput.value;
-  if (!score) return alert("Enter a score");
-  data.scores.push({ student: studentName, score: parseInt(score), teacher: currentTeacher.username });
-  saveData();
-  alert("Score saved!");
-  scoreInput.value = "";
-}
-
-function saveAttendance(studentName) {
-  const status = document.getElementById(`att-${studentName}`).value;
-  data.attendance.push({ student: studentName, status, teacher: currentTeacher.username });
-  saveData();
-  alert("Attendance saved!");
-}
-
 function renderTeachers() {
   const tbody = document.querySelector("#teacherTable tbody");
   tbody.innerHTML = "";
-  data.teachers.forEach(t => {
+  data.teachers.forEach((t, index) => {
     tbody.innerHTML += `<tr>
       <td>${t.name}</td>
       <td>${t.sex}</td>
@@ -167,6 +159,10 @@ function renderTeachers() {
       <td>${t.roles.join(", ")}</td>
       <td>${t.username}</td>
       <td>${t.password}</td>
+      <td>
+        <button onclick="editTeacher(${index})" class="btn-edit">Edit</button>
+        <button onclick="deleteTeacher(${index})" class="btn-delete">Delete</button>
+      </td>
     </tr>`;
   });
 }
@@ -174,13 +170,64 @@ function renderTeachers() {
 function renderStudents() {
   const tbody = document.querySelector("#studentTable tbody");
   tbody.innerHTML = "";
-  data.students.forEach(s => {
+  data.students.forEach((s, index) => {
     tbody.innerHTML += `<tr>
       <td>${s.name}</td>
       <td>${s.sex}</td>
       <td>${s.sclass}</td>
+      <td>
+        <button onclick="editStudent(${index})" class="btn-edit">Edit</button>
+        <button onclick="deleteStudent(${index})" class="btn-delete">Delete</button>
+      </td>
     </tr>`;
   });
+}
+
+function deleteTeacher(index) {
+  if (confirm("Delete this teacher?")) {
+    data.teachers.splice(index, 1);
+    saveData();
+    renderTeachers();
+    updateDashboard();
+  }
+}
+
+function deleteStudent(index) {
+  if (confirm("Delete this student?")) {
+    data.students.splice(index, 1);
+    saveData();
+    renderStudents();
+    updateDashboard();
+  }
+}
+
+function editTeacher(index) {
+  const t = data.teachers[index];
+  const newName = prompt("Edit Name:", t.name);
+  if (newName !== null) t.name = newName;
+  const newSex = prompt("Edit Sex:", t.sex);
+  if (newSex !== null) t.sex = newSex;
+  saveData();
+  renderTeachers();
+}
+
+function editStudent(index) {
+  const s = data.students[index];
+  const newName = prompt("Edit Name:", s.name);
+  if (newName !== null) s.name = newName;
+  const newSex = prompt("Edit Sex:", s.sex);
+  if (newSex !== null) s.sex = newSex;
+  const newClass = prompt("Edit Class:", s.sclass);
+  if (newClass !== null) s.sclass = newClass;
+  saveData();
+  renderStudents();
+}
+
+function saveAttendance(studentName) {
+  const status = document.getElementById(`att-${studentName}`).value;
+  data.attendance.push({ student: studentName, status, date: new Date().toLocaleDateString() });
+  saveData();
+  alert("Attendance saved!");
 }
 
 function updateDashboard() {
@@ -210,4 +257,4 @@ document.addEventListener("DOMContentLoaded", () => {
   document.getElementById("loginForm").addEventListener("submit", login);
   document.getElementById("teacherForm").addEventListener("submit", createTeacher);
   document.getElementById("studentForm").addEventListener("submit", createStudent);
-});;
+});
