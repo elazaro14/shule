@@ -57,16 +57,24 @@ function loadTeacherReport(teacher) {
   const tbody = document.querySelector("#subjectReportTable tbody");
   tbody.innerHTML = "";
   classStudents.forEach((s, i) => {
-    tbody.innerHTML += `<tr>
+    const rowId = `row-${i}`;
+    tbody.innerHTML += `<tr id="${rowId}">
       <td>${i + 1}</td>
       <td>${s.name.toUpperCase()}</td>
-      <td contenteditable="true"></td>
-      <td contenteditable="true"></td>
-      <td contenteditable="true"></td>
-      <td contenteditable="true"></td>
-      <td></td>
-      <td></td>
+      <td contenteditable="true" class="score-input"></td>
+      <td contenteditable="true" class="score-input"></td>
+      <td contenteditable="true" class="score-input"></td>
+      <td contenteditable="true" class="score-input"></td>
+      <td class="average">0</td>
+      <td class="grade">F</td>
     </tr>`;
+  });
+
+  // Attach input listeners for auto-calculation
+  document.querySelectorAll(".score-input").forEach(cell => {
+    cell.addEventListener("input", function() {
+      calculateRowAverage(this.closest("tr"));
+    });
   });
 
   if (isClassTeacher) {
@@ -87,6 +95,31 @@ function loadTeacherReport(teacher) {
       </tr>`;
     });
   }
+}
+
+function calculateRowAverage(row) {
+  const inputs = row.querySelectorAll(".score-input");
+  let sum = 0;
+  let count = 0;
+
+  inputs.forEach(input => {
+    const val = parseFloat(input.textContent.trim());
+    if (!isNaN(val) && val >= 0 && val <= 100) {
+      sum += val;
+      count++;
+    }
+  });
+
+  const average = count > 0 ? Math.round(sum / count) : 0;
+  row.querySelector(".average").textContent = average;
+
+  let grade = "F";
+  if (average >= 75) grade = "A";
+  else if (average >= 65) grade = "B";
+  else if (average >= 45) grade = "C";
+  else if (average >= 30) grade = "D";
+
+  row.querySelector(".grade").textContent = grade;
 }
 
 function printReport() {
