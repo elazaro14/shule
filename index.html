@@ -17,7 +17,7 @@
     <div class="login-card">
       <h1><i class="fas fa-school"></i> Shule ERP</h1>
       <p>Welcome! Please login</p>
-      <form onsubmit="login(event)">
+      <form id="loginForm">
         <input type="text" id="username" placeholder="Username" required>
         <input type="password" id="password" placeholder="Password" required>
         <select id="role" required>
@@ -66,24 +66,36 @@
           <button onclick="importExcel()">Import MUFUMO ANN25.xlsx</button>
         </div>
 
-        <!-- Teacher Registration -->
+        <!-- Register Teacher -->
         <div class="section">
           <h3>Register Teacher</h3>
-          <form onsubmit="createTeacher(event)" class="form-grid">
+          <form id="teacherForm" class="form-grid">
             <input type="text" id="teacherName" placeholder="Full Name" required>
             <select id="teacherSex" required>
               <option value="">Select Sex</option>
-              <option>Male</option><option>Female</option>
+              <option>Male</option>
+              <option>Female</option>
             </select>
             <select id="teacherSubjects" multiple size="6" required>
-              <option>Civics</option><option>History</option><option>Geography</option>
-              <option>Kiswahili</option><option>English</option><option>Physics</option>
-              <option>Chemistry</option><option>Biology</option><option>Mathematics</option>
-              <option>Historia na Maadili</option><option>Bookkeeping</option><option>Business Study</option>
+              <option>Civics</option>
+              <option>History</option>
+              <option>Geography</option>
+              <option>Kiswahili</option>
+              <option>English</option>
+              <option>Physics</option>
+              <option>Chemistry</option>
+              <option>Biology</option>
+              <option>Mathematics</option>
+              <option>Historia na Maadili</option>
+              <option>Bookkeeping</option>
+              <option>Business Study</option>
             </select>
             <select id="teacherClass" required>
               <option value="">Assign Class</option>
-              <option>Form 1</option><option>Form 2</option><option>Form 3</option><option>Form 4</option>
+              <option>Form 1</option>
+              <option>Form 2</option>
+              <option>Form 3</option>
+              <option>Form 4</option>
             </select>
             <div class="checkbox-group">
               <label><input type="checkbox" id="roleClassTeacher"> Class Teacher</label>
@@ -94,30 +106,50 @@
 
           <h3>Registered Teachers</h3>
           <table class="table" id="teacherTable">
-            <thead><tr><th>Name</th><th>Sex</th><th>Subjects</th><th>Class</th><th>Roles</th><th>Username</th><th>Password</th></tr></thead>
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>Sex</th>
+                <th>Subjects</th>
+                <th>Class</th>
+                <th>Roles</th>
+                <th>Username</th>
+                <th>Password</th>
+              </tr>
+            </thead>
             <tbody></tbody>
           </table>
         </div>
 
-        <!-- Student Registration -->
+        <!-- Register Student -->
         <div class="section">
           <h3>Register Student</h3>
-          <form onsubmit="createStudent(event)" class="form-grid">
+          <form id="studentForm" class="form-grid">
             <input type="text" id="studentName" placeholder="Full Name" required>
             <select id="studentSex" required>
               <option value="">Select Sex</option>
-              <option>Male</option><option>Female</option>
+              <option>Male</option>
+              <option>Female</option>
             </select>
             <select id="studentClass" required>
               <option value="">Select Class</option>
-              <option>Form 1</option><option>Form 2</option><option>Form 3</option><option>Form 4</option>
+              <option>Form 1</option>
+              <option>Form 2</option>
+              <option>Form 3</option>
+              <option>Form 4</option>
             </select>
             <button type="submit">Add Student</button>
           </form>
 
           <h3>Registered Students</h3>
           <table class="table" id="studentTable">
-            <thead><tr><th>Name</th><th>Sex</th><th>Class</th></tr></thead>
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>Sex</th>
+                <th>Class</th>
+              </tr>
+            </thead>
             <tbody></tbody>
           </table>
         </div>
@@ -129,7 +161,10 @@
         <div class="section">
           <select id="selectForm">
             <option value="">Select Form</option>
-            <option>Form 1</option><option>Form 2</option><option>Form 3</option><option>Form 4</option>
+            <option>Form 1</option>
+            <option>Form 2</option>
+            <option>Form 3</option>
+            <option>Form 4</option>
           </select>
           <button onclick="loadScores()">Load Scores</button>
         </div>
@@ -138,7 +173,9 @@
 
         <div class="section">
           <h3>Generate Report Card</h3>
-          <select id="reportStudent"><option>Select Student (after loading form)</option></select>
+          <select id="reportStudent">
+            <option>Select Student (load form first)</option>
+          </select>
           <button onclick="generateReportCard()">Download PDF Card</button>
         </div>
       </div>
@@ -146,5 +183,13 @@
   </div>
 
   <script src="script.js"></script>
+  <script>
+    // Attach form listeners after DOM loads
+    document.addEventListener("DOMContentLoaded", function() {
+      document.getElementById("loginForm").addEventListener("submit", login);
+      document.getElementById("teacherForm").addEventListener("submit", createTeacher);
+      document.getElementById("studentForm").addEventListener("submit", createStudent);
+    });
+  </script>
 </body>
 </html>
