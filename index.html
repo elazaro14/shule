@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Shule ERP - School Management</title>
+  <title>Shule ERP - Olmoti Secondary School</title>
   <link rel="stylesheet" href="style.css">
   <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
@@ -14,7 +14,7 @@
   <div id="loginScreen" class="container">
     <div class="login-card">
       <h1><i class="fas fa-school"></i> Shule ERP</h1>
-      <p>Welcome! Please login</p>
+      <p>Welcome to Olmoti Secondary School System</p>
       <form id="loginForm">
         <input type="text" id="username" placeholder="Username" required>
         <input type="password" id="password" placeholder="Password" required>
@@ -25,7 +25,7 @@
         </select>
         <button type="submit">Login</button>
       </form>
-      <small>Admin: elazaro14 / 503812el | Teacher default password: Olmotiss</small>
+      <small>Admin: elazaro14 / 503812el | Teacher password: Olmotiss</small>
     </div>
   </div>
 
@@ -107,6 +107,7 @@
                 <th>Roles</th>
                 <th>Username</th>
                 <th>Password</th>
+                <th>Actions</th>
               </tr>
             </thead>
             <tbody></tbody>
@@ -140,6 +141,7 @@
                 <th>Name</th>
                 <th>Sex</th>
                 <th>Class</th>
+                <th>Actions</th>
               </tr>
             </thead>
             <tbody></tbody>
@@ -149,21 +151,34 @@
 
       <!-- Teacher Tools Panel -->
       <div id="teacherToolsPanel" class="panel" style="display:none;">
-        <h2>Teacher Tools - Class: <span id="teacherAssignedClass"></span></h2>
+        <div class="report-header">
+          <h2>PRIME MINISTER OFFICE</h2>
+          <h3>REGIONAL ADMINISTRATION AND LOCAL GOVERNMENT AUTHORITIES</h3>
+          <h1>OLMOTI SECONDARY SCHOOL</h1>
+          <h2>Subject: <span id="teacherSubjectHeader"></span> - Class: <span id="teacherAssignedClass"></span></h2>
+        </div>
 
         <div class="section">
-          <h3>Add/View Scores</h3>
-          <table class="table" id="scoresTable">
+          <h3>Student Performance Report</h3>
+          <table class="table" id="subjectReportTable">
             <thead>
               <tr>
-                <th>Student Name</th>
-                <th>Sex</th>
-                <th>Score</th>
-                <th>Action</th>
+                <th>S/N</th>
+                <th>NAME OF STUDENT</th>
+                <th>TEST 1</th>
+                <th>MID TERM</th>
+                <th>TEST 2</th>
+                <th>EXAM</th>
+                <th>AVERAGE</th>
+                <th>GRADE</th>
               </tr>
             </thead>
             <tbody></tbody>
           </table>
+        </div>
+
+        <div class="section">
+          <button onclick="printReport()" class="btn-success">Print / Save as PDF</button>
         </div>
 
         <div class="section" id="attendanceSection" style="display:none;">
