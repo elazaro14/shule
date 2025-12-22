@@ -1,85 +1,77 @@
-let students = [];
+const adminUser = "elazaro14";
+const adminPass = "503812el";
+
 let teachers = [];
+let currentTeacher = null;
 
 function login(e) {
   e.preventDefault();
-  const role = document.getElementById("role").value;
 
-  document.getElementById("loginForm").style.display = "none";
+  const u = username.value;
+  const p = password.value;
+  const r = role.value;
 
-  if (role === "admin") {
-    document.getElementById("adminPanel").style.display = "block";
-  } else if (role === "teacher") {
-    document.getElementById("teacherPanel").style.display = "block";
-    refreshStudentDropdowns();
+  if (r === "admin" && u === adminUser && p === adminPass) {
+    openDashboard("admin");
+  } 
+  else if (r === "teacher") {
+    const teacher = teachers.find(t => t.username === u && p === "teacher123");
+    if (teacher) {
+      currentTeacher = teacher;
+      openDashboard("teacher");
+      teacherInfo.innerText =
+        `Name: ${teacher.name} | Subject: ${teacher.subject} | Role: ${teacher.role} | Class: ${teacher.class}`;
+    } else {
+      alert("Invalid teacher login");
+    }
+  } 
+  else {
+    alert("Invalid login");
   }
 }
 
-function createTeacher(e) {
-  e.preventDefault();
-  const name = teacherName.value;
-  const subject = teacherSubject.value;
-
-  teachers.push({ name, subject });
-
-  const li = document.createElement("li");
-  li.textContent = `${name} - ${subject}`;
-  teacherList.appendChild(li);
-
-  e.target.reset();
+function openDashboard(type) {
+  loginPage.style.display = "none";
+  dashboard.style.display = "block";
+  adminLink.style.display = type === "admin" ? "block" : "none";
+  teacherLink.style.display = type === "teacher" ? "block" : "none";
+  showPage("home");
 }
 
-function createStudent(e) {
-  e.preventDefault();
-  const name = studentName.value;
-  const cls = studentClass.value;
-
-  students.push({ name, cls });
-
-  const li = document.createElement("li");
-  li.textContent = `${name} (${cls})`;
-  studentList.appendChild(li);
-
-  refreshStudentDropdowns();
-  e.target.reset();
+function showPage(id) {
+  document.querySelectorAll(".page").forEach(p => p.style.display = "none");
+  document.getElementById(id).style.display = "block";
 }
 
-function refreshStudentDropdowns() {
-  markStudent.innerHTML = "<option value=''>Select Student</option>";
-  attStudent.innerHTML = "<option value=''>Select Student</option>";
+function logout() {
+  location.reload();
+}
 
-  students.forEach(s => {
-    const opt1 = document.createElement("option");
-    opt1.textContent = s.name;
-    markStudent.appendChild(opt1);
+function addTeacher(e) {
+  e.preventDefault();
 
-    const opt2 = document.createElement("option");
-    opt2.textContent = s.name;
-    attStudent.appendChild(opt2);
+  const name = tName.value;
+  const subject = tSubject.value;
+  const role = tRole.value;
+  const cls = tClass.value;
+
+  const username = name.toLowerCase().replace(/\s/g, "");
+
+  teachers.push({
+    name,
+    subject,
+    role,
+    class: cls,
+    username
   });
+
+  teacherList.innerHTML += `
+    <li>${name} | ${subject} | ${role} | ${cls} | Username: <b>${username}</b></li>
+  `;
+
+  alert("Teacher registered.\nPassword: teacher123");
 }
 
-function addMarks(e) {
-  e.preventDefault();
-  const student = markStudent.value;
-  const score = markScore.value;
-
-  const li = document.createElement("li");
-  li.textContent = `${student}: ${score}`;
-  marksList.appendChild(li);
-
-  e.target.reset();
+function saveMarks() {
+  marksList.innerHTML += `<li>${studentName.value} - ${marks.value}</li>`;
 }
-
-function addAttendance(e) {
-  e.preventDefault();
-  const student = attStudent.value;
-  const status = attStatus.value;
-
-  const li = document.createElement("li");
-  li.textContent = `${student}: ${status}`;
-  attendanceList.appendChild(li);
-
-  e.target.reset();
-}
-
