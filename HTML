@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>School Management System</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <h1>School Management System</h1>
+
+  <!-- Role Selection -->
+  <div class="role-selector">
+    <button onclick="showPanel('admin')">Administrator</button>
+    <button onclick="showPanel('teacher')">Teacher</button>
+  </div>
+
+  <!-- Admin Panel -->
+  <div id="adminPanel" class="panel" style="display:none;">
+    <h2>Administrator Panel</h2>
+    <button onclick="signIn()">Sign In</button>
+    <button onclick="createTeacher()">Create New Teacher</button>
+    <button onclick="createStudent()">Create New Student</button>
+    <button onclick="createClass()">Create New Class</button>
+    <button onclick="registerParent()">Involve Parent in Registration</button>
+    <button onclick="generateTimetable()">Generate Timetable</button>
+  </div>
+
+  <!-- Teacher Panel -->
+  <div id="teacherPanel" class="panel" style="display:none;">
+    <h2>Teacher Panel</h2>
+    <button onclick="signIn()">Sign In</button>
+    <button onclick="addMarks()">Add Student Marks</button>
+    <button onclick="addAttendance()">Add Student Attendance</button>
+    <button onclick="connectParent()">Connect with Parent</button>
+    <button onclick="viewTimetable()">View Timetable</button>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
