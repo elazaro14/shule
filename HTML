@@ -1,24 +1,16 @@
-<!-- Admin Panel -->
-<div id="adminPanel" class="panel" style="display:none;">
-  <h2>Administrator Panel</h2>
-
-  <!-- Create Teacher -->
-  <h3>Create New Teacher</h3>
-  <form onsubmit="createTeacher(event)">
-    <input type="text" id="teacherName" placeholder="Teacher Name" required>
-    <select id="teacherSubject" required>
-      <option value="">Select Subject</option>
-      <option>Civics</option>
-      <option>History</option>
-      <option>Kiswahili</option>
-      <option>English</option>
-      <option>Physics</option>
-      <option>Chemistry</option>
-      <option>Biology</option>
-      <option>Mathematics</option>
-      <option>Historia na Maadili</option>
-      <option>Business Study</option>
-      <option>Bookkeeping</option>
+<div id="loginForm">
+  <h2>Login</h2>
+  <form onsubmit="login(event)">
+    <input type="text" id="username" placeholder="Username" required>
+    <input type="password" id="password" placeholder="Password" required>
+    <select id="role" required>
+      <option value="">Select Role</option>
+      <option value="admin">Administrator</option>
+      <option value="teacher">Teacher</option>
+    </select>
+    <button type="submit">Login</button>
+  </form>
+</div>
     </select>
     <button type="submit">Add Teacher</button>
   </form>
