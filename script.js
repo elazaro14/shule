@@ -13,7 +13,7 @@ function login(e) {
     currentRole = "admin";
     startApp();
   } else {
-    alert("Invalid credentials. Try admin: elazaro14 / 503812el");
+    alert("Invalid credentials. Try: elazaro14 / 503812el / Administrator");
   }
 }
 
@@ -59,7 +59,7 @@ function createTeacher(e) {
   renderTeachers();
   updateDashboard();
   e.target.reset();
-  alert("Teacher added!");
+  alert("Teacher added successfully!");
 }
 
 function createStudent(e) {
@@ -78,11 +78,12 @@ function createStudent(e) {
   renderStudents();
   updateDashboard();
   e.target.reset();
-  alert("Student added!");
+  alert("Student added successfully!");
 }
 
 function renderTeachers() {
   const tbody = document.querySelector("#teacherTable tbody");
+  if (!tbody) return;
   tbody.innerHTML = "";
   data.teachers.forEach(t => {
     tbody.innerHTML += `<tr>
@@ -99,6 +100,7 @@ function renderTeachers() {
 
 function renderStudents() {
   const tbody = document.querySelector("#studentTable tbody");
+  if (!tbody) return;
   tbody.innerHTML = "";
   data.students.forEach(s => {
     tbody.innerHTML += `<tr>
@@ -131,9 +133,13 @@ function logout() {
   location.reload();
 }
 
-// Attach event listeners safely
+// Attach form listeners (this is the key part!)
 document.addEventListener("DOMContentLoaded", () => {
-  document.querySelectorAll("form").forEach(form => {
-    form.addEventListener("submit", (e) => e.preventDefault());
-  });
+  const loginForm = document.getElementById("loginForm");
+  const teacherForm = document.getElementById("teacherForm");
+  const studentForm = document.getElementById("studentForm");
+
+  if (loginForm) loginForm.addEventListener("submit", login);
+  if (teacherForm) teacherForm.addEventListener("submit", createTeacher);
+  if (studentForm) studentForm.addEventListener("submit", createStudent);
 });
