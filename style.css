@@ -1,67 +1,61 @@
 body {
   font-family: Arial, sans-serif;
+  background: #f4f6f9;
   margin: 0;
-  background: #f4f6f8;
 }
 
-/* LOGIN */
-.login-box {
-  width: 350px;
+.login-container {
+  width: 320px;
   margin: 100px auto;
-  padding: 20px;
   background: white;
-  box-shadow: 0 0 10px #ccc;
-  text-align: center;
-}
-
-.login-box input, .login-box select, .login-box button {
-  width: 100%;
-  margin: 8px 0;
-  padding: 10px;
-}
-
-/* DASHBOARD */
-.sidebar {
-  width: 220px;
-  background: #1e3c72;
-  height: 100vh;
-  position: fixed;
-  color: white;
   padding: 20px;
+  border-radius: 6px;
+  box-shadow: 0 0 10px #ccc;
 }
 
-.sidebar a {
-  display: block;
+input, select, button {
+  width: 100%;
+  padding: 8px;
+  margin: 8px 0;
+}
+
+button {
+  background: #0066cc;
   color: white;
-  text-decoration: none;
-  margin: 15px 0;
+  border: none;
   cursor: pointer;
 }
 
-.sidebar a:hover {
-  background: #2a5298;
-  padding-left: 10px;
+#errorMsg {
+  color: red;
 }
 
-.content {
-  margin-left: 240px;
+.dashboard {
+  display: flex;
+}
+
+aside {
+  width: 220px;
+  background: #1e2a38;
+  color: white;
+  min-height: 100vh;
+  padding: 10px;
+}
+
+aside button {
+  background: none;
+  color: white;
+  border: none;
+  text-align: left;
+}
+
+main {
+  flex: 1;
   padding: 20px;
 }
 
 .page {
   background: white;
   padding: 20px;
-  box-shadow: 0 0 5px #ccc;
-}
-
-button {
-  padding: 8px 15px;
-  background: #1e3c72;
-  color: white;
-  border: none;
-  cursor: pointer;
-}
-
-button:hover {
-  background: #2a5298;
+  border-radius: 6px;
 }
