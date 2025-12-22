@@ -1,10 +1,33 @@
-// script.js
 let teachers = JSON.parse(localStorage.getItem("teachers")) || [];
 let students = JSON.parse(localStorage.getItem("students")) || [];
 let marks = JSON.parse(localStorage.getItem("marks")) || [];
 let attendance = JSON.parse(localStorage.getItem("attendance")) || [];
 
-let loggedTeacher = null; // store teacher after login
+let loggedTeacher = null;
+
+// Login
+function login(event) {
+  event.preventDefault();
+  const username = document.getElementById("username").value;
+  const password = document.getElementById("password").value;
+  const role = document.getElementById("role").value;
+
+  if (role === "admin" && username === "admin" && password === "admin123") {
+    document.getElementById("loginForm").style.display = "none";
+    document.getElementById("adminPanel").style.display = "block";
+    renderTeachers();
+    renderStudents();
+  } else if (role === "teacher" && username === "teacher" && password === "teacher123") {
+    document.getElementById("loginForm").style.display = "none";
+    document.getElementById("teacherPanel").style.display = "block";
+    loggedTeacher = teachers.find(t => t.name === username) || { subject: "Mathematics" };
+    populateStudentDropdowns();
+    renderMarks();
+    renderAttendance();
+  } else {
+    alert("Invalid credentials!");
+  }
+}
 
 // Admin Functions
 function createTeacher(event) {
@@ -36,16 +59,6 @@ function renderStudents() {
 }
 
 // Teacher Functions
-function teacherLogin(name) {
-  // find teacher by name
-  loggedTeacher = teachers.find(t => t.name === name);
-  if (!loggedTeacher) {
-    alert("Teacher not found. Admin must register first.");
-    return;
-  }
-  populateStudentDropdowns();
-}
-
 function populateStudentDropdowns() {
   const studentOptions = students.map(s => `<option>${s.name}</option>`).join("");
   document.getElementById("markStudent").innerHTML = `<option value="">Select Student</option>` + studentOptions;
@@ -54,7 +67,6 @@ function populateStudentDropdowns() {
 
 function addMarks(event) {
   event.preventDefault();
-  if (!loggedTeacher) return alert("Login first!");
   const student = document.getElementById("markStudent").value;
   const score = document.getElementById("markScore").value;
   marks.push({ student, subject: loggedTeacher.subject, score });
@@ -69,7 +81,6 @@ function renderMarks() {
 
 function addAttendance(event) {
   event.preventDefault();
-  if (!loggedTeacher) return alert("Login first!");
   const student = document.getElementById("attStudent").value;
   const status = document.getElementById("attStatus").value;
   attendance.push({ student, subject: loggedTeacher.subject, status });
