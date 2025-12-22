@@ -1,36 +1,83 @@
 // script.js
+let teachers = JSON.parse(localStorage.getItem("teachers")) || [];
+let students = JSON.parse(localStorage.getItem("students")) || [];
+let marks = JSON.parse(localStorage.getItem("marks")) || [];
+let attendance = JSON.parse(localStorage.getItem("attendance")) || [];
 
-function login(event) {
-  event.preventDefault();
-
-  const username = document.getElementById('username').value;
-  const password = document.getElementById('password').value;
-  const role = document.getElementById('role').value;
-
-  // Simple demo credentials (replace with real auth later)
-  const adminUser = { username: "admin", password: "admin123" };
-  const teacherUser = { username: "teacher", password: "teacher123" };
-
-  if (role === "admin" && username === adminUser.username && password === adminUser.password) {
-    document.getElementById('loginForm').style.display = "none";
-    document.getElementById('adminPanel').style.display = "block";
-  } else if (role === "teacher" && username === teacherUser.username && password === teacherUser.password) {
-    document.getElementById('loginForm').style.display = "none";
-    document.getElementById('teacherPanel').style.display = "block";
-  } else {
-    alert("Invalid credentials. Try again!");
-  }
-}
+let loggedTeacher = null; // store teacher after login
 
 // Admin Functions
-function createTeacher() { alert("Create Teacher form goes here."); }
-function createStudent() { alert("Create Student form goes here."); }
-function createClass() { alert("Create Class logic goes here."); }
-function registerParent() { alert("Parent registration logic goes here."); }
-function generateTimetable() { alert("Timetable generation logic goes here."); }
+function createTeacher(event) {
+  event.preventDefault();
+  const name = document.getElementById("teacherName").value;
+  const subject = document.getElementById("teacherSubject").value;
+  teachers.push({ name, subject });
+  localStorage.setItem("teachers", JSON.stringify(teachers));
+  renderTeachers();
+}
+
+function renderTeachers() {
+  document.getElementById("teacherList").innerHTML =
+    teachers.map(t => `<li>${t.name} - ${t.subject}</li>`).join("");
+}
+
+function createStudent(event) {
+  event.preventDefault();
+  const name = document.getElementById("studentName").value;
+  const studentClass = document.getElementById("studentClass").value;
+  students.push({ name, studentClass });
+  localStorage.setItem("students", JSON.stringify(students));
+  renderStudents();
+}
+
+function renderStudents() {
+  document.getElementById("studentList").innerHTML =
+    students.map(s => `<li>${s.name} - ${s.studentClass}</li>`).join("");
+}
 
 // Teacher Functions
-function addMarks() { alert("Add Marks form goes here."); }
-function addAttendance() { alert("Attendance form goes here."); }
-function connectParent() { alert("Parent communication logic goes here."); }
-function viewTimetable() { alert("Timetable view logic goes here."); }
+function teacherLogin(name) {
+  // find teacher by name
+  loggedTeacher = teachers.find(t => t.name === name);
+  if (!loggedTeacher) {
+    alert("Teacher not found. Admin must register first.");
+    return;
+  }
+  populateStudentDropdowns();
+}
+
+function populateStudentDropdowns() {
+  const studentOptions = students.map(s => `<option>${s.name}</option>`).join("");
+  document.getElementById("markStudent").innerHTML = `<option value="">Select Student</option>` + studentOptions;
+  document.getElementById("attStudent").innerHTML = `<option value="">Select Student</option>` + studentOptions;
+}
+
+function addMarks(event) {
+  event.preventDefault();
+  if (!loggedTeacher) return alert("Login first!");
+  const student = document.getElementById("markStudent").value;
+  const score = document.getElementById("markScore").value;
+  marks.push({ student, subject: loggedTeacher.subject, score });
+  localStorage.setItem("marks", JSON.stringify(marks));
+  renderMarks();
+}
+
+function renderMarks() {
+  document.getElementById("marksList").innerHTML =
+    marks.map(m => `<li>${m.student} (${m.subject}): ${m.score}</li>`).join("");
+}
+
+function addAttendance(event) {
+  event.preventDefault();
+  if (!loggedTeacher) return alert("Login first!");
+  const student = document.getElementById("attStudent").value;
+  const status = document.getElementById("attStatus").value;
+  attendance.push({ student, subject: loggedTeacher.subject, status });
+  localStorage.setItem("attendance", JSON.stringify(attendance));
+  renderAttendance();
+}
+
+function renderAttendance() {
+  document.getElementById("attendanceList").innerHTML =
+    attendance.map(a => `<li>${a.student} (${a.subject}): ${a.status}</li>`).join("");
+}
