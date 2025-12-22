@@ -1,5 +1,5 @@
 function createTeacher(e) {
-  e.preventDefault();  // <-- THIS LINE MUST BE FIRST!
+  e.preventDefault(); // <-- THIS STOPS THE PAGE RELOAD!
 
   const name = document.getElementById("teacherName").value.trim();
   const sex = document.getElementById("teacherSex").value;
@@ -13,6 +13,7 @@ function createTeacher(e) {
     return;
   }
 
+  // Generate username
   const parts = name.split(" ");
   const first = parts[0].toLowerCase();
   const last = parts[parts.length - 1].toLowerCase();
@@ -26,19 +27,19 @@ function createTeacher(e) {
   if (isClassTeacher) roles.push("Class Teacher");
   if (isSubjectTeacher) roles.push("Subject Teacher");
 
-  data.teachers.push({ 
-    name, sex, subjects, assignedClass, roles, username, password: "Olmotiss" 
+  data.teachers.push({
+    name, sex, subjects, assignedClass, roles, username, password: "Olmotiss"
   });
 
   saveData();
   renderTeachers();
   updateDashboard();
-  e.target.reset();  // Safe now because preventDefault() was called
+  e.target.reset(); // Clears the form
   alert("Teacher added successfully!");
 }
 
 function createStudent(e) {
-  e.preventDefault();  // <-- THIS LINE MUST BE FIRST!
+  e.preventDefault(); // <-- THIS STOPS THE PAGE RELOAD!
 
   const name = document.getElementById("studentName").value.trim();
   const sex = document.getElementById("studentSex").value;
@@ -53,6 +54,6 @@ function createStudent(e) {
   saveData();
   renderStudents();
   updateDashboard();
-  e.target.reset();  // Safe now
+  e.target.reset();
   alert("Student added successfully!");
-}}
+}
