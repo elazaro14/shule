@@ -9,14 +9,19 @@ h1 {
   color: #333;
 }
 
-.role-selector {
-  margin-bottom: 20px;
+form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  max-width: 300px;
+}
+
+input, select, button {
+  padding: 10px;
+  font-size: 16px;
 }
 
 button {
-  padding: 10px;
-  margin: 5px;
-  font-size: 16px;
   background-color: #0077cc;
   color: white;
   border: none;
@@ -29,6 +34,7 @@ button:hover {
 }
 
 .panel {
+  margin-top: 20px;
   border: 1px solid #ccc;
   padding: 15px;
   border-radius: 10px;
