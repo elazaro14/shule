@@ -184,11 +184,11 @@
 
   <script src="script.js"></script>
   <script>
-    // Attach form listeners after DOM loads
-    document.addEventListener("DOMContentLoaded", function() {
-      document.getElementById("loginForm").addEventListener("submit", login);
-      document.getElementById("teacherForm").addEventListener("submit", createTeacher);
-      document.getElementById("studentForm").addEventListener("submit", createStudent);
+    // Safe form listeners
+    document.addEventListener("DOMContentLoaded", () => {
+      document.getElementById("loginForm")?.addEventListener("submit", login);
+      document.getElementById("teacherForm")?.addEventListener("submit", createTeacher);
+      document.getElementById("studentForm")?.addEventListener("submit", createStudent);
     });
   </script>
 </body>
