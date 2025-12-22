@@ -1,0 +1,49 @@
+// script.js
+
+function showPanel(role) {
+  document.getElementById('adminPanel').style.display = role === 'admin' ? 'block' : 'none';
+  document.getElementById('teacherPanel').style.display = role === 'teacher' ? 'block' : 'none';
+}
+
+// Shared
+function signIn() {
+  alert("Sign-in logic goes here.");
+}
+
+// Admin Functions
+function createTeacher() {
+  alert("Create Teacher form goes here.");
+}
+
+function createStudent() {
+  alert("Create Student form goes here.");
+}
+
+function createClass() {
+  alert("Create Class logic goes here.");
+}
+
+function registerParent() {
+  alert("Parent registration logic goes here.");
+}
+
+function generateTimetable() {
+  alert("Timetable generation logic goes here.");
+}
+
+// Teacher Functions
+function addMarks() {
+  alert("Add Marks form goes here.");
+}
+
+function addAttendance() {
+  alert("Attendance form goes here.");
+}
+
+function connectParent() {
+  alert("Parent communication logic goes here.");
+}
+
+function viewTimetable() {
+  alert("Timetable view logic goes here.");
+}
