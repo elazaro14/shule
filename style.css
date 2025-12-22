@@ -1,61 +1,65 @@
 body {
+  margin: 0;
   font-family: Arial, sans-serif;
   background: #f4f6f9;
-  margin: 0;
 }
 
-.login-container {
-  width: 320px;
-  margin: 100px auto;
-  background: white;
+nav {
+  background: #2c3e50;
+  color: white;
+  padding: 10px 20px;
+  display: flex;
+  justify-content: space-between;
+}
+
+.card {
+  width: 300px;
+  margin: 80px auto;
   padding: 20px;
+  background: white;
   border-radius: 6px;
-  box-shadow: 0 0 10px #ccc;
+  box-shadow: 0 0 10px rgba(0,0,0,.1);
 }
 
 input, select, button {
   width: 100%;
-  padding: 8px;
   margin: 8px 0;
+  padding: 8px;
 }
 
 button {
-  background: #0066cc;
+  background: #3498db;
   color: white;
   border: none;
   cursor: pointer;
 }
 
-#errorMsg {
-  color: red;
-}
-
-.dashboard {
+#dashboard {
   display: flex;
 }
 
-aside {
-  width: 220px;
-  background: #1e2a38;
-  color: white;
+.sidebar {
+  width: 200px;
+  background: #34495e;
   min-height: 100vh;
   padding: 10px;
 }
 
-aside button {
-  background: none;
-  color: white;
-  border: none;
-  text-align: left;
+.sidebar button {
+  background: #2c3e50;
+  margin-bottom: 5px;
 }
 
-main {
-  flex: 1;
+.content {
   padding: 20px;
+  width: 100%;
 }
 
 .page {
+  display: none;
+}
+
+ul {
   background: white;
-  padding: 20px;
-  border-radius: 6px;
+  padding: 10px;
 }
