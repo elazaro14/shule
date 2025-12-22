@@ -1,7 +1,8 @@
 const admin = { username: "elazaro14", password: "503812el" };
 const LS = "shule_data";
-let data = JSON.parse(localStorage.getItem(LS)) || { teachers: [], students: [] };
+let data = JSON.parse(localStorage.getItem(LS)) || { teachers: [], students: [], scores: [], attendance: [] };
 let currentRole = null;
+let currentTeacher = null;
 
 function login(e) {
   e.preventDefault();
@@ -16,6 +17,7 @@ function login(e) {
     const teacher = data.teachers.find(t => t.username === username && t.password === password);
     if (teacher) {
       currentRole = "teacher";
+      currentTeacher = teacher;
       startApp();
     } else {
       alert("Invalid teacher username or password");
@@ -29,10 +31,18 @@ function startApp() {
   document.getElementById("loginScreen").style.display = "none";
   document.getElementById("app").style.display = "flex";
   document.getElementById("adminMenu").style.display = currentRole === "admin" ? "block" : "none";
+
   renderTeachers();
   renderStudents();
   updateDashboard();
-  showPanel('dashboard');
+
+  if (currentRole === "teacher") {
+    document.getElementById("teacherAssignedClass").textContent = currentTeacher.assignedClass;
+    loadTeacherTools(currentTeacher);
+    showPanel('teacherToolsPanel');
+  } else {
+    showPanel('dashboard');
+  }
 }
 
 function createTeacher(e) {
@@ -67,7 +77,7 @@ function createTeacher(e) {
   renderTeachers();
   updateDashboard();
   e.target.reset();
-  alert("Teacher added! Username: " + username + " | Password: Olmotiss");
+  alert(`Teacher added! Username: ${username} | Password: Olmotiss`);
 }
 
 function createStudent(e) {
@@ -87,6 +97,62 @@ function createStudent(e) {
   updateDashboard();
   e.target.reset();
   alert("Student added!");
+}
+
+function loadTeacherTools(teacher) {
+  const assignedClass = teacher.assignedClass;
+  const isClassTeacher = teacher.roles.includes("Class Teacher");
+
+  document.getElementById("attendanceSection").style.display = isClassTeacher ? "block" : "none";
+
+  const classStudents = data.students.filter(s => s.sclass === assignedClass);
+
+  const scoresTbody = document.querySelector("#scoresTable tbody");
+  scoresTbody.innerHTML = "";
+  classStudents.forEach(s => {
+    scoresTbody.innerHTML += `<tr>
+      <td>${s.name}</td>
+      <td>${s.sex}</td>
+      <td><input type="number" id="score-${s.name}" min="0" max="100" placeholder="Score"></td>
+      <td><button onclick="saveScore('${s.name}')">Save</button></td>
+    </tr>`;
+  });
+
+  if (isClassTeacher) {
+    const attTbody = document.querySelector("#attendanceTable tbody");
+    attTbody.innerHTML = "";
+    classStudents.forEach(s => {
+      attTbody.innerHTML += `<tr>
+        <td>${s.name}</td>
+        <td>
+          <select id="att-${s.name}">
+            <option value="Present">Present</option>
+            <option value="Absent">Absent</option>
+            <option value="Permitted">Permitted</option>
+            <option value="Sick">Sick</option>
+          </select>
+        </td>
+        <td><button onclick="saveAttendance('${s.name}')">Save</button></td>
+      </tr>`;
+    });
+  }
+}
+
+function saveScore(studentName) {
+  const scoreInput = document.getElementById(`score-${studentName}`);
+  const score = scoreInput.value;
+  if (!score) return alert("Enter a score");
+  data.scores.push({ student: studentName, score: parseInt(score), teacher: currentTeacher.username });
+  saveData();
+  alert("Score saved!");
+  scoreInput.value = "";
+}
+
+function saveAttendance(studentName) {
+  const status = document.getElementById(`att-${studentName}`).value;
+  data.attendance.push({ student: studentName, status, teacher: currentTeacher.username });
+  saveData();
+  alert("Attendance saved!");
 }
 
 function renderTeachers() {
@@ -144,4 +210,4 @@ document.addEventListener("DOMContentLoaded", () => {
   document.getElementById("loginForm").addEventListener("submit", login);
   document.getElementById("teacherForm").addEventListener("submit", createTeacher);
   document.getElementById("studentForm").addEventListener("submit", createStudent);
-});
+});;
