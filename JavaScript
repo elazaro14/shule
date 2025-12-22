@@ -1,49 +1,36 @@
 // script.js
 
-function showPanel(role) {
-  document.getElementById('adminPanel').style.display = role === 'admin' ? 'block' : 'none';
-  document.getElementById('teacherPanel').style.display = role === 'teacher' ? 'block' : 'none';
-}
+function login(event) {
+  event.preventDefault();
 
-// Shared
-function signIn() {
-  alert("Sign-in logic goes here.");
+  const username = document.getElementById('username').value;
+  const password = document.getElementById('password').value;
+  const role = document.getElementById('role').value;
+
+  // Simple demo credentials (replace with real auth later)
+  const adminUser = { username: "admin", password: "admin123" };
+  const teacherUser = { username: "teacher", password: "teacher123" };
+
+  if (role === "admin" && username === adminUser.username && password === adminUser.password) {
+    document.getElementById('loginForm').style.display = "none";
+    document.getElementById('adminPanel').style.display = "block";
+  } else if (role === "teacher" && username === teacherUser.username && password === teacherUser.password) {
+    document.getElementById('loginForm').style.display = "none";
+    document.getElementById('teacherPanel').style.display = "block";
+  } else {
+    alert("Invalid credentials. Try again!");
+  }
 }
 
 // Admin Functions
-function createTeacher() {
-  alert("Create Teacher form goes here.");
-}
-
-function createStudent() {
-  alert("Create Student form goes here.");
-}
-
-function createClass() {
-  alert("Create Class logic goes here.");
-}
-
-function registerParent() {
-  alert("Parent registration logic goes here.");
-}
-
-function generateTimetable() {
-  alert("Timetable generation logic goes here.");
-}
+function createTeacher() { alert("Create Teacher form goes here."); }
+function createStudent() { alert("Create Student form goes here."); }
+function createClass() { alert("Create Class logic goes here."); }
+function registerParent() { alert("Parent registration logic goes here."); }
+function generateTimetable() { alert("Timetable generation logic goes here."); }
 
 // Teacher Functions
-function addMarks() {
-  alert("Add Marks form goes here.");
-}
-
-function addAttendance() {
-  alert("Attendance form goes here.");
-}
-
-function connectParent() {
-  alert("Parent communication logic goes here.");
-}
-
-function viewTimetable() {
-  alert("Timetable view logic goes here.");
-}
+function addMarks() { alert("Add Marks form goes here."); }
+function addAttendance() { alert("Attendance form goes here."); }
+function connectParent() { alert("Parent communication logic goes here."); }
+function viewTimetable() { alert("Timetable view logic goes here."); }
