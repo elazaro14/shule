@@ -7,85 +7,98 @@
 </head>
 <body>
 
-<!-- NAVBAR -->
-<nav>
-  <h2>Shule MS</h2>
-  <button onclick="logout()">Logout</button>
-</nav>
-
 <!-- LOGIN -->
-<div id="loginPage" class="card">
-  <h2>Login</h2>
-  <input id="username" placeholder="Username">
-  <input id="password" type="password" placeholder="Password">
-  <select id="role">
-    <option value="">Select Role</option>
-    <option value="admin">Administrator</option>
-    <option value="teacher">Teacher</option>
-  </select>
-  <button onclick="login()">Login</button>
-  <p id="loginError"></p>
+<div id="loginPage" class="center">
+  <h2>Shule Management System</h2>
+  <form onsubmit="login(event)">
+    <input type="text" id="username" placeholder="Username" required>
+    <input type="password" id="password" placeholder="Password" required>
+    <select id="role" required>
+      <option value="">Select Role</option>
+      <option value="admin">Administrator</option>
+    </select>
+    <button type="submit">Login</button>
+    <p id="loginError"></p>
+  </form>
 </div>
 
 <!-- DASHBOARD -->
 <div id="dashboard" style="display:none;">
-  <div class="sidebar">
-    <button onclick="showPage('home')">Home</button>
-    <button onclick="showPage('admin')" id="adminBtn">Admin Panel</button>
-    <button onclick="showPage('teacher')" id="teacherBtn">Teacher Panel</button>
-  </div>
 
-  <div class="content">
+  <nav>
+    <h3>Shule MS</h3>
+    <ul>
+      <li onclick="showPage('home')">Home</li>
+      <li onclick="showPage('teachers')">Teachers</li>
+      <li onclick="showPage('students')">Students</li>
+      <li onclick="logout()">Logout</li>
+    </ul>
+  </nav>
+
+  <main>
     <!-- HOME -->
-    <div id="home" class="page">
-      <h2>Dashboard</h2>
-      <p>Welcome to Shule Management System</p>
-    </div>
+    <section id="home" class="page">
+      <h2>Admin Dashboard</h2>
+      <p>Welcome Administrator</p>
+    </section>
 
-    <!-- ADMIN -->
-    <div id="admin" class="page">
-      <h2>Admin Panel</h2>
+    <!-- TEACHERS -->
+    <section id="teachers" class="page" style="display:none;">
+      <h2>Register Teacher</h2>
+      <form onsubmit="addTeacher(event)">
+        <input type="text" id="tName" placeholder="Teacher Name" required>
 
-      <h3>Register Teacher</h3>
-      <input id="tName" placeholder="Teacher Name">
-      <select id="tSubject">
-        <option value="">Subject</option>
-        <option>Mathematics</option>
-        <option>English</option>
-        <option>Kiswahili</option>
-        <option>Biology</option>
-        <option>Chemistry</option>
-        <option>Physics</option>
-        <option>History</option>
-        <option>Geography</option>
-      </select>
+        <select id="tSubject" required>
+          <option value="">Subject</option>
+          <option>Mathematics</option>
+          <option>English</option>
+          <option>Kiswahili</option>
+          <option>Biology</option>
+          <option>Chemistry</option>
+          <option>Physics</option>
+          <option>History</option>
+          <option>Geography</option>
+        </select>
 
-      <select id="tRole">
-        <option value="">Teacher Role</option>
-        <option>Subject Teacher</option>
-        <option>Class Teacher</option>
-        <option>Coordinator</option>
-      </select>
+        <select id="tRole" required>
+          <option value="">Teacher Role</option>
+          <option>Subject Teacher</option>
+          <option>Class Teacher</option>
+          <option>Coordinator</option>
+        </select>
 
-      <select id="tClass">
-        <option value="">Assigned Class</option>
-        <option>Form 1</option>
-        <option>Form 2</option>
-        <option>Form 3</option>
-        <option>Form 4</option>
-      </select>
+        <select id="tClass">
+          <option value="">Assigned Class (optional)</option>
+          <option>Form 1</option>
+          <option>Form 2</option>
+          <option>Form 3</option>
+          <option>Form 4</option>
+        </select>
 
-      <button onclick="addTeacher()">Register</button>
+        <button>Add Teacher</button>
+      </form>
+
       <ul id="teacherList"></ul>
-    </div>
+    </section>
 
-    <!-- TEACHER -->
-    <div id="teacher" class="page">
-      <h2>Teacher Panel</h2>
-      <p id="teacherInfo"></p>
-    </div>
+    <!-- STUDENTS -->
+    <section id="students" class="page" style="display:none;">
+      <h2>Register Student</h2>
+      <form onsubmit="addStudent(event)">
+        <input type="text" id="sName" placeholder="Student Name" required>
+        <select id="sClass" required>
+          <option value="">Class</option>
+          <option>Form 1</option>
+          <option>Form 2</option>
+          <option>Form 3</option>
+          <option>Form 4</option>
+        </select>
+        <button>Add Student</button>
+      </form>
 
-  </div>
+      <ul id="studentList"></ul>
+    </section>
+  </main>
 </div>
 
 <script src="script.js"></script>
