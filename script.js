@@ -1,73 +1,80 @@
-const adminUser = "elazaro14";
-const adminPass = "503812el";
+const adminAccount = {
+  username: "elazaro14",
+  password: "503812el"
+};
 
 let teachers = [];
-let students = [];
+let currentUser = null;
 
-function login(e) {
-  e.preventDefault();
-
+function login() {
   const u = username.value;
   const p = password.value;
   const r = role.value;
+  loginError.textContent = "";
 
-  if (r === "admin" && u === adminUser && p === adminPass) {
-    openDashboard("admin");
-  } 
-  else if (r === "teacher") {
+  if (r === "admin") {
+    if (u === adminAccount.username && p === adminAccount.password) {
+      openDashboard("admin");
+    } else {
+      loginError.textContent = "Invalid admin credentials";
+    }
+  }
+
+  if (r === "teacher") {
     const t = teachers.find(x => x.username === u && p === "teacher123");
-    if (t) openDashboard("teacher");
-    else errorMsg.innerText = "Invalid teacher login";
-  } 
-  else {
-    errorMsg.innerText = "Invalid login details";
+    if (t) {
+      currentUser = t;
+      openDashboard("teacher");
+      teacherInfo.textContent =
+        `Name: ${t.name} | Role: ${t.role} | Subject: ${t.subject} | Class: ${t.class}`;
+    } else {
+      loginError.textContent = "Invalid teacher login";
+    }
   }
 }
 
-function openDashboard(role) {
+function openDashboard(type) {
   loginPage.style.display = "none";
   dashboard.style.display = "flex";
+  showPage("home");
 
-  if (role === "teacher") {
-    adminOnly1.style.display = "none";
-    adminOnly2.style.display = "none";
-  }
+  adminBtn.style.display = type === "admin" ? "block" : "none";
+  teacherBtn.style.display = type === "teacher" ? "block" : "none";
+}
+
+function showPage(p) {
+  document.querySelectorAll(".page").forEach(x => x.style.display = "none");
+  document.getElementById(p).style.display = "block";
 }
 
 function logout() {
   location.reload();
 }
 
-function showPage(id) {
-  document.querySelectorAll(".page").forEach(p => p.style.display = "none");
-  document.getElementById(id).style.display = "block";
-}
-
-function addTeacher(e) {
-  e.preventDefault();
+function addTeacher() {
   const name = tName.value;
+  const subject = tSubject.value;
+  const role = tRole.value;
+  const cls = tClass.value;
+
+  const username = name.toLowerCase().replace(" ", "") + teachers.length;
+
   const teacher = {
     name,
-    username: name.toLowerCase().replace(/\s/g, "")
+    subject,
+    role,
+    class: cls,
+    username
   };
+
   teachers.push(teacher);
-  teacherList.innerHTML += `<li>${name} (${tRole.value})</li>`;
-}
 
-function addStudent(e) {
-  e.preventDefault();
-  students.push(sName.value);
-  studentList.innerHTML += `<li>${sName.value} - ${sClass.value}</li>`;
-  markStudent.innerHTML += `<option>${sName.value}</option>`;
-  attStudent.innerHTML += `<option>${sName.value}</option>`;
-}
+  teacherList.innerHTML += `
+    <li>
+      ${name} | ${subject} | ${role} | ${cls}
+      <br>Username: <b>${username}</b> | Password: <b>teacher123</b>
+    </li>
+  `;
 
-function addMarks(e) {
-  e.preventDefault();
-  marksList.innerHTML += `<li>${markStudent.value}: ${markScore.value}</li>`;
-}
-
-function addAttendance(e) {
-  e.preventDefault();
-  attendanceList.innerHTML += `<li>${attStudent.value}: ${attStatus.value}</li>`;
+  tName.value = tSubject.value = tRole.value = tClass.value = "";
 }
