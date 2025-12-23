@@ -1,119 +1,58 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="dark">
+<html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Olmoti Secondary — School ERP</title>
-  <link rel="stylesheet" href="style.css" />
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shule | Education for All</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/normalize.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
 <body>
-  <!-- Login Window -->
-  <section id="loginSection" class="card login-view">
-    <h2>Sign in</h2>
-    <div class="grid-2">
-      <div>
-        <label for="role"><b>Role:</b></label>
-        <select id="role" class="input">
-          <option value="admin">Administrator</option>
-          <option value="teacher">Teacher</option>
-        </select>
-      </div>
-      <div>
-        <label for="username"><b>Username:</b></label>
-        <input id="username" type="text" class="input" placeholder="e.g., elazaro14 or john.doe" />
-      </div>
-      <div>
-        <label for="password"><b>Password:</b></label>
-        <input id="password" type="password" class="input" placeholder="••••••••" />
-      </div>
-      <div>
-        <button id="loginBtn" class="btn btn-primary">Sign in</button>
-      </div>
-    </div>
-    <p class="hint">Admin: elazaro14 / 503812el — Teacher password: Olmotiss</p>
-  </section>
+    <header>
+        <div class="container">
+            <a href="#" class="logo">SHULE</a>
+            <nav>
+                <ul class="main-nav">
+                    <li><a href="#features">Features</a></li>
+                    <li><a href="#services">Services</a></li>
+                    <li><a href="#portfolio">Gallery</a></li>
+                    <li><a href="#about">About</a></li>
+                    <li><a href="#contact">Contact</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
 
-  <!-- Header (hidden until login) -->
-  <header class="header hide" id="mainHeader">
-    <div class="header-inner container">
-      <div class="brand">
-        <h1>OLMOTI SECONDARY SCHOOL</h1>
-        <p>Arusha City Council</p>
-      </div>
-      <nav class="nav">
-        <a href="#/dashboard">Dashboard</a>
-        <a href="#/teachers">Teachers</a>
-        <a href="#/students">Students</a>
-        <a href="#/performance">Performance</a>
-        <a href="#/attendance">Attendance</a>
-        <a href="#/print">Print</a>
-      </nav>
-      <div class="actions">
-        <button id="logoutBtn" class="btn btn-danger">Logout</button>
-      </div>
-    </div>
-  </header>
-
-  <main class="container">
-    <section id="view-dashboard" class="card view hide">
-      <h2>Dashboard</h2>
-      <div class="statbar">
-        <div class="stat"><b>Teachers</b><div id="teacherCount">0</div></div>
-        <div class="stat"><b>Students</b><div id="studentCount">0</div></div>
-        <div class="stat"><b>Last updated</b><div id="updatedAt">—</div></div>
-      </div>
+    <section class="landing">
+        <div class="intro-text">
+            <h1>Welcome to Shule</h1>
+            <p>Empowering the next generation through digital learning and modern educational tools.</p>
+        </div>
     </section>
 
-    <section id="view-teachers" class="card view hide">
-      <h2>Teachers</h2>
-      <table class="table" id="teachersTable"><thead>
-        <tr><th>S/N</th><th>Name</th><th>Sex</th><th>Subject</th><th>Form</th><th>Role</th><th>Username</th></tr>
-      </thead><tbody></tbody></table>
+    <section class="features" id="features">
+        <div class="container">
+            <div class="feat">
+                <i class="fas fa-magic fa-3x"></i>
+                <h3>Innovative Learning</h3>
+                <p>Modern methodologies tailored for student success in the digital age.</p>
+            </div>
+            <div class="feat">
+                <i class="far fa-gem fa-3x"></i>
+                <h3>Quality Education</h3>
+                <p>We provide high-standard curriculum certified by global experts.</p>
+            </div>
+            <div class="feat">
+                <i class="fas fa-globe-africa fa-3x"></i>
+                <h3>Global Reach</h3>
+                <p>Access our resources from anywhere in the world, anytime.</p>
+            </div>
+        </div>
     </section>
 
-    <section id="view-students" class="card view hide">
-      <h2>Students</h2>
-      <table class="table" id="studentsTable"><thead>
-        <tr><th>S/N</th><th>Name</th><th>Sex</th><th>Form</th><th>Exam No.</th><th>Phone</th></tr>
-      </thead><tbody></tbody></table>
-    </section>
-
-    <section id="view-performance" class="card view hide">
-      <h2>Performance</h2>
-      <select id="formSelect" class="input">
-        <option value="F1">Form 1</option>
-        <option value="F2">Form 2</option>
-        <option value="F3">Form 3</option>
-        <option value="F4">Form 4</option>
-      </select>
-      <button id="reloadPerf" class="btn">Load</button>
-      <table class="table" id="performanceTable"><thead>
-        <tr><th>S/N</th><th>Name</th><th>Test1</th><th>MidTerm</th><th>Test2</th><th>Exam</th><th>Average</th><th>Division</th><th>Points</th></tr>
-      </thead><tbody></tbody></table>
-      <h3>Division summary</h3>
-      <table class="table" id="divisionSummary"><thead><tr><th>DIV</th><th>TOTAL</th></tr></thead><tbody></tbody></table>
-    </section>
-
-    <section id="view-attendance" class="card view hide">
-      <h2>Attendance</h2>
-      <table class="table" id="attendanceTable"><thead><tr><th>Name</th><th>Status</th><th>Action</th></tr></thead><tbody></tbody></table>
-    </section>
-
-    <section id="view-print" class="card view hide">
-      <h2>Print reports (RIPOTI)</h2>
-      <select id="printForm" class="input">
-        <option value="F1">F1</option>
-        <option value="F2">F2</option>
-        <option value="F3">F3</option>
-        <option value="F4">F4</option>
-      </select>
-      <select id="printStudent" class="input"></select>
-      <button id="printBtn" class="btn btn-primary">Print report</button>
-      <div id="printArea" class="print-area"></div>
-    </section>
-  </main>
-
-  <footer class="footer"><small>&copy; 2025 Olmoti Secondary School — Arusha</small></footer>
-  <script src="script.js" type="module"></script>
+    <footer>
+        &copy; 2024 <span>Shule</span> All Rights Reserved
+    </footer>
 </body>
 </html>
