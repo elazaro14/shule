@@ -1,120 +1,21 @@
-/* Variables */
-:root {
-    --main-color: #10cab7;
-    --secondary-color: #2c4755;
-    --section-padding: 60px;
-    --section-background: #f6f6f6;
+.hide {
+    display: none !important;
 }
 
-/* Global Rules */
-* {
-    box-sizing: border-box;
-    margin: 0;
-    padding: 0;
-}
-
-html {
-    scroll-behavior: smooth;
-}
-
-body {
-    font-family: 'Work Sans', sans-serif;
-}
-
-.container {
-    padding-left: 15px;
-    padding-right: 15px;
-    margin-left: auto;
-    margin-right: auto;
-}
-
-/* Header */
-header {
-    padding: 20px;
-    background-color: white;
-    box-shadow: 0 0 10px #ddd;
-}
-
-header .container {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
-
-.logo {
-    font-weight: 800;
-    font-size: 24px;
-    color: var(--main-color);
-    text-decoration: none;
-}
-
-.main-nav {
-    display: flex;
-    list-style: none;
-}
-
-.main-nav li a {
-    padding: 10px 15px;
-    text-decoration: none;
-    color: var(--secondary-color);
-    transition: 0.3s;
-}
-
-.main-nav li a:hover {
-    color: var(--main-color);
-}
-
-/* Landing Section */
-.landing {
-    background-image: url('../images/landing.jpg');
-    background-size: cover;
-    height: calc(100vh - 64px);
-    position: relative;
+#loginSection {
+    height: 100vh;
     display: flex;
     justify-content: center;
     align-items: center;
+    background-color: #f4f4f4;
 }
 
-.intro-text {
-    text-align: center;
-    background: rgba(255, 255, 255, 0.8);
-    padding: 20px;
-    border-radius: 8px;
-}
-
-/* Features */
-.features {
-    padding-top: var(--section-padding);
-    padding-bottom: var(--section-padding);
-    background-color: var(--section-background);
-}
-
-.features .container {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-    grid-gap: 20px;
-}
-
-.feat {
-    padding: 20px;
-    text-align: center;
+/* Optional: Center the login box */
+.login-container {
     background: white;
-    transition: 0.3s;
-}
-
-.feat:hover {
-    transform: translateY(-10px);
-    box-shadow: 0 10px 20px rgba(0,0,0,0.1);
-}
-
-.feat i {
-    color: var(--main-color);
-    margin-bottom: 20px;
-}
-
-/* Media Queries for Mobile */
-@media (max-width: 767px) {
-    .main-nav {
-        display: none; /* Add a burger menu JS for mobile */
-    }
+    padding: 40px;
+    border-radius: 8px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    width: 100%;
+    max-width: 400px;
 }
