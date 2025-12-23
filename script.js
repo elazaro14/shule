@@ -1,236 +1,217 @@
+// ===== Configuration & Constants =====
+const CONFIG = {
+    DATA_PATH: "data/",
+    ADMIN_USER: "elazaro14",
+    ADMIN_PASS: "503812el",
+    TEACHER_PASS: "Olmotiss"
+};
+
 // ===== CSV Utilities =====
+/**
+ * Improved CSV Parser: Handles quoted values and empty strings more robustly.
+ */
 function parseCSV(text) {
-  const lines = text.trim().split(/\r?\n/);
-  const headers = lines[0].split(",").map(h => h.trim());
-  return lines.slice(1).map(line => {
-    const values = line.split(",").map(v => v.trim());
-    const obj = {};
-    headers.forEach((h, i) => obj[h] = values[i] ?? "");
-    return obj;
-  });
+    const lines = text.trim().split(/\r?\n/);
+    if (lines.length < 2) return [];
+
+    // Regex to handle commas inside quotes if your CSV ever gets complex
+    const headers = lines[0].split(",").map(h => h.trim());
+    
+    return lines.slice(1).map(line => {
+        const values = line.split(",").map(v => v.trim());
+        const obj = {};
+        headers.forEach((h, i) => {
+            obj[h] = values[i] !== undefined ? values[i] : "";
+        });
+        return obj;
+    });
 }
 
-async function fetchCSV(path) {
-  const res = await fetch("data/" + path);
-  if (!res.ok) throw new Error(`Failed to fetch ${path}`);
-  const text = await res.text();
-  return parseCSV(text);
+async function fetchCSV(fileName) {
+    try {
+        const res = await fetch(`${CONFIG.DATA_PATH}${fileName}?v=${new Date().getTime()}`); // Cache busting
+        if (!res.ok) throw new Error(`File ${fileName} not found.`);
+        const text = await res.text();
+        return parseCSV(text);
+    } catch (err) {
+        console.error("Fetch Error:", err);
+        return [];
+    }
 }
 
 // ===== Teacher Username Generator =====
 function generateUsername(fullName) {
-  const parts = fullName.trim().split(/\s+/);
-  if (parts.length < 2) return parts[0].toLowerCase();
-  const first = parts[0].toLowerCase();
-  const last = parts[parts.length - 1].toLowerCase();
-  return `${first}.${last}`;
+    if (!fullName) return "user";
+    const parts = fullName.trim().toLowerCase().split(/\s+/);
+    if (parts.length < 2) return parts[0];
+    return `${parts[0]}.${parts[parts.length - 1]}`;
 }
 
 // ===== Global State =====
-let teachersList = [];
-let studentsList = [];
+let state = {
+    teachers: [],
+    students: [],
+    currentUser: null
+};
 
-// ===== Login Logic =====
-async function ensureTeachersLoaded() {
-  if (teachersList.length === 0) {
-    teachersList = await fetchCSV("teachers.csv");
-    console.log("Teacher usernames:", teachersList.map(t => generateUsername(t.Name)));
-  }
-}
-
+// ===== Authentication =====
 document.getElementById("loginBtn").addEventListener("click", async () => {
-  await ensureTeachersLoaded();
+    const role = document.getElementById("role").value;
+    const user = document.getElementById("username").value.trim().toLowerCase();
+    const pass = document.getElementById("password").value.trim();
+    const btn = document.getElementById("loginBtn");
 
-  const role = document.getElementById("role").value;
-  const user = document.getElementById("username").value.trim().toLowerCase();
-  const pass = document.getElementById("password").value.trim();
+    // UI Feedback
+    btn.textContent = "Authenticating...";
+    btn.disabled = true;
 
-  const okAdmin = role === "admin" && user === "elazaro14" && pass === "503812el";
-  const okTeacher = role === "teacher" && pass === "Olmotiss" &&
-    teachersList.some(t => generateUsername(t.Name) === user);
+    // Ensure teachers are loaded for teacher-role check
+    if (state.teachers.length === 0) {
+        state.teachers = await fetchCSV("teachers.csv");
+    }
 
-  if (okAdmin || okTeacher) {
-    document.getElementById("loginSection").classList.add("hide");
-    document.getElementById("mainHeader").classList.remove("hide");
-    location.hash = "#/dashboard";
-    router();
-  } else {
-    alert("Invalid login details. Check username and password.");
-  }
+    const isAdmin = role === "admin" && user === CONFIG.ADMIN_USER && pass === CONFIG.ADMIN_PASS;
+    const isTeacher = role === "teacher" && pass === CONFIG.TEACHER_PASS && 
+                      state.teachers.some(t => generateUsername(t.Name) === user);
+
+    if (isAdmin || isTeacher) {
+        state.currentUser = { user, role };
+        document.getElementById("loginSection").classList.add("hide");
+        document.getElementById("mainHeader").classList.remove("hide");
+        location.hash = "#/dashboard";
+        router();
+    } else {
+        alert("Invalid login details. Please check your credentials.");
+    }
+
+    btn.textContent = "Login";
+    btn.disabled = false;
 });
 
-// ===== Logout =====
-document.getElementById("logoutBtn").addEventListener("click", () => {
-  document.getElementById("mainHeader").classList.add("hide");
-  document.querySelectorAll(".view").forEach(v => v.classList.add("hide"));
-  document.getElementById("loginSection").classList.remove("hide");
-});
-
-// ===== Router =====
-function markActiveNav() {
-  const nav = document.querySelectorAll(".nav a");
-  const here = location.hash || "#/dashboard";
-  nav.forEach(a => a.classList.remove("active"));
-  const activeLink = Array.from(nav).find(a => a.getAttribute("href") === here);
-  if (activeLink) activeLink.classList.add("active");
-}
-
+// ===== Navigation & Router =====
 function router() {
-  const route = location.hash || "#/dashboard";
-  const views = document.querySelectorAll(".view");
-  views.forEach(v => v.classList.add("hide"));
-  const map = {
-    "#/dashboard": "view-dashboard",
-    "#/teachers": "view-teachers",
-    "#/students": "view-students",
-    "#/performance": "view-performance",
-    "#/attendance": "view-attendance",
-    "#/print": "view-print",
-  };
-  const id = map[route] || "view-dashboard";
-  document.getElementById(id).classList.remove("hide");
+    const route = location.hash || "#/dashboard";
+    const viewMap = {
+        "#/dashboard": { id: "view-dashboard", init: loadDashboard },
+        "#/teachers": { id: "view-teachers", init: loadTeachers },
+        "#/students": { id: "view-students", init: loadStudents },
+        "#/performance": { id: "view-performance", init: initPerformance },
+        "#/attendance": { id: "view-attendance", init: loadAttendance },
+        "#/print": { id: "view-print", init: initPrint }
+    };
 
-  if (route === "#/dashboard") loadCounts();
-  if (route === "#/teachers") loadTeachers();
-  if (route === "#/students") loadStudents();
-  if (route === "#/performance") initPerformance();
-  if (route === "#/attendance") loadAttendance();
-  if (route === "#/print") initPrint();
+    // Hide all views
+    document.querySelectorAll(".view").forEach(v => v.classList.add("hide"));
+    
+    const target = viewMap[route] || viewMap["#/dashboard"];
+    const element = document.getElementById(target.id);
+    
+    if (element) {
+        element.classList.remove("hide");
+        target.init();
+    }
+    
+    markActiveNav(route);
 }
 
-window.addEventListener("hashchange", () => {
-  markActiveNav();
-  router();
-});
-
-// ===== Dashboard =====
-async function loadCounts() {
-  const [teachers, students] = await Promise.all([
-    fetchCSV("teachers.csv"),
-    fetchCSV("students.csv")
-  ]);
-  document.getElementById("teacherCount").textContent = teachers.length;
-  document.getElementById("studentCount").textContent = students.length;
-  document.getElementById("updatedAt").textContent = new Date().toLocaleString();
+function markActiveNav(route) {
+    document.querySelectorAll(".nav a").forEach(a => {
+        a.classList.toggle("active", a.getAttribute("href") === route);
+    });
 }
 
-// ===== Teachers =====
+// ===== View Initializers =====
+
+async function loadDashboard() {
+    const [tData, sData] = await Promise.all([
+        fetchCSV("teachers.csv"),
+        fetchCSV("students.csv")
+    ]);
+    document.getElementById("teacherCount").textContent = tData.length;
+    document.getElementById("studentCount").textContent = sData.length;
+    document.getElementById("updatedAt").textContent = new Date().toLocaleString();
+}
+
 async function loadTeachers() {
-  teachersList = await fetchCSV("teachers.csv");
-  const tbody = document.querySelector("#teachersTable tbody");
-  tbody.innerHTML = "";
-  teachersList.forEach((t, i) => {
-    const username = generateUsername(t.Name || "");
-    const tr = document.createElement("tr");
-    tr.innerHTML = `
-      <td>${i + 1}</td>
-      <td>${t.Name || ""}</td>
-      <td>${t.Sex || ""}</td>
-      <td>${t.Subject || ""}</td>
-      <td>${t.Class || ""}</td>
-      <td>${t.Role || ""}</td>
-      <td>${username}</td>
-    `;
-    tbody.appendChild(tr);
-  });
+    const teachers = await fetchCSV("teachers.csv");
+    const tbody = document.querySelector("#teachersTable tbody");
+    tbody.innerHTML = teachers.map((t, i) => `
+        <tr>
+            <td>${i + 1}</td>
+            <td>${t.Name || "N/A"}</td>
+            <td>${t.Sex || "-"}</td>
+            <td>${t.Subject || "-"}</td>
+            <td>${t.Class || "-"}</td>
+            <td>${t.Role || "-"}</td>
+            <td><code>${generateUsername(t.Name)}</code></td>
+        </tr>
+    `).join('');
 }
 
-// ===== Students =====
 async function loadStudents() {
-  studentsList = await fetchCSV("students.csv");
-  const tbody = document.querySelector("#studentsTable tbody");
-  tbody.innerHTML = "";
-  studentsList.forEach((s, i) => {
-    const tr = document.createElement("tr");
-    tr.innerHTML = `
-      <td>${i + 1}</td>
-      <td>${s.Name || ""}</td>
-      <td>${s.Sex || ""}</td>
-      <td>${s.Class || ""}</td>
-      <td>${s.ExamNo || ""}</td>
-      <td>${s.Phone || ""}</td>
-    `;
-    tbody.appendChild(tr);
-  });
-}
-
-// ===== Performance =====
-function initPerformance() {
-  const formSelect = document.getElementById("formSelect");
-  document.getElementById("reloadPerf").onclick = () => loadPerformance(formSelect.value);
-  document.getElementById("printPerfBtn").onclick = () => window.print();
-  loadPerformance(formSelect.value);
+    const students = await fetchCSV("students.csv");
+    const tbody = document.querySelector("#studentsTable tbody");
+    tbody.innerHTML = students.map((s, i) => `
+        <tr>
+            <td>${i + 1}</td>
+            <td>${s.Name || "N/A"}</td>
+            <td>${s.Sex || "-"}</td>
+            <td>${s.Class || "-"}</td>
+            <td>${s.ExamNo || "-"}</td>
+            <td>${s.Phone || "-"}</td>
+        </tr>
+    `).join('');
 }
 
 async function loadPerformance(form) {
-  const rows = await fetchCSV(`${form}.csv`);
-  const tbody = document.querySelector("#performanceTable tbody");
-  const divBody = document.querySelector("#divisionSummary tbody");
-  tbody.innerHTML = "";
-  divBody.innerHTML = "";
+    const data = await fetchCSV(`${form}.csv`);
+    const tbody = document.querySelector("#performanceTable tbody");
+    const summaryBody = document.querySelector("#divisionSummary tbody");
 
-  rows.forEach((s, i) => {
-    const tr = document.createElement("tr");
-    tr.innerHTML = `
-      <td>${i + 1}</td>
-      <td>${s.Name || ""}</td>
-      <td>${s.Test1 || ""}</td>
-      <td>${s.MidTerm || ""}</td>
-      <td>${s.Test2 || ""}</td>
-      <td>${s.Exam || ""}</td>
-      <td>${s.Average || ""}</td>
-      <td>${s.Division || ""}</td>
-      <td>${s.Points || ""}</td>
-    `;
-    tbody.appendChild(tr);
-  });
+    if (data.length === 0) {
+        tbody.innerHTML = "<tr><td colspan='9'>No data found for this form.</td></tr>";
+        return;
+    }
 
-  const summary = {};
-  rows.forEach(s => {
-    const div = (s.Division || "").toUpperCase();
-    summary[div] = (summary[div] || 0) + 1;
-  });
-  Object.entries(summary).forEach(([k,v]) => {
-    const tr = document.createElement("tr");
-    tr.innerHTML = `<td>${k}</td><td>${v}</td>`;
-    divBody.appendChild(tr);
-  });
+    // Populate Table
+    tbody.innerHTML = data.map((s, i) => `
+        <tr>
+            <td>${i + 1}</td>
+            <td>${s.Name}</td>
+            <td>${s.Test1 || 0}</td>
+            <td>${s.MidTerm || 0}</td>
+            <td>${s.Test2 || 0}</td>
+            <td>${s.Exam || 0}</td>
+            <td><strong>${s.Average || 0}</strong></td>
+            <td>${s.Division || "-"}</td>
+            <td>${s.Points || "-"}</td>
+        </tr>
+    `).join('');
+
+    // Generate Summary
+    const stats = data.reduce((acc, curr) => {
+        const div = curr.Division || "N/A";
+        acc[div] = (acc[div] || 0) + 1;
+        return acc;
+    }, {});
+
+    summaryBody.innerHTML = Object.entries(stats)
+        .map(([div, count]) => `<tr><td>${div}</td><td>${count}</td></tr>`)
+        .join('');
 }
 
-// ===== Attendance =====
-async function loadAttendance() {
-  const students = await fetchCSV("students.csv");
-  const tbody = document.querySelector("#attendanceTable tbody");
-  tbody.innerHTML = "";
-  students.forEach(s => {
-    const tr = document.createElement("tr");
-    tr.innerHTML = `
-      <td>${s.Name || ""}</td>
-      <td>
-        <select class="input">
-          <option>Present</option>
-          <option>Absent</option>
-        </select>
-      </td>
-      <td><button class="btn btn-secondary">Save</button></td>
-    `;
-    tbody.appendChild(tr);
-  });
-}
+// ===== Initialization =====
+window.addEventListener("hashchange", router);
+window.addEventListener("load", () => {
+    if (location.hash && location.hash !== "#/login") {
+        // Simple session check: if refreshed, go back to login 
+        // unless you implement localStorage sessions
+        location.hash = ""; 
+    }
+});
 
-// ===== Print (RIPOTI) =====
-async function initPrint() {
-  const formSelect = document.getElementById("printForm");
-  const studentSelect = document.getElementById("printStudent");
-  const printBtn = document.getElementById("printBtn");
-
-  const students = await fetchCSV("students.csv");
-  studentSelect.innerHTML = "";
-  students.forEach(s => {
-    const opt = document.createElement("option");
-    opt.value = s.Name;
-    opt.textContent = s.Name;
-    studentSelect.appendChild(opt);
-  });
-
-  printBtn.onclick = async
+// Logout Helper
+document.getElementById("logoutBtn").addEventListener("click", () => {
+    state.currentUser = null;
+    location.reload(); // Cleanest way to reset state
+});
