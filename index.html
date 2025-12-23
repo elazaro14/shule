@@ -1,58 +1,26 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Shule | Education for All</title>
-    <link rel="stylesheet" href="css/style.css">
-    <link rel="stylesheet" href="css/normalize.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-</head>
-<body>
-    <header>
-        <div class="container">
-            <a href="#" class="logo">SHULE</a>
-            <nav>
-                <ul class="main-nav">
-                    <li><a href="#features">Features</a></li>
-                    <li><a href="#services">Services</a></li>
-                    <li><a href="#portfolio">Gallery</a></li>
-                    <li><a href="#about">About</a></li>
-                    <li><a href="#contact">Contact</a></li>
-                </ul>
-            </nav>
-        </div>
-    </header>
+<section id="loginSection">
+    <div class="login-container">
+        <h2>Shule Login</h2>
+        <select id="role" class="input">
+            <option value="admin">Admin</option>
+            <option value="teacher">Teacher</option>
+        </select>
+        <input type="text" id="username" placeholder="Username" class="input">
+        <input type="password" id="password" placeholder="Password" class="input">
+        <button id="loginBtn" class="btn">Login</button>
+    </div>
+</section>
 
-    <section class="landing">
-        <div class="intro-text">
-            <h1>Welcome to Shule</h1>
-            <p>Empowering the next generation through digital learning and modern educational tools.</p>
-        </div>
-    </section>
+<header id="mainHeader" class="hide">
+    <nav class="nav">
+        <a href="#/dashboard">Dashboard</a>
+        <a href="#/teachers">Teachers</a>
+        <a href="#/students">Students</a>
+        <button id="logoutBtn">Logout</button>
+    </nav>
+</header>
 
-    <section class="features" id="features">
-        <div class="container">
-            <div class="feat">
-                <i class="fas fa-magic fa-3x"></i>
-                <h3>Innovative Learning</h3>
-                <p>Modern methodologies tailored for student success in the digital age.</p>
-            </div>
-            <div class="feat">
-                <i class="far fa-gem fa-3x"></i>
-                <h3>Quality Education</h3>
-                <p>We provide high-standard curriculum certified by global experts.</p>
-            </div>
-            <div class="feat">
-                <i class="fas fa-globe-africa fa-3x"></i>
-                <h3>Global Reach</h3>
-                <p>Access our resources from anywhere in the world, anytime.</p>
-            </div>
-        </div>
-    </section>
-
-    <footer>
-        &copy; 2024 <span>Shule</span> All Rights Reserved
-    </footer>
-</body>
-</html>
+<main id="mainContent" class="hide">
+    <section id="view-dashboard" class="view hide">...</section>
+    <section id="view-teachers" class="view hide">...</section>
+    </main>
