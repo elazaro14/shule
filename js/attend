@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Attendance — Olmoti Secondary</title>
+  <link rel="stylesheet" href="styles.css" />
+  <script defer src="js/main.js"></script>
+  <script type="module">
+    import { fetchCSV } from './js/utils.js';
+    async function loadAttendance() {
+      try {
+        const students = await fetchCSV('data/students.csv');
+        const tbody = document.querySelector('#attendanceTable tbody');
+        tbody.innerHTML = '';
+        students.forEach(s => {
+          const tr = document.createElement('tr');
+          tr.innerHTML = `
+            <td>${s.Name || ''}</td>
+            <td>
+              <select class="input">
+                <option>Present</option>
+                <option>Absent</option>
+              </select>
+            </td>
+            <td><button class="btn btn-secondary">Save</button></td>
+          `;
+          tbody.appendChild(tr);
+        });
+      } catch (e) {
+        console.warn('loadAttendance:', e.message);
+      }
+    }
+    document.addEventListener('DOMContentLoaded', loadAttendance);
+  </script>
+</head>
+<body>
+  <!-- Shared header -->
+  <header class="header">
+    <div class="header-inner container">
+      <div class="brand">
+        <img src="assets/logo.png" alt="School Logo" class="logo" />
+        <div>
+          <h1>OLMOTI SECONDARY SCHOOL</h1>
+          <p>Arusha City Council</p>
+        </div>
+      </div>
+      <nav class="nav">
+        <a href="index.html">Dashboard</a>
+        <a href="teachers.html">Teachers</a>
+        <a href="students.html">Students</a>
+        <a href="performance.html">Performance</a>
+        <a href="attendance.html">Attendance</a>
+        <a href="print.html">Print</a>
+      </nav>
+      <div class="actions">
+        <button id="toggleTheme" class="btn btn-ghost">Dark/Light</button>
+        <a class="btn btn-danger" href="index.html">Logout</a>
+      </div>
+    </div>
+  </header>
+
+  <main class="container">
+    <section class="card">
+      <h2>Student attendance</h2>
+      <table class="table" id="attendanceTable">
+        <caption>Mark attendance (local only)</caption>
+        <thead>
+          <tr>
+            <th>Student name</th><th>Status</th><th>Action</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+      <p class="hint">Note: On GitHub Pages, saving is UI-only without backend.</p>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <small>&copy; 2025 Olmoti Secondary School — Arusha</small>
+  </footer>
+</body>
+</html>
