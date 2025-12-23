@@ -4,12 +4,13 @@
   --success: #27ae60;
   --danger: #e74c3c;
   --bg: #f4f7f6;
+  --warning: #f39c12;
 }
 
 body { margin: 0; font-family: 'Roboto', sans-serif; background: var(--bg); color: #333; }
 .hide { display: none !important; }
 
-/* Improved Sign-In Card */
+/* Sign-In Card */
 .container { 
   height: 100vh; display: flex; align-items: center; justify-content: center; 
   background: linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.5)), url('https://images.unsplash.com/photo-1523050853064-8521e42218b3?auto=format&fit=crop&q=80');
@@ -19,26 +20,27 @@ body { margin: 0; font-family: 'Roboto', sans-serif; background: var(--bg); colo
   background: white; padding: 40px; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.2); 
   text-align: center; width: 380px; 
 }
-.login-header i { color: var(--primary); margin-bottom: 15px; }
 .login-header h1 { margin: 0; font-size: 24px; color: var(--secondary); }
 .input-group { position: relative; margin: 15px 0; }
-.input-group i { position: absolute; left: 12px; top: 14px; color: #999; }
 .input-group input { width: 100%; padding: 12px 12px 12px 35px; border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box; }
 #role, .login-btn { width: 100%; padding: 12px; border-radius: 6px; margin-top: 10px; border: 1px solid #ddd; }
 .login-btn { background: var(--primary); color: white; border: none; cursor: pointer; font-weight: bold; transition: 0.3s; }
-.login-btn:hover { background: #357abd; }
 
 /* Sidebar & Layout */
 #app { display: flex; height: 100vh; overflow: hidden; }
 .sidebar { width: 250px; background: var(--secondary); color: white; padding: 20px; display: flex; flex-direction: column; }
 .sidebar-brand { font-size: 22px; font-weight: bold; margin-bottom: 40px; text-align: center; color: var(--primary); }
-.sidebar ul { list-style: none; padding: 0; flex-grow: 1; }
-.sidebar li { padding: 12px 15px; cursor: pointer; border-radius: 6px; margin: 5px 0; display: flex; align-items: center; gap: 10px; transition: 0.2s; }
+.sidebar li { padding: 12px 15px; cursor: pointer; border-radius: 6px; margin: 5px 0; display: flex; align-items: center; gap: 10px; }
 .sidebar li:hover { background: rgba(255,255,255,0.1); }
-.logout-link { color: #ff7675; margin-top: auto; }
 
 .main { flex: 1; padding: 30px; overflow-y: auto; }
 .section { background: white; padding: 25px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); margin-bottom: 25px; }
+
+/* Roles & Buttons */
+.role-badge { background: #e3f2fd; color: var(--primary); padding: 4px 8px; border-radius: 4px; font-size: 0.85em; font-weight: bold; }
+.btn-edit { background: var(--warning); color: white; border: none; padding: 6px 10px; border-radius: 4px; cursor: pointer; }
+.btn-edit-mode { background: var(--warning) !important; }
+.btn-delete { background: var(--danger); color: white; border: none; padding: 6px 10px; border-radius: 4px; cursor: pointer; }
 
 /* Dashboard Cards */
 .cards { display: flex; gap: 20px; }
@@ -48,17 +50,11 @@ body { margin: 0; font-family: 'Roboto', sans-serif; background: var(--bg); colo
 
 /* Table Styles */
 .table { width: 100%; border-collapse: collapse; margin-top: 15px; }
-.table th { background: #f8f9fa; color: #666; text-transform: uppercase; font-size: 12px; padding: 12px; border-bottom: 2px solid #eee; text-align: left; }
+.table th { background: #f8f9fa; padding: 12px; border-bottom: 2px solid #eee; text-align: left; font-size: 13px; }
 .table td { padding: 12px; border-bottom: 1px solid #eee; }
-.score-input { background: #fffde7; border: 1px dashed #ffd54f !important; text-align: center; font-weight: bold; }
-
-/* Buttons */
-.btn-primary { background: var(--primary); color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; }
-.btn-save { background: var(--success); color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; }
-.btn-print { background: var(--secondary); color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; }
+.score-input { background: #fffde7; border: 1px dashed #ffd54f !important; text-align: center; }
 
 @media print {
-  .sidebar, .action-bar { display: none !important; }
+  .sidebar, .action-bar, .btn-edit, .btn-delete { display: none !important; }
   .main { padding: 0; }
-  .section { box-shadow: none; border: 1px solid #eee; }
 }
