@@ -1,293 +1,98 @@
-const admin = { username: "elazaro14", password: "503812el" };
-const LS = "shule_data";
-let data = JSON.parse(localStorage.getItem(LS)) || { teachers: [], students: [], scores: [], attendance: [] };
-let currentRole = null;
-let currentTeacher = null;
-
-function login(e) {
-  e.preventDefault();
-  const username = document.getElementById("username").value.trim();
-  const password = document.getElementById("password").value.trim();
-  const role = document.getElementById("role").value;
-
-  if (role === "admin" && username === admin.username && password === admin.password) {
-    currentRole = "admin";
-    startApp();
-  } else if (role === "teacher") {
-    const teacher = data.teachers.find(t => t.username === username && t.password === password);
-    if (teacher) {
-      currentRole = "teacher";
-      currentTeacher = teacher;
-      startApp();
-    } else {
-      alert("Invalid teacher username or password");
-    }
-  } else {
-    alert("Invalid credentials");
-  }
-}
-
-function startApp() {
-  document.getElementById("loginScreen").style.display = "none";
-  document.getElementById("app").style.display = "flex";
-  document.getElementById("adminMenu").style.display = currentRole === "admin" ? "block" : "none";
-
-  renderTeachers();
-  renderStudents();
-  updateDashboard();
-
-  if (currentRole === "teacher") {
-    const subject = currentTeacher.subjects[0] || "Unknown";
-    document.getElementById("teacherSubjectHeader").textContent = subject.toUpperCase();
-    document.getElementById("teacherAssignedClass").textContent = currentTeacher.assignedClass;
-    loadTeacherReport(currentTeacher);
-    showPanel('teacherToolsPanel');
-  } else {
-    showPanel('dashboard');
-  }
-}
-
-function loadTeacherReport(teacher) {
-  const assignedClass = teacher.assignedClass;
-  const isClassTeacher = teacher.roles.includes("Class Teacher");
-  document.getElementById("attendanceSection").style.display = isClassTeacher ? "block" : "none";
-
-  const classStudents = data.students.filter(s => s.sclass === assignedClass);
-
-  const tbody = document.querySelector("#subjectReportTable tbody");
-  tbody.innerHTML = "";
-  classStudents.forEach((s, i) => {
-    const rowId = `row-${i}`;
-    tbody.innerHTML += `<tr id="${rowId}">
-      <td>${i + 1}</td>
-      <td>${s.name.toUpperCase()}</td>
-      <td contenteditable="true" class="score-input"></td>
-      <td contenteditable="true" class="score-input"></td>
-      <td contenteditable="true" class="score-input"></td>
-      <td contenteditable="true" class="score-input"></td>
-      <td class="average">0</td>
-      <td class="grade">F</td>
-    </tr>`;
-  });
-
-  // Attach input listeners for auto-calculation
-  document.querySelectorAll(".score-input").forEach(cell => {
-    cell.addEventListener("input", function() {
-      calculateRowAverage(this.closest("tr"));
-    });
-  });
-
-  if (isClassTeacher) {
-    const attTbody = document.querySelector("#attendanceTable tbody");
-    attTbody.innerHTML = "";
-    classStudents.forEach(s => {
-      attTbody.innerHTML += `<tr>
-        <td>${s.name}</td>
-        <td>
-          <select id="att-${s.name}">
-            <option value="Present">Present</option>
-            <option value="Absent">Absent</option>
-            <option value="Permitted">Permitted</option>
-            <option value="Sick">Sick</option>
-          </select>
-        </td>
-        <td><button onclick="saveAttendance('${s.name}')">Save</button></td>
-      </tr>`;
-    });
-  }
-}
-
-function calculateRowAverage(row) {
-  const inputs = row.querySelectorAll(".score-input");
-  let sum = 0;
-  let count = 0;
-
-  inputs.forEach(input => {
-    const val = parseFloat(input.textContent.trim());
-    if (!isNaN(val) && val >= 0 && val <= 100) {
-      sum += val;
-      count++;
-    }
-  });
-
-  const average = count > 0 ? Math.round(sum / count) : 0;
-  row.querySelector(".average").textContent = average;
-
-  let grade = "F";
-  if (average >= 75) grade = "A";
-  else if (average >= 65) grade = "B";
-  else if (average >= 45) grade = "C";
-  else if (average >= 30) grade = "D";
-
-  row.querySelector(".grade").textContent = grade;
-}
-
-function printReport() {
-  window.print();
-}
-
-function createTeacher(e) {
-  e.preventDefault();
-  const name = document.getElementById("teacherName").value.trim();
-  const sex = document.getElementById("teacherSex").value;
-  const subjects = Array.from(document.getElementById("teacherSubjects").selectedOptions).map(o => o.value);
-  const assignedClass = document.getElementById("teacherClass").value;
-  const isClassTeacher = document.getElementById("roleClassTeacher").checked;
-  const isSubjectTeacher = document.getElementById("roleSubjectTeacher").checked;
-
-  if (!name || !sex || subjects.length === 0 || !assignedClass) {
-    alert("Fill all required fields");
-    return;
-  }
-
-  const parts = name.split(" ");
-  const first = parts[0].toLowerCase();
-  const last = parts[parts.length - 1].toLowerCase();
-  let username = `${first}.${last}`;
-  let i = 1;
-  while (data.teachers.some(t => t.username === username)) {
-    username = `${first}.${last}${i++}`;
-  }
-
-  const roles = [];
-  if (isClassTeacher) roles.push("Class Teacher");
-  if (isSubjectTeacher) roles.push("Subject Teacher");
-
-  data.teachers.push({ name, sex, subjects, assignedClass, roles, username, password: "Olmotiss" });
-  saveData();
-  renderTeachers();
-  updateDashboard();
-  e.target.reset();
-  alert(`Teacher added! Username: ${username} | Password: Olmotiss`);
-}
-
-function createStudent(e) {
-  e.preventDefault();
-  const name = document.getElementById("studentName").value.trim();
-  const sex = document.getElementById("studentSex").value;
-  const sclass = document.getElementById("studentClass").value;
-
-  if (!name || !sex || !sclass) {
-    alert("Fill all required fields");
-    return;
-  }
-
-  data.students.push({ name, sex, sclass });
-  saveData();
-  renderStudents();
-  updateDashboard();
-  e.target.reset();
-  alert("Student added!");
-}
-
-function renderTeachers() {
-  const tbody = document.querySelector("#teacherTable tbody");
-  tbody.innerHTML = "";
-  data.teachers.forEach((t, index) => {
-    tbody.innerHTML += `<tr>
-      <td>${t.name}</td>
-      <td>${t.sex}</td>
-      <td>${t.subjects.join(", ")}</td>
-      <td>${t.assignedClass}</td>
-      <td>${t.roles.join(", ")}</td>
-      <td>${t.username}</td>
-      <td>${t.password}</td>
-      <td>
-        <button onclick="editTeacher(${index})" class="btn-edit">Edit</button>
-        <button onclick="deleteTeacher(${index})" class="btn-delete">Delete</button>
-      </td>
-    </tr>`;
+// Utility: parse CSV text into array of objects
+function parseCSV(text) {
+  const lines = text.trim().split("\n");
+  const headers = lines[0].split(",");
+  return lines.slice(1).map(line => {
+    const values = line.split(",");
+    let obj = {};
+    headers.forEach((h, i) => obj[h.trim()] = values[i]?.trim());
+    return obj;
   });
 }
 
-function renderStudents() {
-  const tbody = document.querySelector("#studentTable tbody");
-  tbody.innerHTML = "";
-  data.students.forEach((s, index) => {
-    tbody.innerHTML += `<tr>
-      <td>${s.name}</td>
-      <td>${s.sex}</td>
-      <td>${s.sclass}</td>
-      <td>
-        <button onclick="editStudent(${index})" class="btn-edit">Edit</button>
-        <button onclick="deleteStudent(${index})" class="btn-delete">Delete</button>
-      </td>
-    </tr>`;
+// ---------------- PERFORMANCE REPORTS ----------------
+async function loadPerformance(form) {
+  const response = await fetch(`data/${form}.csv`);
+  const text = await response.text();
+  const students = parseCSV(text);
+
+  const table = document.getElementById("performanceTable");
+  students.forEach((s, i) => {
+    const row = table.insertRow();
+    row.innerHTML = `
+      <td>${i+1}</td>
+      <td>${s.Name || ""}</td>
+      <td>${s.Test1 || ""}</td>
+      <td>${s.MidTerm || ""}</td>
+      <td>${s.Test2 || ""}</td>
+      <td>${s.Exam || ""}</td>
+      <td>${s.Average || ""}</td>
+      <td>${s.Division || ""}</td>
+    `;
+  });
+
+  // Division Summary
+  const summary = { I:0, II:0, III:0, IV:0, "0":0, F:0, M:0, TOTAL:students.length };
+  students.forEach(s => {
+    if (summary[s.Division] !== undefined) summary[s.Division]++;
+  });
+  const divTable = document.getElementById("divisionSummary");
+  Object.keys(summary).forEach(key => {
+    const row = divTable.insertRow();
+    row.innerHTML = `<td>${key}</td><td>${summary[key]}</td>`;
   });
 }
 
-function deleteTeacher(index) {
-  if (confirm("Delete this teacher?")) {
-    data.teachers.splice(index, 1);
-    saveData();
-    renderTeachers();
-    updateDashboard();
-  }
+// ---------------- TEACHERS ----------------
+async function loadTeachers() {
+  const response = await fetch('data/teachers.csv');
+  const text = await response.text();
+  const teachers = parseCSV(text);
+
+  const table = document.getElementById("teachersTable");
+  teachers.forEach((t, i) => {
+    const row = table.insertRow();
+    row.innerHTML = `
+      <td>${i+1}</td>
+      <td>${t.Name || ""}</td>
+      <td>${t.Subject || ""}</td>
+      <td>${t.Class || ""}</td>
+    `;
+  });
 }
 
-function deleteStudent(index) {
-  if (confirm("Delete this student?")) {
-    data.students.splice(index, 1);
-    saveData();
-    renderStudents();
-    updateDashboard();
-  }
+// ---------------- STUDENTS ----------------
+async function loadStudents() {
+  const response = await fetch('data/students.csv');
+  const text = await response.text();
+  const students = parseCSV(text);
+
+  const table = document.getElementById("studentsTable");
+  students.forEach((s, i) => {
+    const row = table.insertRow();
+    row.innerHTML = `
+      <td>${i+1}</td>
+      <td>${s.Name || ""}</td>
+      <td>${s.Sex || ""}</td>
+      <td>${s.Class || ""}</td>
+    `;
+  });
+
+  // Attendance table
+  const attTable = document.getElementById("attendanceTable");
+  students.forEach((s, i) => {
+    const row = attTable.insertRow();
+    row.innerHTML = `
+      <td>${s.Name || ""}</td>
+      <td><select><option>Present</option><option>Absent</option></select></td>
+      <td><button>Save</button></td>
+    `;
+  });
 }
 
-function editTeacher(index) {
-  const t = data.teachers[index];
-  const newName = prompt("Edit Name:", t.name);
-  if (newName !== null) t.name = newName;
-  const newSex = prompt("Edit Sex:", t.sex);
-  if (newSex !== null) t.sex = newSex;
-  saveData();
-  renderTeachers();
-}
-
-function editStudent(index) {
-  const s = data.students[index];
-  const newName = prompt("Edit Name:", s.name);
-  if (newName !== null) s.name = newName;
-  const newSex = prompt("Edit Sex:", s.sex);
-  if (newSex !== null) s.sex = newSex;
-  const newClass = prompt("Edit Class:", s.sclass);
-  if (newClass !== null) s.sclass = newClass;
-  saveData();
-  renderStudents();
-}
-
-function saveAttendance(studentName) {
-  const status = document.getElementById(`att-${studentName}`).value;
-  data.attendance.push({ student: studentName, status, date: new Date().toLocaleDateString() });
-  saveData();
-  alert("Attendance saved!");
-}
-
-function updateDashboard() {
-  document.getElementById("totalTeachers").textContent = data.teachers.length;
-  document.getElementById("totalStudents").textContent = data.students.length;
-}
-
-function showPanel(id) {
-  document.querySelectorAll(".panel").forEach(p => p.style.display = "none");
-  document.getElementById(id).style.display = "block";
-}
-
-function saveData() {
-  localStorage.setItem(LS, JSON.stringify(data));
-}
-
-function toggleTheme() {
-  document.body.classList.toggle("dark-mode");
-}
-
-function logout() {
-  location.reload();
-}
-
-// Attach form listeners
-document.addEventListener("DOMContentLoaded", () => {
-  document.getElementById("loginForm").addEventListener("submit", login);
-  document.getElementById("teacherForm").addEventListener("submit", createTeacher);
-  document.getElementById("studentForm").addEventListener("submit", createStudent);
-});
+// ---------------- INITIAL LOAD ----------------
+loadPerformance("F1");
+loadPerformance("F2");
+loadPerformance("F3");
+loadTeachers();
+loadStudents();
