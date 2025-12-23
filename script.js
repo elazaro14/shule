@@ -3,7 +3,7 @@ let db = JSON.parse(localStorage.getItem(LS_KEY)) || { teachers: [], students: [
 
 const adminCreds = { user: "elazaro14", pass: "503812el" };
 let activeUser = null;
-let editIndex = null; // Track if we are editing a teacher
+let editIndex = null;
 
 // ===== LOGIN LOGIC =====
 document.getElementById("loginForm").addEventListener("submit", (e) => {
@@ -53,14 +53,11 @@ document.getElementById("teacherForm").addEventListener("submit", (e) => {
   };
 
   if (editIndex !== null) {
-    // Update existing record
     db.teachers[editIndex] = { ...db.teachers[editIndex], ...teacherData };
     editIndex = null;
     document.getElementById("teacherSubmitBtn").textContent = "Register & Assign";
-    document.getElementById("teacherSubmitBtn").classList.remove("btn-edit-mode");
     alert("Teacher record updated!");
   } else {
-    // Add new record
     const username = teacherData.name.toLowerCase().split(" ")[0] + "." + Math.floor(100 + Math.random() * 900);
     db.teachers.push({ ...teacherData, username, password: "Olmotiss" });
     alert(`Teacher Added! Username: ${username}`);
@@ -84,11 +81,8 @@ function prepareEditTeacher(index) {
   document.getElementById("roleClassTeacher").checked = t.isClassTeacher || false;
   document.getElementById("roleSubjectTeacher").checked = t.isSubjectTeacher || false;
 
-  const btn = document.getElementById("teacherSubmitBtn");
-  btn.textContent = "Update Teacher Details";
-  btn.classList.add("btn-edit-mode");
-  
-  document.getElementById("adminPanel").scrollIntoView();
+  document.getElementById("teacherSubmitBtn").textContent = "Update Teacher Details";
+  document.getElementById("adminPanel").scrollIntoView({ behavior: 'smooth' });
 }
 
 document.getElementById("studentForm").addEventListener("submit", (e) => {
@@ -103,7 +97,7 @@ document.getElementById("studentForm").addEventListener("submit", (e) => {
   e.target.reset();
 });
 
-// ===== TEACHER GRADING LOGIC =====
+// ===== TEACHER GRADING LOGIC (ENGLISH ONLY) =====
 function setupTeacherView() {
   document.getElementById("teacherSubjectHeader").textContent = activeUser.subjects.join(", ");
   document.getElementById("teacherAssignedClass").textContent = activeUser.assignedClass;
@@ -120,12 +114,12 @@ function setupTeacherView() {
     tr.innerHTML = `
       <td>${i + 1}</td>
       <td>${s.name.toUpperCase()}</td>
-      <td contenteditable="true" class="score-input">${perf.t1 || ''}</td>
-      <td contenteditable="true" class="score-input">${perf.mid || ''}</td>
-      <td contenteditable="true" class="score-input">${perf.t2 || ''}</td>
-      <td contenteditable="true" class="score-input">${perf.exam || ''}</td>
+      <td contenteditable="true" class="score-input test-input">${perf.test || ''}</td>
+      <td contenteditable="true" class="score-input exam-input">${perf.exam || ''}</td>
+      <td class="total-cell">0</td>
       <td class="avg-cell">0</td>
       <td class="grade-cell">F</td>
+      <td class="comment-cell">FAIL</td>
     `;
     tbody.appendChild(tr);
     
@@ -134,20 +128,29 @@ function setupTeacherView() {
     });
     calculateAvg(tr);
   });
-  
   showPanel('teacherToolsPanel');
 }
 
 function calculateAvg(row) {
-  const cells = row.querySelectorAll(".score-input");
-  let sum = 0, count = 0;
-  cells.forEach(c => {
-    const val = parseFloat(c.textContent);
-    if (!isNaN(val)) { sum += val; count++; }
-  });
-  const avg = count > 0 ? Math.round(sum / count) : 0;
-  row.querySelector(".avg-cell").textContent = avg;
-  row.querySelector(".grade-cell").textContent = avg >= 75 ? "A" : avg >= 65 ? "B" : avg >= 45 ? "C" : avg >= 30 ? "D" : "F";
+  const testScore = parseFloat(row.querySelector(".test-input").textContent) || 0;
+  const examScore = parseFloat(row.querySelector(".exam-input").textContent) || 0;
+  
+  const total = testScore + examScore;
+  const average = Math.round(total / 2);
+  
+  let grade = "F";
+  let comment = "FAIL";
+
+  if (total >= 75) { grade = "A"; comment = "EXCELLENT"; }
+  else if (total >= 65) { grade = "B"; comment = "GOOD"; }
+  else if (total >= 45) { grade = "C"; comment = "AVERAGE"; }
+  else if (total >= 30) { grade = "D"; comment = "SATISFACTORY"; }
+  else { grade = "F"; comment = "FAIL"; }
+
+  row.querySelector(".total-cell").textContent = total;
+  row.querySelector(".avg-cell").textContent = average;
+  row.querySelector(".grade-cell").textContent = grade;
+  row.querySelector(".comment-cell").textContent = comment;
 }
 
 function finalizeScores() {
@@ -160,15 +163,13 @@ function finalizeScores() {
     if (student) {
       if (!student.performance) student.performance = {};
       student.performance[subject] = {
-        t1: row.cells[2].textContent,
-        mid: row.cells[3].textContent,
-        t2: row.cells[4].textContent,
-        exam: row.cells[5].textContent
+        test: row.querySelector(".test-input").textContent,
+        exam: row.querySelector(".exam-input").textContent
       };
     }
   });
   saveData();
-  alert("Student records updated successfully!");
+  alert("Marks saved successfully!");
 }
 
 // ===== UTILITIES =====
