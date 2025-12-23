@@ -1,94 +1,229 @@
-function loadTeacherReport(teacher) {
-  const assignedClass = teacher.assignedClass;
-  // We assume teacher.subjects is an array, e.g., ["Mathematics"]
-  const primarySubject = teacher.subjects[0].toLowerCase();
+const LS_KEY = "olmoti_shule_data";
+let db = JSON.parse(localStorage.getItem(LS_KEY)) || { teachers: [], students: [] };
+
+const adminCreds = { user: "elazaro14", pass: "503812el" };
+let activeUser = null;
+let editIndex = null; // Track if we are editing a teacher
+
+// ===== LOGIN LOGIC =====
+document.getElementById("loginForm").addEventListener("submit", (e) => {
+  e.preventDefault();
+  const user = document.getElementById("username").value.trim();
+  const pass = document.getElementById("password").value.trim();
+  const role = document.getElementById("role").value;
+
+  if (role === "admin" && user === adminCreds.user && pass === adminCreds.pass) {
+    activeUser = { role: "admin", name: "Administrator" };
+    initApp();
+  } else if (role === "teacher") {
+    const found = db.teachers.find(t => t.username === user && t.password === pass);
+    if (found) {
+      activeUser = { role: "teacher", ...found };
+      initApp();
+    } else { alert("Invalid Teacher Credentials!"); }
+  } else { alert("Login failed. Check inputs."); }
+});
+
+function initApp() {
+  document.getElementById("loginScreen").classList.add("hide");
+  document.getElementById("app").style.display = "flex";
+  document.getElementById("adminMenu").style.display = activeUser.role === "admin" ? "block" : "none";
   
-  // 1. FILTERING LOGIC
-  // Both roles only see students in their 'assignedClass'
-  const classStudents = data.students.filter(s => s.sclass === assignedClass);
+  updateDashboard();
+  renderAdminTables();
+
+  if (activeUser.role === "teacher") {
+    setupTeacherView();
+  } else {
+    showPanel('dashboard');
+  }
+}
+
+// ===== ADMIN REGISTRATION & EDITING =====
+document.getElementById("teacherForm").addEventListener("submit", (e) => {
+  e.preventDefault();
   
+  const teacherData = {
+    name: document.getElementById("teacherName").value,
+    sex: document.getElementById("teacherSex").value,
+    assignedClass: document.getElementById("teacherClass").value,
+    subjects: Array.from(document.getElementById("teacherSubjects").selectedOptions).map(o => o.value),
+    isClassTeacher: document.getElementById("roleClassTeacher").checked,
+    isSubjectTeacher: document.getElementById("roleSubjectTeacher").checked
+  };
+
+  if (editIndex !== null) {
+    // Update existing record
+    db.teachers[editIndex] = { ...db.teachers[editIndex], ...teacherData };
+    editIndex = null;
+    document.getElementById("teacherSubmitBtn").textContent = "Register & Assign";
+    document.getElementById("teacherSubmitBtn").classList.remove("btn-edit-mode");
+    alert("Teacher record updated!");
+  } else {
+    // Add new record
+    const username = teacherData.name.toLowerCase().split(" ")[0] + "." + Math.floor(100 + Math.random() * 900);
+    db.teachers.push({ ...teacherData, username, password: "Olmotiss" });
+    alert(`Teacher Added! Username: ${username}`);
+  }
+  
+  saveAndRefresh();
+  e.target.reset();
+});
+
+function prepareEditTeacher(index) {
+  const t = db.teachers[index];
+  editIndex = index;
+  
+  document.getElementById("teacherName").value = t.name;
+  document.getElementById("teacherSex").value = t.sex;
+  document.getElementById("teacherClass").value = t.assignedClass;
+  
+  const select = document.getElementById("teacherSubjects");
+  Array.from(select.options).forEach(opt => opt.selected = t.subjects.includes(opt.value));
+
+  document.getElementById("roleClassTeacher").checked = t.isClassTeacher || false;
+  document.getElementById("roleSubjectTeacher").checked = t.isSubjectTeacher || false;
+
+  const btn = document.getElementById("teacherSubmitBtn");
+  btn.textContent = "Update Teacher Details";
+  btn.classList.add("btn-edit-mode");
+  
+  document.getElementById("adminPanel").scrollIntoView();
+}
+
+document.getElementById("studentForm").addEventListener("submit", (e) => {
+  e.preventDefault();
+  db.students.push({
+    name: document.getElementById("studentName").value,
+    sex: document.getElementById("studentSex").value,
+    sclass: document.getElementById("studentClass").value,
+    performance: {}
+  });
+  saveAndRefresh();
+  e.target.reset();
+});
+
+// ===== TEACHER GRADING LOGIC =====
+function setupTeacherView() {
+  document.getElementById("teacherSubjectHeader").textContent = activeUser.subjects.join(", ");
+  document.getElementById("teacherAssignedClass").textContent = activeUser.assignedClass;
+  
+  const classStudents = db.students.filter(s => s.sclass === activeUser.assignedClass);
   const tbody = document.querySelector("#subjectReportTable tbody");
-  const teacherHeader = document.getElementById("teacherSubjectHeader");
-  teacherHeader.textContent = primarySubject.toUpperCase();
   tbody.innerHTML = "";
 
   classStudents.forEach((s, i) => {
-    // Get saved scores for the specific subject the teacher teaches
-    const saved = (s.performance && s.performance[primarySubject]) ? s.performance[primarySubject] : {};
-
-    tbody.innerHTML += `
-      <tr>
-        <td>${i + 1}</td>
-        <td>${s.name.toUpperCase()}</td>
-        <td contenteditable="true" class="score-input">${saved.test1 || ""}</td>
-        <td contenteditable="true" class="score-input">${saved.midTerm || ""}</td>
-        <td contenteditable="true" class="score-input">${saved.test2 || ""}</td>
-        <td contenteditable="true" class="score-input">${saved.exam || ""}</td>
-        <td class="average">${saved.average || "0"}</td>
-        <td class="grade">${saved.grade || "F"}</td>
-      </tr>`;
-  });
-
-  // 2. CLASS TEACHER PRIVILEGE: Master Score Sheet Button
-  const isClassTeacher = teacher.roles.includes("Class Teacher");
-  const masterBtn = document.getElementById("generateMasterSheetBtn");
-  
-  if (isClassTeacher) {
-    masterBtn.style.display = "inline-block";
-  } else {
-    masterBtn.style.display = "none";
-  }
-
-  // Attach calculation listeners
-  document.querySelectorAll(".score-input").forEach(cell => {
-    cell.addEventListener("input", function() {
-      calculateRowAverage(this.closest("tr"));
-    });
-  });
-}
-
-// Function for Class Teachers to see ALL subjects for their class
-function generateMasterScoreSheet() {
-  const teacher = currentTeacher;
-  const className = teacher.assignedClass;
-  const classStudents = data.students.filter(s => s.sclass === className);
-  
-  // Get all unique subjects from all teachers to build table columns
-  const allSubjects = [...new Set(data.teachers.flatMap(t => t.subjects))];
-
-  let modalHTML = `
-    <div id="masterSheetModal" class="modal">
-      <div class="modal-content">
-        <span class="close" onclick="this.parentElement.parentElement.remove()">&times;</span>
-        <h2>Master Score Sheet - ${className}</h2>
-        <table class="table">
-          <thead>
-            <tr>
-              <th>Student Name</th>
-              ${allSubjects.map(sub => `<th>${sub} (Avg)</th>`).join('')}
-              <th>Overall Average</th>
-            </tr>
-          </thead>
-          <tbody>
-            ${classStudents.map(s => {
-              let totalAvg = 0;
-              let subCount = 0;
-              return `
-                <tr>
-                  <td>${s.name}</td>
-                  ${allSubjects.map(sub => {
-                    const score = s.performance && s.performance[sub.toLowerCase()] ? s.performance[sub.toLowerCase()].average : "-";
-                    if (score !== "-") { totalAvg += parseFloat(score); subCount++; }
-                    return `<td>${score}</td>`;
-                  }).join('')}
-                  <td>${subCount > 0 ? (totalAvg / subCount).toFixed(1) : "0"}</td>
-                </tr>`;
-            }).join('')}
-          </tbody>
-        </table>
-        <button onclick="window.print()" class="btn-success">Print Master Sheet</button>
-      </div>
-    </div>`;
+    const sub = activeUser.subjects[0].toLowerCase();
+    const perf = (s.performance && s.performance[sub]) ? s.performance[sub] : {};
     
-  document.body.insertAdjacentHTML('beforeend', modalHTML);
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+      <td>${i + 1}</td>
+      <td>${s.name.toUpperCase()}</td>
+      <td contenteditable="true" class="score-input">${perf.t1 || ''}</td>
+      <td contenteditable="true" class="score-input">${perf.mid || ''}</td>
+      <td contenteditable="true" class="score-input">${perf.t2 || ''}</td>
+      <td contenteditable="true" class="score-input">${perf.exam || ''}</td>
+      <td class="avg-cell">0</td>
+      <td class="grade-cell">F</td>
+    `;
+    tbody.appendChild(tr);
+    
+    tr.querySelectorAll(".score-input").forEach(cell => {
+      cell.addEventListener("input", () => calculateAvg(tr));
+    });
+    calculateAvg(tr);
+  });
+  
+  showPanel('teacherToolsPanel');
 }
+
+function calculateAvg(row) {
+  const cells = row.querySelectorAll(".score-input");
+  let sum = 0, count = 0;
+  cells.forEach(c => {
+    const val = parseFloat(c.textContent);
+    if (!isNaN(val)) { sum += val; count++; }
+  });
+  const avg = count > 0 ? Math.round(sum / count) : 0;
+  row.querySelector(".avg-cell").textContent = avg;
+  row.querySelector(".grade-cell").textContent = avg >= 75 ? "A" : avg >= 65 ? "B" : avg >= 45 ? "C" : avg >= 30 ? "D" : "F";
+}
+
+function finalizeScores() {
+  const rows = document.querySelectorAll("#subjectReportTable tbody tr");
+  const subject = activeUser.subjects[0].toLowerCase();
+
+  rows.forEach(row => {
+    const sName = row.cells[1].textContent;
+    const student = db.students.find(s => s.name.toUpperCase() === sName);
+    if (student) {
+      if (!student.performance) student.performance = {};
+      student.performance[subject] = {
+        t1: row.cells[2].textContent,
+        mid: row.cells[3].textContent,
+        t2: row.cells[4].textContent,
+        exam: row.cells[5].textContent
+      };
+    }
+  });
+  saveData();
+  alert("Student records updated successfully!");
+}
+
+// ===== UTILITIES =====
+function saveAndRefresh() {
+  saveData();
+  updateDashboard();
+  renderAdminTables();
+}
+
+function saveData() { localStorage.setItem(LS_KEY, JSON.stringify(db)); }
+
+function renderAdminTables() {
+  const tBody = document.querySelector("#teacherTable tbody");
+  tBody.innerHTML = db.teachers.map((t, i) => {
+    const roles = [];
+    if (t.isClassTeacher) roles.push("Class");
+    if (t.isSubjectTeacher) roles.push("Subject");
+
+    return `
+    <tr>
+      <td>${t.name}</td>
+      <td>${t.subjects.join(", ")}</td>
+      <td>${t.assignedClass}</td>
+      <td><span class="role-badge">${roles.join(" / ")}</span></td>
+      <td><code>${t.username}</code></td>
+      <td>
+        <button onclick="prepareEditTeacher(${i})" class="btn-edit"><i class="fas fa-edit"></i></button>
+        <button onclick="deleteItem('teachers', ${i})" class="btn-delete"><i class="fas fa-trash"></i></button>
+      </td>
+    </tr>`;
+  }).join("");
+
+  const sBody = document.querySelector("#studentTable tbody");
+  sBody.innerHTML = db.students.map((s, i) => `
+    <tr><td>${s.name}</td><td>${s.sex}</td><td>${s.sclass}</td>
+    <td><button onclick="deleteItem('students', ${i})" class="btn-delete">Remove</button></td></tr>`).join("");
+}
+
+function deleteItem(type, index) {
+  if (confirm("Permanently delete this record?")) {
+    db[type].splice(index, 1);
+    saveAndRefresh();
+  }
+}
+
+function updateDashboard() {
+  document.getElementById("totalTeachers").textContent = db.teachers.length;
+  document.getElementById("totalStudents").textContent = db.students.length;
+}
+
+function showPanel(id) {
+  document.querySelectorAll(".panel").forEach(p => p.style.display = "none");
+  document.getElementById(id).style.display = "block";
+}
+
+function toggleTheme() { document.body.classList.toggle("dark-mode"); }
+function logout() { location.reload(); }
+function printReport() { window.print(); }
