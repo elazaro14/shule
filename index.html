@@ -1,178 +1,23 @@
-<!DOCTYPE html>
-<html lang="sw">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Shule ERP — Olmoti Secondary</title>
-  <link rel="stylesheet" href="styles.css" />
-</head>
-<body class="light">
-  <header class="topbar">
+<header class="header">
+  <div class="header-inner container">
     <div class="brand">
       <img src="assets/logo.png" alt="School Logo" class="logo" />
       <div>
-        <h1>SHULE YA SEKONDARI OLMOTI</h1>
-        <p>HALMASHAURI YA JIJI LA ARUSHA</p>
+        <h1>OLMOTI SECONDARY SCHOOL</h1>
+        <p>Arusha City Council</p>
       </div>
     </div>
+    <nav class="nav">
+      <a href="index.html">Dashboard</a>
+      <a href="teachers.html">Teachers</a>
+      <a href="students.html">Students</a>
+      <a href="performance.html">Performance</a>
+      <a href="attendance.html">Attendance</a>
+      <a href="print.html">Print</a>
+    </nav>
     <div class="actions">
-      <button id="toggleTheme" class="btn">Dark/Light</button>
-      <button id="logoutBtn" class="btn btn-danger">Ondoka</button>
+      <button id="toggleTheme" class="btn btn-ghost">Dark/Light</button>
+      <a class="btn btn-danger" href="index.html">Logout</a>
     </div>
-  </header>
-
-  <main>
-    <!-- Login -->
-    <section id="loginSection" class="card">
-      <h2>Ingia kwenye mfumo</h2>
-      <div class="grid-2">
-        <div>
-          <label for="role"><b>Nafasi:</b></label>
-          <select id="role">
-            <option value="admin">Administrator</option>
-            <option value="teacher">Mwalimu</option>
-          </select>
-        </div>
-        <div>
-          <label for="username"><b>Jina la mtumiaji:</b></label>
-          <input id="username" type="text" placeholder="Mfano: elazaro14 / Olmotiss" />
-        </div>
-        <div>
-          <label for="password"><b>Nenosiri:</b></label>
-          <input id="password" type="password" placeholder="••••••••" />
-        </div>
-        <div>
-          <button id="loginBtn" class="btn btn-primary">Ingia</button>
-        </div>
-      </div>
-      <p class="hint">Admin: elazaro14 / 503812el — Teacher: Olmotiss / 503812el</p>
-    </section>
-
-    <!-- Dashboard -->
-    <section id="dashboardSection" class="card hide">
-      <h2>Dashibodi</h2>
-      <div class="stats">
-        <div class="stat">
-          <b>Walimu</b>
-          <div id="teacherCount">0</div>
-        </div>
-        <div class="stat">
-          <b>Wanafunzi</b>
-          <div id="studentCount">0</div>
-        </div>
-      </div>
-
-      <nav class="tabs">
-        <button class="tab-btn" data-tab="adminSection">Usimamizi (Admin)</button>
-        <button class="tab-btn" data-tab="performanceSection">Taarifa za Utendaji</button>
-        <button class="tab-btn" data-tab="attendanceSection">Mahudhurio</button>
-        <button class="tab-btn" data-tab="printSection">Chapisho/Print</button>
-      </nav>
-    </section>
-
-    <!-- Admin management -->
-    <section id="adminSection" class="card hide">
-      <h2>Usimamizi wa walimu na wanafunzi</h2>
-
-      <h3>Walimu</h3>
-      <table class="table" id="teachersTable">
-        <thead>
-          <tr>
-            <th>S/N</th><th>Jina</th><th>Jinsia</th><th>Somu</th><th>KIDATO</th><th>Nafasi</th>
-          </tr>
-        </thead>
-        <tbody></tbody>
-      </table>
-
-      <h3>Wanafunzi</h3>
-      <table class="table" id="studentsTable">
-        <thead>
-          <tr>
-            <th>S/N</th><th>Jina</th><th>Jinsia</th><th>KIDATO</th><th>Namba ya Mtihani</th><th>Simu</th>
-          </tr>
-        </thead>
-        <tbody></tbody>
-      </table>
-    </section>
-
-    <!-- Performance reports -->
-    <section id="performanceSection" class="card hide">
-      <div class="flex-between">
-        <h2>Taarifa za Utendaji</h2>
-        <div>
-          <label for="formSelect"><b>Chagua Kidato:</b></label>
-          <select id="formSelect">
-            <option value="F1">Kidato cha Kwanza (F1)</option>
-            <option value="F2">Kidato cha Pili (F2)</option>
-            <option value="F3" selected>Kidato cha Tatu (F3)</option>
-          </select>
-          <button id="reloadPerf" class="btn">Pakia</button>
-        </div>
-      </div>
-
-      <table class="table" id="performanceTable">
-        <thead>
-          <tr>
-            <th>S/N</th><th>Jina la Mwanafunzi</th><th>Test 1</th><th>Mid Term</th><th>Test 2</th><th>Exam</th><th>Average</th><th>Division</th><th>Points</th>
-          </tr>
-        </thead>
-        <tbody></tbody>
-      </table>
-
-      <h3>Muhtasari wa Divisheni</h3>
-      <table class="table" id="divisionSummary">
-        <thead><tr><th>DIV</th><th>JUMLA</th></tr></thead>
-        <tbody></tbody>
-      </table>
-
-      <button id="printPerfBtn" class="btn btn-secondary">Chapisha (PDF)</button>
-    </section>
-
-    <!-- Attendance -->
-    <section id="attendanceSection" class="card hide">
-      <h2>Mahudhurio ya Wanafunzi</h2>
-      <table class="table" id="attendanceTable">
-        <thead>
-          <tr>
-            <th>Jina la Mwanafunzi</th><th>Hali</th><th>Tendo</th>
-          </tr>
-        </thead>
-        <tbody></tbody>
-      </table>
-    </section>
-
-    <!-- Print view (report card style) -->
-    <section id="printSection" class="card hide">
-      <h2>Chapisho / Print View</h2>
-      <p>Chagua Kidato na Mwanafunzi kisha bonyeza “Chapisha”.</p>
-      <div class="grid-3">
-        <div>
-          <label for="printForm"><b>Kidato:</b></label>
-          <select id="printForm">
-            <option value="F1">F1</option>
-            <option value="F2">F2</option>
-            <option value="F3">F3</option>
-          </select>
-        </div>
-        <div>
-          <label for="printStudent"><b>Mwanafunzi:</b></label>
-          <select id="printStudent"></select>
-        </div>
-        <div>
-          <button id="printBtn" class="btn btn-primary">Chapisha Ripoti</button>
-        </div>
-      </div>
-
-      <div id="printArea" class="print-area">
-        <!-- JS fills a single-student report with subjects and grades -->
-      </div>
-    </section>
-  </main>
-
-  <footer class="footer">
-    <small>&copy; 2025 Olmoti Secondary School — Arusha</small>
-  </footer>
-
-  <script src="js/app.js"></script>
-</body>
-</html>
+  </div>
+</header>
