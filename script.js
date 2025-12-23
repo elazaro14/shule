@@ -34,6 +34,7 @@ let studentsList = [];
 async function ensureTeachersLoaded() {
   if (teachersList.length === 0) {
     teachersList = await fetchCSV("teachers.csv");
+    console.log("Teacher usernames:", teachersList.map(t => generateUsername(t.Name)));
   }
 }
 
@@ -104,141 +105,117 @@ window.addEventListener("hashchange", () => {
 
 // ===== Dashboard =====
 async function loadCounts() {
-  try {
-    const [teachers, students] = await Promise.all([
-      fetchCSV("teachers.csv"),
-      fetchCSV("students.csv")
-    ]);
-    document.getElementById("teacherCount").textContent = teachers.length;
-    document.getElementById("studentCount").textContent = students.length;
-    document.getElementById("updatedAt").textContent = new Date().toLocaleString();
-  } catch (e) {
-    console.warn("Counts failed:", e.message);
-  }
+  const [teachers, students] = await Promise.all([
+    fetchCSV("teachers.csv"),
+    fetchCSV("students.csv")
+  ]);
+  document.getElementById("teacherCount").textContent = teachers.length;
+  document.getElementById("studentCount").textContent = students.length;
+  document.getElementById("updatedAt").textContent = new Date().toLocaleString();
 }
 
 // ===== Teachers =====
 async function loadTeachers() {
-  try {
-    teachersList = await fetchCSV("teachers.csv");
-    const tbody = document.querySelector("#teachersTable tbody");
-    tbody.innerHTML = "";
-    teachersList.forEach((t, i) => {
-      const username = generateUsername(t.Name || "");
-      const tr = document.createElement("tr");
-      tr.innerHTML = `
-        <td>${i + 1}</td>
-        <td>${t.Name || ""}</td>
-        <td>${t.Sex || ""}</td>
-        <td>${t.Subject || ""}</td>
-        <td>${t.Class || ""}</td>
-        <td>${t.Role || ""}</td>
-        <td>${username}</td>
-      `;
-      tbody.appendChild(tr);
-    });
-  } catch (e) {
-    console.warn("loadTeachers:", e.message);
-  }
+  teachersList = await fetchCSV("teachers.csv");
+  const tbody = document.querySelector("#teachersTable tbody");
+  tbody.innerHTML = "";
+  teachersList.forEach((t, i) => {
+    const username = generateUsername(t.Name || "");
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+      <td>${i + 1}</td>
+      <td>${t.Name || ""}</td>
+      <td>${t.Sex || ""}</td>
+      <td>${t.Subject || ""}</td>
+      <td>${t.Class || ""}</td>
+      <td>${t.Role || ""}</td>
+      <td>${username}</td>
+    `;
+    tbody.appendChild(tr);
+  });
 }
 
 // ===== Students =====
 async function loadStudents() {
-  try {
-    studentsList = await fetchCSV("students.csv");
-    const tbody = document.querySelector("#studentsTable tbody");
-    tbody.innerHTML = "";
-    studentsList.forEach((s, i) => {
-      const tr = document.createElement("tr");
-      tr.innerHTML = `
-        <td>${i + 1}</td>
-        <td>${s.Name || ""}</td>
-        <td>${s.Sex || ""}</td>
-        <td>${s.Class || ""}</td>
-        <td>${s.ExamNo || ""}</td>
-        <td>${s.Phone || ""}</td>
-      `;
-      tbody.appendChild(tr);
-    });
-  } catch (e) {
-    console.warn("loadStudents:", e.message);
-  }
+  studentsList = await fetchCSV("students.csv");
+  const tbody = document.querySelector("#studentsTable tbody");
+  tbody.innerHTML = "";
+  studentsList.forEach((s, i) => {
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+      <td>${i + 1}</td>
+      <td>${s.Name || ""}</td>
+      <td>${s.Sex || ""}</td>
+      <td>${s.Class || ""}</td>
+      <td>${s.ExamNo || ""}</td>
+      <td>${s.Phone || ""}</td>
+    `;
+    tbody.appendChild(tr);
+  });
 }
 
 // ===== Performance =====
 function initPerformance() {
   const formSelect = document.getElementById("formSelect");
-  const reloadPerf = document.getElementById("reloadPerf");
-  const printPerfBtn = document.getElementById("printPerfBtn");
-
-  reloadPerf.onclick = () => loadPerformance(formSelect.value);
-  printPerfBtn.onclick = () => window.print();
-
+  document.getElementById("reloadPerf").onclick = () => loadPerformance(formSelect.value);
+  document.getElementById("printPerfBtn").onclick = () => window.print();
   loadPerformance(formSelect.value);
 }
 
 async function loadPerformance(form) {
-  try {
-    const rows = await fetchCSV(`${form}.csv`);
-    const tbody = document.querySelector("#performanceTable tbody");
-    const divBody = document.querySelector("#divisionSummary tbody");
-    tbody.innerHTML = "";
-    divBody.innerHTML = "";
+  const rows = await fetchCSV(`${form}.csv`);
+  const tbody = document.querySelector("#performanceTable tbody");
+  const divBody = document.querySelector("#divisionSummary tbody");
+  tbody.innerHTML = "";
+  divBody.innerHTML = "";
 
-    rows.forEach((s, i) => {
-      const tr = document.createElement("tr");
-      tr.innerHTML = `
-        <td>${i + 1}</td>
-        <td>${s.Name || ""}</td>
-        <td>${s.Test1 || ""}</td>
-        <td>${s.MidTerm || ""}</td>
-        <td>${s.Test2 || ""}</td>
-        <td>${s.Exam || ""}</td>
-        <td>${s.Average || ""}</td>
-        <td>${s.Division || ""}</td>
-        <td>${s.Points || ""}</td>
-      `;
-      tbody.appendChild(tr);
-    });
+  rows.forEach((s, i) => {
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+      <td>${i + 1}</td>
+      <td>${s.Name || ""}</td>
+      <td>${s.Test1 || ""}</td>
+      <td>${s.MidTerm || ""}</td>
+      <td>${s.Test2 || ""}</td>
+      <td>${s.Exam || ""}</td>
+      <td>${s.Average || ""}</td>
+      <td>${s.Division || ""}</td>
+      <td>${s.Points || ""}</td>
+    `;
+    tbody.appendChild(tr);
+  });
 
-    const summary = {};
-    rows.forEach(s => {
-      const div = (s.Division || "").toUpperCase();
-      summary[div] = (summary[div] || 0) + 1;
-    });
-    Object.entries(summary).forEach(([k,v]) => {
-      const tr = document.createElement("tr");
-      tr.innerHTML = `<td>${k}</td><td>${v}</td>`;
-      divBody.appendChild(tr);
-    });
-  } catch (e) {
-    console.warn("loadPerformance:", e.message);
-  }
+  const summary = {};
+  rows.forEach(s => {
+    const div = (s.Division || "").toUpperCase();
+    summary[div] = (summary[div] || 0) + 1;
+  });
+  Object.entries(summary).forEach(([k,v]) => {
+    const tr = document.createElement("tr");
+    tr.innerHTML = `<td>${k}</td><td>${v}</td>`;
+    divBody.appendChild(tr);
+  });
 }
 
 // ===== Attendance =====
 async function loadAttendance() {
-  try {
-    const students = await fetchCSV("students.csv");
-    const tbody = document.querySelector("#attendanceTable tbody");
-    tbody.innerHTML = "";
-    students.forEach(s => {
-      const tr = document.createElement("tr");
-      tr.innerHTML = `
-        <td>${s.Name || ""}</td>
-        <td>
-          <select class="input">
-            <option>Present</option>
-            <option>Absent</option>
-          </select>
-        </td>
-        <td><button class="btn btn-secondary">Save</button></td>
-      `;
-      tbody.appendChild(tr);
-    });
-  } catch (e) {
-    console.warn("loadAttendance:", e.message);
-  }
+  const students = await fetchCSV("students.csv");
+  const tbody = document.querySelector("#attendanceTable tbody");
+  tbody.innerHTML = "";
+  students.forEach(s => {
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+      <td>${s.Name || ""}</td>
+      <td>
+        <select class="input">
+          <option>Present</option>
+          <option>Absent</option>
+        </select>
+      </td>
+      <td><button class="btn btn-secondary">Save</button></td>
+    `;
+    tbody.appendChild(tr);
+  });
 }
 
 // ===== Print (RIPOTI) =====
@@ -250,4 +227,10 @@ async function initPrint() {
   const students = await fetchCSV("students.csv");
   studentSelect.innerHTML = "";
   students.forEach(s => {
-    const opt = document.createElement
+    const opt = document.createElement("option");
+    opt.value = s.Name;
+    opt.textContent = s.Name;
+    studentSelect.appendChild(opt);
+  });
+
+  printBtn.onclick = async
