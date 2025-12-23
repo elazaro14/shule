@@ -1,75 +1,68 @@
-// ===== Global State =====
-let isLoggedIn = false;
-
-// ===== Login Logic =====
-document.getElementById("loginBtn").addEventListener("click", async () => {
-    const role = document.getElementById("role").value;
-    const user = document.getElementById("username").value.trim().toLowerCase();
-    const pass = document.getElementById("password").value.trim();
-
-    // Logic for Admin and Teacher
-    const isAdmin = role === "admin" && user === "elazaro14" && pass === "503812el";
-    
-    // For teachers, we fetch the CSV to verify the username
-    let teachers = await fetchCSV("teachers.csv");
-    const isTeacher = role === "teacher" && pass === "Olmotiss" && 
-                      teachers.some(t => generateUsername(t.Name) === user);
-
-    if (isAdmin || isTeacher) {
-        isLoggedIn = true;
-        
-        // 1. Hide Login
-        document.getElementById("loginSection").classList.add("hide");
-        
-        // 2. Show App
-        document.getElementById("mainHeader").classList.remove("hide");
-        document.getElementById("mainContent").classList.remove("hide");
-        
-        // 3. Enter App
-        location.hash = "#/dashboard";
-        router();
-    } else {
-        alert("Incorrect username or password.");
-    }
-});
-
-// ===== Router Protection =====
-function router() {
-    // If not logged in, force them back to the login screen
-    if (!isLoggedIn) {
-        document.getElementById("loginSection").classList.remove("hide");
-        document.getElementById("mainHeader").classList.add("hide");
-        document.getElementById("mainContent").classList.add("hide");
-        return;
-    }
-
-    const route = location.hash || "#/dashboard";
-    const views = document.querySelectorAll(".view");
-    views.forEach(v => v.classList.add("hide"));
-
-    const map = {
-        "#/dashboard": "view-dashboard",
-        "#/teachers": "view-teachers",
-        "#/students": "view-students",
-        "#/performance": "view-performance",
-        "#/attendance": "view-attendance",
-        "#/print": "view-print",
+// Function to save scores from the editable table to the global data object
+function finalizeScores() {
+  const tbody = document.querySelector("#subjectReportTable tbody");
+  const rows = tbody.querySelectorAll("tr");
+  const subject = document.getElementById("teacherSubjectHeader").textContent.toLowerCase();
+  
+  rows.forEach(row => {
+    const studentName = row.cells[1].textContent.trim();
+    const scores = {
+      test1: row.cells[2].textContent.trim(),
+      midTerm: row.cells[3].textContent.trim(),
+      test2: row.cells[4].textContent.trim(),
+      exam: row.cells[5].textContent.trim(),
+      average: row.cells[6].textContent.trim(),
+      grade: row.cells[7].textContent.trim(),
+      date: new Date().toLocaleDateString()
     };
 
-    const id = map[route] || "view-dashboard";
-    const targetView = document.getElementById(id);
-    if (targetView) targetView.classList.remove("hide");
+    // Find the student in the global data object
+    const studentIndex = data.students.findIndex(s => s.name.toUpperCase() === studentName.toUpperCase());
+    
+    if (studentIndex !== -1) {
+      // Initialize scores object if it doesn't exist
+      if (!data.students[studentIndex].performance) {
+        data.students[studentIndex].performance = {};
+      }
+      // Save scores under the specific subject
+      data.students[studentIndex].performance[subject] = scores;
+    }
+  });
 
-    // Run specific loaders
-    if (route === "#/dashboard") loadCounts();
-    if (route === "#/teachers") loadTeachers();
+  saveData(); // Commit to LocalStorage
+  alert("Scores for " + subject.toUpperCase() + " have been permanently saved!");
 }
 
-// ===== Logout =====
-document.getElementById("logoutBtn").addEventListener("click", () => {
-    isLoggedIn = false;
-    location.hash = ""; // Clear hash
-    location.reload();  // Hard refresh to lock the app again
-});
+// Update loadTeacherReport to retrieve existing scores if they exist
+function loadTeacherReport(teacher) {
+  const assignedClass = teacher.assignedClass;
+  const subject = teacher.subjects[0].toLowerCase();
+  const classStudents = data.students.filter(s => s.sclass === assignedClass);
 
-window.addEventListener("hashchange", router);
+  const tbody = document.querySelector("#subjectReportTable tbody");
+  tbody.innerHTML = "";
+
+  classStudents.forEach((s, i) => {
+    // Check if there are already saved scores for this subject
+    const saved = (s.performance && s.performance[subject]) ? s.performance[subject] : {};
+
+    tbody.innerHTML += `
+      <tr>
+        <td>${i + 1}</td>
+        <td>${s.name.toUpperCase()}</td>
+        <td contenteditable="true" class="score-input">${saved.test1 || ""}</td>
+        <td contenteditable="true" class="score-input">${saved.midTerm || ""}</td>
+        <td contenteditable="true" class="score-input">${saved.test2 || ""}</td>
+        <td contenteditable="true" class="score-input">${saved.exam || ""}</td>
+        <td class="average">${saved.average || "0"}</td>
+        <td class="grade">${saved.grade || "F"}</td>
+      </tr>`;
+  });
+
+  // Re-attach calculation listeners
+  document.querySelectorAll(".score-input").forEach(cell => {
+    cell.addEventListener("input", function() {
+      calculateRowAverage(this.closest("tr"));
+    });
+  });
+}
