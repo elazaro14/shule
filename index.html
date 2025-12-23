@@ -1,26 +1,8 @@
-<section id="loginSection">
-    <div class="login-container">
-        <h2>Shule Login</h2>
-        <select id="role" class="input">
-            <option value="admin">Admin</option>
-            <option value="teacher">Teacher</option>
-        </select>
-        <input type="text" id="username" placeholder="Username" class="input">
-        <input type="password" id="password" placeholder="Password" class="input">
-        <button id="loginBtn" class="btn">Login</button>
-    </div>
-</section>
-
-<header id="mainHeader" class="hide">
-    <nav class="nav">
-        <a href="#/dashboard">Dashboard</a>
-        <a href="#/teachers">Teachers</a>
-        <a href="#/students">Students</a>
-        <button id="logoutBtn">Logout</button>
-    </nav>
-</header>
-
-<main id="mainContent" class="hide">
-    <section id="view-dashboard" class="view hide">...</section>
-    <section id="view-teachers" class="view hide">...</section>
-    </main>
+<div class="section">
+  <button onclick="finalizeScores()" class="btn-success" style="background: #3498db; margin-right: 10px;">
+    <i class="fas fa-save"></i> Save Scores Permanently
+  </button>
+  <button onclick="printReport()" class="btn-success">
+    <i class="fas fa-print"></i> Print / Save as PDF
+  </button>
+</div>
