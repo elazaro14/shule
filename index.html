@@ -1,8 +1,168 @@
-<div class="section">
-  <button onclick="finalizeScores()" class="btn-success" style="background: #3498db; margin-right: 10px;">
-    <i class="fas fa-save"></i> Save Scores Permanently
-  </button>
-  <button onclick="printReport()" class="btn-success">
-    <i class="fas fa-print"></i> Print / Save as PDF
-  </button>
-</div>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Shule ERP - Olmoti Secondary School</title>
+  <link rel="stylesheet" href="style.css">
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+</head>
+<body>
+
+  <div id="loginScreen" class="container">
+    <div class="login-card">
+      <div class="login-header">
+        <i class="fas fa-school fa-3x"></i>
+        <h1>Shule ERP</h1>
+        <p>Olmoti Secondary School Management System</p>
+      </div>
+      <form id="loginForm">
+        <div class="input-group">
+          <i class="fas fa-user"></i>
+          <input type="text" id="username" placeholder="Username" required>
+        </div>
+        <div class="input-group">
+          <i class="fas fa-lock"></i>
+          <input type="password" id="password" placeholder="Password" required>
+        </div>
+        <select id="role" required>
+          <option value="">Select Your Role</option>
+          <option value="admin">Administrator</option>
+          <option value="teacher">Teacher</option>
+        </select>
+        <button type="submit" class="login-btn">Sign In</button>
+      </form>
+      <div class="login-footer">
+        <small>Admin: <strong>elazaro14</strong> | Teacher pass: <strong>Olmotiss</strong></small>
+      </div>
+    </div>
+  </div>
+
+  <div id="app" style="display:none;">
+    <div class="sidebar">
+      <div class="sidebar-brand">
+        <i class="fas fa-graduation-cap"></i> <span>SHULE ERP</span>
+      </div>
+      <ul>
+        <li onclick="showPanel('dashboard')"><i class="fas fa-chart-line"></i> Dashboard</li>
+        <li id="adminMenu" onclick="showPanel('adminPanel')"><i class="fas fa-user-shield"></i> Administration</li>
+        <li onclick="showPanel('teacherToolsPanel')"><i class="fas fa-pen-nib"></i> Grading & Reports</li>
+        <li onclick="logout()" class="logout-link"><i class="fas fa-sign-out-alt"></i> Logout</li>
+      </ul>
+      <div class="theme-toggle">
+        <button onclick="toggleTheme()"><i class="fas fa-moon"></i> Dark Mode</button>
+      </div>
+    </div>
+
+    <div class="main">
+      <div id="dashboard" class="panel">
+        <h2>System Overview</h2>
+        <div class="cards">
+          <div class="card-summary info">
+            <i class="fas fa-chalkboard-teacher fa-2x"></i>
+            <h3>Teachers</h3>
+            <p id="totalTeachers">0</p>
+          </div>
+          <div class="card-summary success">
+            <i class="fas fa-user-graduate fa-2x"></i>
+            <h3>Students</h3>
+            <p id="totalStudents">0</p>
+          </div>
+        </div>
+      </div>
+
+      <div id="adminPanel" class="panel" style="display:none;">
+        <div class="section">
+          <h3><i class="fas fa-plus-circle"></i> Teacher Registration & Assignment</h3>
+          <form id="teacherForm" class="form-grid">
+            <input type="text" id="teacherName" placeholder="Teacher Full Name" required>
+            <select id="teacherSex" required>
+              <option value="">Select Sex</option>
+              <option>Male</option>
+              <option>Female</option>
+            </select>
+            <select id="teacherClass" required>
+              <option value="">Assign Home Class</option>
+              <option>Form 1</option><option>Form 2</option><option>Form 3</option><option>Form 4</option>
+            </select>
+            <select id="teacherSubjects" multiple size="5" required>
+              <option>Mathematics</option><option>English</option><option>Kiswahili</option>
+              <option>Physics</option><option>Chemistry</option><option>Biology</option>
+              <option>History</option><option>Geography</option><option>Civics</option>
+            </select>
+            <div class="role-selection">
+              <label><input type="checkbox" id="roleClassTeacher"> Is Class Teacher?</label>
+              <label><input type="checkbox" id="roleSubjectTeacher" checked> Is Subject Teacher?</label>
+            </div>
+            <button type="submit" class="btn-primary">Register & Assign</button>
+          </form>
+          <table class="table" id="teacherTable">
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>Subject(s)</th>
+                <th>Assigned Class</th>
+                <th>User ID</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+
+        <div class="section">
+          <h3><i class="fas fa-user-plus"></i> Student Enrollment</h3>
+          <form id="studentForm" class="form-grid">
+            <input type="text" id="studentName" placeholder="Student Full Name" required>
+            <select id="studentSex" required>
+              <option value="">Select Sex</option><option>Male</option><option>Female</option>
+            </select>
+            <select id="studentClass" required>
+              <option value="">Enroll in Class</option>
+              <option>Form 1</option><option>Form 2</option><option>Form 3</option><option>Form 4</option>
+            </select>
+            <button type="submit" class="btn-primary">Enroll Student</button>
+          </form>
+          <table class="table" id="studentTable">
+            <thead>
+              <tr><th>Name</th><th>Sex</th><th>Current Class</th><th>Action</th></tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div id="teacherToolsPanel" class="panel" style="display:none;">
+        <div class="report-header">
+          <h1>OLMOTI SECONDARY SCHOOL</h1>
+          <h3>Academic Performance Entry</h3>
+          <p>Subject: <strong id="teacherSubjectHeader"></strong> | Class: <strong id="teacherAssignedClass"></strong></p>
+        </div>
+        <div class="section">
+          <table class="table" id="subjectReportTable">
+            <thead>
+              <tr>
+                <th>S/N</th>
+                <th>Student Name</th>
+                <th>Test 1</th>
+                <th>Mid Term</th>
+                <th>Test 2</th>
+                <th>Final Exam</th>
+                <th>Avg</th>
+                <th>Grade</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+          <div class="action-bar">
+            <button onclick="finalizeScores()" class="btn-save"><i class="fas fa-save"></i> Save Marks</button>
+            <button onclick="printReport()" class="btn-print"><i class="fas fa-print"></i> Generate Report</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <script src="script.js"></script>
+</body>
+</html>
