@@ -1,161 +1,128 @@
-const admin = { username: "elazaro14", password: "503812el" };
-const LS = "shule_data";
-let data = JSON.parse(localStorage.getItem(LS)) || { teachers: [], students: [], attendance: [] };
-let currentRole = null;
-let currentTeacher = null;
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Shule ERP - Olmoti Secondary School</title>
+  <link rel="stylesheet" href="style.css">
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+</head>
+<body>
 
-// ===== AUTHENTICATION =====
-function login(e) {
-  e.preventDefault();
-  const user = document.getElementById("username").value.trim();
-  const pass = document.getElementById("password").value.trim();
-  const role = document.getElementById("role").value;
+  <div id="loginScreen" class="container">
+    <div class="login-card">
+      <h1><i class="fas fa-school"></i> Shule ERP</h1>
+      <p>Welcome to Olmoti Secondary School</p>
+      <form id="loginForm">
+        <input type="text" id="username" placeholder="Username" required>
+        <input type="password" id="password" placeholder="Password" required>
+        <select id="role" required>
+          <option value="">Select Role</option>
+          <option value="admin">Administrator</option>
+          <option value="teacher">Teacher</option>
+        </select>
+        <button type="submit">Login</button>
+      </form>
+      <small>Admin: elazaro14 / 503812el | Teacher password: Olmotiss</small>
+    </div>
+  </div>
 
-  if (role === "admin" && user === admin.username && pass === admin.password) {
-    currentRole = "admin";
-    startApp();
-  } else if (role === "teacher") {
-    const teacher = data.teachers.find(t => t.username === user && t.password === pass);
-    if (teacher) {
-      currentRole = "teacher";
-      currentTeacher = teacher;
-      startApp();
-    } else { alert("Invalid teacher credentials"); }
-  } else { alert("Invalid credentials"); }
-}
+  <div id="app" style="display:none;">
+    <div class="sidebar">
+      <h2><i class="fas fa-graduation-cap"></i> Shule ERP</h2>
+      <ul>
+        <li onclick="showPanel('dashboard')"><i class="fas fa-tachometer-alt"></i> Dashboard</li>
+        <li id="adminMenu" onclick="showPanel('adminPanel')"><i class="fas fa-user-shield"></i> Admin</li>
+        <li onclick="showPanel('teacherToolsPanel')"><i class="fas fa-chalkboard-teacher"></i> Teacher Tools</li>
+        <li onclick="logout()"><i class="fas fa-sign-out-alt"></i> Logout</li>
+      </ul>
+      <div class="theme-toggle">
+        <button onclick="toggleTheme()"><i class="fas fa-moon"></i> Dark Mode</button>
+      </div>
+    </div>
 
-function startApp() {
-  document.getElementById("loginScreen").style.display = "none";
-  document.getElementById("app").style.display = "flex";
-  document.getElementById("adminMenu").style.display = currentRole === "admin" ? "block" : "none";
-  updateDashboard();
-  renderTeachers();
-  renderStudents();
+    <div class="main">
+      <div id="dashboard" class="panel">
+        <h2>Dashboard</h2>
+        <div class="cards">
+          <div class="card-summary"><h3>Teachers</h3><p id="totalTeachers">0</p></div>
+          <div class="card-summary"><h3>Students</h3><p id="totalStudents">0</p></div>
+        </div>
+      </div>
 
-  if (currentRole === "teacher") {
-    document.getElementById("teacherSubjectHeader").textContent = currentTeacher.subjects[0].toUpperCase();
-    document.getElementById("teacherAssignedClass").textContent = currentTeacher.assignedClass;
-    loadTeacherReport(currentTeacher);
-    showPanel('teacherToolsPanel');
-  } else { showPanel('dashboard'); }
-}
+      <div id="adminPanel" class="panel" style="display:none;">
+        <div class="section">
+          <h3>Register Teacher</h3>
+          <form id="teacherForm" class="form-grid">
+            <input type="text" id="teacherName" placeholder="Full Name" required>
+            <select id="teacherSex" required><option value="">Select Sex</option><option>Male</option><option>Female</option></select>
+            <select id="teacherSubjects" multiple size="6" required>
+              <option>Civics</option><option>History</option><option>Geography</option><option>Kiswahili</option>
+              <option>English</option><option>Physics</option><option>Chemistry</option><option>Biology</option>
+              <option>Mathematics</option><option>Historia na Maadili</option><option>Bookkeeping</option><option>Business Study</option>
+            </select>
+            <select id="teacherClass" required>
+              <option value="">Assign Class</option><option>Form 1</option><option>Form 2</option><option>Form 3</option><option>Form 4</option>
+            </select>
+            <div class="checkbox-group">
+              <label><input type="checkbox" id="roleClassTeacher"> Class Teacher</label>
+              <label><input type="checkbox" id="roleSubjectTeacher" checked> Subject Teacher</label>
+            </div>
+            <button type="submit">Add Teacher</button>
+          </form>
+          <h3>Registered Teachers</h3>
+          <table class="table" id="teacherTable">
+            <thead><tr><th>Name</th><th>Sex</th><th>Subjects</th><th>Class</th><th>Roles</th><th>Username</th><th>Password</th><th>Actions</th></tr></thead>
+            <tbody></tbody>
+          </table>
+        </div>
 
-// ===== PERMANENT SCORE SAVING =====
-function finalizeScores() {
-  const rows = document.querySelectorAll("#subjectReportTable tbody tr");
-  const subject = document.getElementById("teacherSubjectHeader").textContent.toLowerCase();
+        <div class="section">
+          <h3>Register Student</h3>
+          <form id="studentForm" class="form-grid">
+            <input type="text" id="studentName" placeholder="Full Name" required>
+            <select id="studentSex" required><option value="">Select Sex</option><option>Male</option><option>Female</option></select>
+            <select id="studentClass" required>
+              <option value="">Select Class</option><option>Form 1</option><option>Form 2</option><option>Form 3</option><option>Form 4</option>
+            </select>
+            <button type="submit">Add Student</button>
+          </form>
+          <h3>Registered Students</h3>
+          <table class="table" id="studentTable">
+            <thead><tr><th>Name</th><th>Sex</th><th>Class</th><th>Actions</th></tr></thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
 
-  rows.forEach(row => {
-    const studentName = row.cells[1].textContent.trim();
-    const scores = {
-      test1: row.cells[2].textContent,
-      midTerm: row.cells[3].textContent,
-      test2: row.cells[4].textContent,
-      exam: row.cells[5].textContent,
-      average: row.cells[6].textContent,
-      grade: row.cells[7].textContent
-    };
-
-    const student = data.students.find(s => s.name.toUpperCase() === studentName.toUpperCase());
-    if (student) {
-      if (!student.performance) student.performance = {};
-      student.performance[subject] = scores;
-    }
-  });
-
-  saveData();
-  alert("Scores saved successfully!");
-}
-
-function loadTeacherReport(teacher) {
-  const subject = teacher.subjects[0].toLowerCase();
-  const students = data.students.filter(s => s.sclass === teacher.assignedClass);
-  const tbody = document.querySelector("#subjectReportTable tbody");
-  tbody.innerHTML = "";
-
-  students.forEach((s, i) => {
-    const saved = (s.performance && s.performance[subject]) ? s.performance[subject] : {};
-    const tr = document.createElement("tr");
-    tr.innerHTML = `
-      <td>${i + 1}</td>
-      <td>${s.name.toUpperCase()}</td>
-      <td contenteditable="true" class="score-input">${saved.test1 || ""}</td>
-      <td contenteditable="true" class="score-input">${saved.midTerm || ""}</td>
-      <td contenteditable="true" class="score-input">${saved.test2 || ""}</td>
-      <td contenteditable="true" class="score-input">${saved.exam || ""}</td>
-      <td class="average">${saved.average || "0"}</td>
-      <td class="grade">${saved.grade || "F"}</td>
-    `;
-    tbody.appendChild(tr);
-    tr.querySelectorAll(".score-input").forEach(cell => {
-      cell.addEventListener("input", () => calculateRowAverage(tr));
-    });
-  });
-}
-
-function calculateRowAverage(row) {
-  const inputs = row.querySelectorAll(".score-input");
-  let sum = 0, count = 0;
-  inputs.forEach(input => {
-    const val = parseFloat(input.textContent);
-    if (!isNaN(val)) { sum += val; count++; }
-  });
-  const avg = count > 0 ? Math.round(sum / count) : 0;
-  row.querySelector(".average").textContent = avg;
-  row.querySelector(".grade").textContent = avg >= 75 ? "A" : avg >= 65 ? "B" : avg >= 45 ? "C" : avg >= 30 ? "D" : "F";
-}
-
-// ===== DATA MANAGEMENT =====
-function createTeacher(e) {
-  e.preventDefault();
-  const name = document.getElementById("teacherName").value;
-  const username = name.toLowerCase().split(" ").join(".");
-  data.teachers.push({
-    name, 
-    sex: document.getElementById("teacherSex").value,
-    subjects: Array.from(document.getElementById("teacherSubjects").selectedOptions).map(o => o.value),
-    assignedClass: document.getElementById("teacherClass").value,
-    roles: [document.getElementById("roleClassTeacher").checked ? "Class Teacher" : "Subject Teacher"],
-    username, password: "Olmotiss"
-  });
-  saveData(); renderTeachers(); updateDashboard(); e.target.reset();
-}
-
-function createStudent(e) {
-  e.preventDefault();
-  data.students.push({
-    name: document.getElementById("studentName").value,
-    sex: document.getElementById("studentSex").value,
-    sclass: document.getElementById("studentClass").value,
-    performance: {}
-  });
-  saveData(); renderStudents(); updateDashboard(); e.target.reset();
-}
-
-function renderTeachers() {
-  const tbody = document.querySelector("#teacherTable tbody");
-  tbody.innerHTML = data.teachers.map((t, i) => `
-    <tr><td>${t.name}</td><td>${t.sex}</td><td>${t.subjects.join(", ")}</td><td>${t.assignedClass}</td><td>${t.roles}</td><td>${t.username}</td><td>${t.password}</td>
-    <td><button onclick="deleteItem('teachers', ${i})" class="btn-delete">Delete</button></td></tr>`).join("");
-}
-
-function renderStudents() {
-  const tbody = document.querySelector("#studentTable tbody");
-  tbody.innerHTML = data.students.map((s, i) => `
-    <tr><td>${s.name}</td><td>${s.sex}</td><td>${s.sclass}</td>
-    <td><button onclick="deleteItem('students', ${i})" class="btn-delete">Delete</button></td></tr>`).join("");
-}
-
-function deleteItem(type, index) { if(confirm("Confirm delete?")) { data[type].splice(index, 1); saveData(); type === 'teachers' ? renderTeachers() : renderStudents(); updateDashboard(); } }
-function showPanel(id) { document.querySelectorAll(".panel").forEach(p => p.style.display = "none"); document.getElementById(id).style.display = "block"; }
-function saveData() { localStorage.setItem(LS, JSON.stringify(data)); }
-function updateDashboard() { document.getElementById("totalTeachers").textContent = data.teachers.length; document.getElementById("totalStudents").textContent = data.students.length; }
-function toggleTheme() { document.body.classList.toggle("dark-mode"); }
-function logout() { location.reload(); }
-function printReport() { window.print(); }
-
-document.addEventListener("DOMContentLoaded", () => {
-  document.getElementById("loginForm").addEventListener("submit", login);
-  document.getElementById("teacherForm").addEventListener("submit", createTeacher);
-  document.getElementById("studentForm").addEventListener("submit", createStudent);
-});
+      <div id="teacherToolsPanel" class="panel" style="display:none;">
+        <div class="report-header">
+          <h2>PRIME MINISTER OFFICE</h2>
+          <h3>REGIONAL ADMINISTRATION AND LOCAL GOVERNMENT AUTHORITIES</h3>
+          <h1>OLMOTI SECONDARY SCHOOL</h1>
+          <h2>Subject: <span id="teacherSubjectHeader"></span> - Class: <span id="teacherAssignedClass"></span></h2>
+        </div>
+        <div class="section">
+          <table class="table" id="subjectReportTable">
+            <thead><tr><th>S/N</th><th>NAME OF STUDENT</th><th>TEST 1</th><th>MID TERM</th><th>TEST 2</th><th>EXAM</th><th>AVERAGE</th><th>GRADE</th></tr></thead>
+            <tbody></tbody>
+          </table>
+          <div style="margin-top: 20px;">
+            <button onclick="finalizeScores()" class="btn-success" style="background: #3498db; margin-right: 10px;"><i class="fas fa-save"></i> Save Scores Permanently</button>
+            <button onclick="printReport()" class="btn-success"><i class="fas fa-print"></i> Print / Save as PDF</button>
+          </div>
+        </div>
+        <div class="section" id="attendanceSection" style="display:none;">
+          <h3>Take Attendance</h3>
+          <table class="table" id="attendanceTable">
+            <thead><tr><th>Student Name</th><th>Status</th><th>Action</th></tr></thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+  <script src="script.js"></script>
+</body>
+</html>
