@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Dashboard — Olmoti Secondary</title>
+  <link rel="stylesheet" href="styles.css" />
+  <script defer src="js/main.js"></script>
+</head>
+<body>
+  <!-- Shared header -->
+  <header class="header">
+    <div class="header-inner container">
+      <div class="brand">
+        <img src="assets/logo.png" alt="School Logo" class="logo" />
+        <div>
+          <h1>OLMOTI SECONDARY SCHOOL</h1>
+          <p>Arusha City Council</p>
+        </div>
+      </div>
+      <nav class="nav">
+        <a href="index.html">Dashboard</a>
+        <a href="teachers.html">Teachers</a>
+        <a href="students.html">Students</a>
+        <a href="performance.html">Performance</a>
+        <a href="attendance.html">Attendance</a>
+        <a href="print.html">Print</a>
+      </nav>
+      <div class="actions">
+        <button id="toggleTheme" class="btn btn-ghost">Dark/Light</button>
+        <a class="btn btn-danger" href="index.html">Logout</a>
+      </div>
+    </div>
+  </header>
+
+  <main class="container">
+    <section class="card">
+      <h2>Dashboard</h2>
+      <div class="statbar" id="statbar">
+        <div class="stat">
+          <b>Teachers</b>
+          <div class="value" id="teacherCount">0</div>
+        </div>
+        <div class="stat">
+          <b>Students</b>
+          <div class="value" id="studentCount">0</div>
+        </div>
+        <div class="stat">
+          <b>Latest dataset</b>
+          <div class="value" id="latestSet">F1–F4</div>
+        </div>
+        <div class="stat">
+          <b>Last updated</b>
+          <div class="value" id="updatedAt">—</div>
+        </div>
+      </div>
+    </section>
+
+    <section class="card">
+      <h3>Quick links</h3>
+      <div class="grid-3">
+        <a class="btn btn-primary" href="teachers.html">Manage Teachers</a>
+        <a class="btn btn-primary" href="students.html">Manage Students</a>
+        <a class="btn" href="performance.html">Performance Reports</a>
+        <a class="btn" href="attendance.html">Attendance</a>
+        <a class="btn" href="print.html">Print Reports (RIPOTI)</a>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <small>&copy; 2025 Olmoti Secondary School — Arusha</small>
+  </footer>
+
+  <script type="module">
+    import { fetchCSV } from './js/utils.js';
+
+    async function loadCounts() {
+      try {
+        const [teachers, students] = await Promise.all([
+          fetchCSV('data/teachers.csv'),
+          fetchCSV('data/students.csv')
+        ]);
+        document.getElementById('teacherCount').textContent = String(teachers.length);
+        document.getElementById('studentCount').textContent = String(students.length);
+        document.getElementById('updatedAt').textContent = new Date().toLocaleString();
+      } catch (e) {
+        console.warn('Counts failed:', e.message);
+      }
+    }
+    loadCounts();
+  </script>
+</body>
+</html>
