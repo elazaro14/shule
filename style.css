@@ -14,4 +14,4 @@ body { margin:0; font-family: Inter, system-ui; background: var(--bg); color: va
 .container { max-width: 1100px; margin: 24px auto; padding: 0 16px; }
 
 .header { background: #11172b; padding: 12px; display:flex; justify-content:space-between; align-items:center; }
-.nav a { margin:0 6px
+.nav a { margin:0 6px; color: var(--text); text-decoration:none; padding:6px 10px; border
