@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Shule ERP - Olmoti Secondary School</title>
   <link rel="stylesheet" href="style.css">
-  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 </head>
 <body>
@@ -15,118 +14,103 @@
       <div class="login-header">
         <i class="fas fa-school fa-3x"></i>
         <h1>Shule ERP</h1>
-        <p>Olmoti Secondary School Management</p>
+        <p>Olmoti Secondary School</p>
       </div>
       <form id="loginForm">
         <div class="input-group">
           <i class="fas fa-user"></i>
-          <input type="text" id="username" placeholder="Username" required>
+          <input type="text" id="username" placeholder="Username" required autocomplete="off">
         </div>
         <div class="input-group">
           <i class="fas fa-lock"></i>
-          <input type="password" id="password" placeholder="Password" required>
+          <input type="password" id="password" placeholder="Password" required autocomplete="off">
         </div>
         <select id="role" required>
-          <option value="">Select Your Role</option>
+          <option value="">-- Select Role --</option>
           <option value="admin">Administrator</option>
           <option value="teacher">Teacher</option>
         </select>
         <button type="submit" class="login-btn">Sign In</button>
       </form>
+      <div style="margin-top: 15px; font-size: 11px; color: #666;">
+        Admin: <b>elazaro14</b> | Pass: <b>503812el</b>
+      </div>
     </div>
   </div>
 
   <div id="app" style="display:none;">
     <div class="sidebar">
-      <div class="sidebar-brand">
-        <i class="fas fa-graduation-cap"></i> <span>SHULE ERP</span>
-      </div>
+      <div class="sidebar-brand">SHULE ERP</div>
       <ul>
-        <li onclick="showPanel('dashboard')"><i class="fas fa-chart-line"></i> Dashboard</li>
-        <li id="adminMenu" onclick="showPanel('adminPanel')"><i class="fas fa-user-shield"></i> Administration</li>
-        <li id="reportMenu" onclick="showPanel('adminReportPanel')"><i class="fas fa-file-invoice"></i> Report Cards</li>
-        <li onclick="showPanel('teacherToolsPanel')"><i class="fas fa-pen-nib"></i> Grading & Reports</li>
-        <li onclick="logout()" class="logout-link"><i class="fas fa-sign-out-alt"></i> Logout</li>
+        <li onclick="showPanel('dashboard')"><i class="fas fa-home"></i> Dashboard</li>
+        <li id="adminMenu" onclick="showPanel('adminPanel')"><i class="fas fa-tools"></i> Admin</li>
+        <li id="reportMenu" onclick="showPanel('adminReportPanel')"><i class="fas fa-file-pdf"></i> Report Cards</li>
+        <li onclick="showPanel('teacherToolsPanel')"><i class="fas fa-edit"></i> Grading</li>
+        <li onclick="logout()" style="color: #ff7675;"><i class="fas fa-sign-out-alt"></i> Logout</li>
       </ul>
     </div>
 
     <div class="main">
       <div id="dashboard" class="panel">
-        <h2>System Overview</h2>
+        <h2>Dashboard</h2>
         <div class="cards">
-          <div class="card-summary info"><h3>Teachers</h3><p id="totalTeachers">0</p></div>
-          <div class="card-summary success"><h3>Students</h3><p id="totalStudents">0</p></div>
+            <div class="card info">Teachers: <span id="totalTeachers">0</span></div>
+            <div class="card success">Students: <span id="totalStudents">0</span></div>
         </div>
       </div>
 
       <div id="adminPanel" class="panel" style="display:none;">
         <div class="section">
-          <h3>Teacher Management</h3>
+          <h3>Add Teacher</h3>
           <form id="teacherForm" class="form-grid">
             <input type="text" id="teacherName" placeholder="Full Name" required>
-            <select id="teacherSex" required><option value="">Sex</option><option>Male</option><option>Female</option></select>
-            <select id="teacherClass" required>
-              <option value="">Class</option><option>Form 1</option><option>Form 2</option><option>Form 3</option><option>Form 4</option>
-            </select>
-            <select id="teacherSubjects" multiple required>
-              <option>Mathematics</option><option>English</option><option>Kiswahili</option><option>Biology</option><option>Civics</option><option>History</option><option>Geography</option><option>Physics</option><option>Chemistry</option>
-            </select>
-            <button type="submit" id="teacherSubmitBtn" class="btn-primary">Save Teacher</button>
+            <select id="teacherSex" required><option value="Male">Male</option><option value="Female">Female</option></select>
+            <select id="teacherClass" required><option>Form 1</option><option>Form 2</option><option>Form 3</option><option>Form 4</option></select>
+            <select id="teacherSubjects" multiple required><option>Mathematics</option><option>English</option><option>Kiswahili</option></select>
+            <button type="submit" id="teacherSubmitBtn" class="btn-primary">Add Teacher</button>
           </form>
           <table class="table" id="teacherTable">
-            <thead><tr><th>Name</th><th>Class</th><th>ID</th><th>Action</th></tr></thead>
-            <tbody></tbody>
+            <thead><tr><th>Name</th><th>ID</th><th>Pass</th><th>Action</th></tr></thead><tbody></tbody>
           </table>
         </div>
 
         <div class="section">
-          <h3>Student Management</h3>
-          <form id="studentForm" class="form-grid">
-            <input type="text" id="studentName" placeholder="Full Name" required>
-            <select id="studentSex" required><option value="">Sex</option><option>Male</option><option>Female</option></select>
-            <select id="studentClass" required>
-              <option value="">Form</option><option>Form 1</option><option>Form 2</option><option>Form 3</option><option>Form 4</option>
-            </select>
-            <button type="submit" id="studentSubmitBtn" class="btn-primary">Enroll Student</button>
-          </form>
-          <table class="table" id="studentTable">
-            <thead><tr><th>Name</th><th>Sex</th><th>Class</th><th>Action</th></tr></thead>
-            <tbody></tbody>
-          </table>
+            <h3>Add Student</h3>
+            <form id="studentForm" class="form-grid">
+              <input type="text" id="studentName" placeholder="Name" required>
+              <select id="studentSex" required><option value="Female">Female</option><option value="Male">Male</option></select>
+              <select id="studentClass" required><option>Form 1</option><option>Form 2</option><option>Form 3</option><option>Form 4</option></select>
+              <button type="submit" id="studentSubmitBtn" class="btn-primary">Enroll</button>
+            </form>
+            <table class="table" id="studentTable">
+              <thead><tr><th>Name</th><th>Sex</th><th>Class</th><th>Action</th></tr></thead><tbody></tbody>
+            </table>
         </div>
       </div>
 
       <div id="adminReportPanel" class="panel" style="display:none;">
         <div class="section">
-          <h3><i class="fas fa-print"></i> Generate Class Report Cards</h3>
-          <div class="filter-bar">
+            <h3>Report Generation</h3>
             <select id="reportClassFilter" onchange="renderAdminReportTable()">
-              <option value="">-- Select Class --</option>
-              <option>Form 1</option><option>Form 2</option><option>Form 3</option><option>Form 4</option>
+                <option value="">-- Choose Class --</option>
+                <option>Form 1</option><option>Form 2</option><option>Form 3</option><option>Form 4</option>
             </select>
-          </div>
-          <table class="table" id="adminReportTable">
-            <thead><tr><th>S/N</th><th>Full Name</th><th>Sex</th><th>Action</th></tr></thead>
-            <tbody></tbody>
-          </table>
+            <table class="table" id="adminReportTable">
+                <thead><tr><th>S/N</th><th>Name</th><th>Sex</th><th>Action</th></tr></thead><tbody></tbody>
+            </table>
         </div>
       </div>
 
       <div id="teacherToolsPanel" class="panel" style="display:none;">
-        <div class="report-header">
-          <h1>OLMOTI SECONDARY SCHOOL</h1>
-          <p>Subject: <strong id="teacherSubjectHeader"></strong> | Class: <strong id="teacherAssignedClass"></strong></p>
-        </div>
-        <div class="section">
-          <table class="table" id="subjectReportTable">
-            <thead><tr><th>S/N</th><th>Name</th><th>Test (50)</th><th>Exam (50)</th><th>Total</th><th>Grade</th><th>Remarks</th></tr></thead>
-            <tbody></tbody>
-          </table>
-          <button onclick="finalizeScores()" class="btn-save">Save All Marks</button>
-        </div>
+        <h2 id="teacherHeaderTitle">Grading</h2>
+        <table class="table" id="subjectReportTable">
+            <thead><tr><th>S/N</th><th>Name</th><th>Test(50)</th><th>Exam(50)</th><th>Total</th><th>Action</th></tr></thead><tbody></tbody>
+        </table>
+        <button onclick="finalizeScores()" class="btn-save">Save Marks</button>
       </div>
     </div>
   </div>
+
   <script src="script.js"></script>
 </body>
 </html>
