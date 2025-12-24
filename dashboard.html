@@ -2,24 +2,29 @@
 <html>
 <head>
   <title>Dashboard</title>
-  <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-<nav>
-  <a href="dashboard.html">Dashboard</a>
-  <a href="timetable.html">Timetable</a>
-  <a href="reports.html">Reports</a>
-  <a href="sms.html">SMS</a>
-</nav>
+<script>
+  const role = sessionStorage.getItem("role");
+  if (!role) location.href = "index.html";
+</script>
 
 <h2>📊 Dashboard</h2>
+<p id="info"></p>
 
-<div class="cards">
-  <div class="card">Students: <span id="studentCount">0</span></div>
-  <div class="card">Teachers: <span id="teacherCount">0</span></div>
-</div>
+<button onclick="logout()">Logout</button>
 
-<script type="module" src="data.js"></script>
+<script>
+  document.getElementById("info").innerText =
+    "Logged in as " + sessionStorage.getItem("role");
+
+  function logout() {
+    sessionStorage.clear();
+    location.href = "index.html";
+  }
+</script>
+
 </body>
 </html>
+
