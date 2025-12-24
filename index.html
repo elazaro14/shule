@@ -1,18 +1,21 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>School ERP Login</title>
+  <title>Dashboard</title>
   <link rel="stylesheet" href="style.css">
 </head>
-<body class="center">
+<body>
 
-<h2>🏫 School ERP Login</h2>
+<nav>
+  <a href="dashboard.html">Dashboard</a>
+  <a href="timetable.html">Timetable</a>
+  <a href="reports.html">Reports</a>
+  <a href="sms.html">SMS</a>
+</nav>
 
-<input id="email" placeholder="Email">
-<input id="password" type="password" placeholder="Password">
+<h2>📊 Dashboard</h2>
+<div id="stats"></div>
 
-<button onclick="login()">Login</button>
-
-<script type="module" src="auth.js"></script>
+<script type="module" src="data.js"></script>
 </body>
 </html>
