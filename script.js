@@ -1,17 +1,62 @@
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import { getAuth } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-import { getFirestore } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+let teachers = [];
+let students = [];
 
-const firebaseConfig = {
-  apiKey: "YOUR_API_KEY",
-  authDomain: "YOUR_PROJECT.firebaseapp.com",
-  projectId: "YOUR_PROJECT_ID",
-  storageBucket: "YOUR_PROJECT.appspot.com",
-  messagingSenderId: "XXXX",
-  appId: "XXXX"
-};
+const teacherForm = document.getElementById("teacherForm");
+const teacherTable = document.getElementById("teacherTable");
+const teacherCount = document.getElementById("teacherCount");
 
-export const app = initializeApp(firebaseConfig);
-export const auth = getAuth(app);
-export const db = getFirestore(app);
+const studentForm = document.getElementById("studentForm");
+const studentTable = document.getElementById("studentTable");
+const studentCount = document.getElementById("studentCount");
 
+// ADD TEACHER
+teacherForm.addEventListener("submit", function(e) {
+  e.preventDefault();
+
+  const name = document.getElementById("teacherName").value;
+  const subject = document.getElementById("teacherSubject").value;
+
+  teachers.push({ name, subject });
+  teacherForm.reset();
+  renderTeachers();
+});
+
+// ADD STUDENT
+studentForm.addEventListener("submit", function(e) {
+  e.preventDefault();
+
+  const name = document.getElementById("studentName").value;
+  const cls = document.getElementById("studentClass").value;
+
+  students.push({ name, cls });
+  studentForm.reset();
+  renderStudents();
+});
+
+function renderTeachers() {
+  teacherTable.innerHTML = "";
+  teachers.forEach((t, i) => {
+    teacherTable.innerHTML += `
+      <tr>
+        <td>${i + 1}</td>
+        <td>${t.name}</td>
+        <td>${t.subject}</td>
+      </tr>
+    `;
+  });
+  teacherCount.innerText = teachers.length;
+}
+
+function renderStudents() {
+  studentTable.innerHTML = "";
+  students.forEach((s, i) => {
+    studentTable.innerHTML += `
+      <tr>
+        <td>${i + 1}</td>
+        <td>${s.name}</td>
+        <td>${s.cls}</td>
+      </tr>
+    `;
+  });
+  studentCount.innerText = students.length;
+}
