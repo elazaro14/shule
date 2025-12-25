@@ -1,50 +1,41 @@
 <script type="module">
-    import { db } from "./firebase.js";
+    import { db, auth } from "./firebase.js"; // Make sure auth is exported from firebase.js
+    import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
     import { collection, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+    // Wait for the user to be logged in before fetching data
+    onAuthStateChanged(auth, (user) => {
+        if (user) {
+            console.log("User authenticated, loading data...");
+            updateDashboard();
+        } else {
+            console.warn("No user logged in. Redirecting to login...");
+            window.location.href = "index.html"; 
+        }
+    });
 
     async function updateDashboard() {
         try {
             const studentSnap = await getDocs(collection(db, "students"));
-            let total = 0;
-            let males = 0;
-            let females = 0;
+            let total = 0, males = 0, females = 0;
 
             studentSnap.forEach((doc) => {
                 const data = doc.data();
                 total++;
-
-                // Robust Sex Checking (handles "F", "f", "Female", etc.)
-                const sexValue = (data.sex || "").toString().toUpperCase();
-                
-                if (sexValue.startsWith("M")) {
-                    males++;
-                } else if (sexValue.startsWith("F")) {
-                    females++;
-                }
+                const s = (data.sex || "").toString().toUpperCase();
+                if (s === "M") males++;
+                if (s === "F") females++;
             });
 
-            // Fallback for Teachers
-            const teacherSnap = await getDocs(collection(db, "users"));
-            const teacherCount = teacherSnap.size;
-
-            // Update the UI
             document.getElementById("totalStuds").innerText = total;
             document.getElementById("maleStuds").innerText = males;
             document.getElementById("femaleStuds").innerText = females;
-            document.getElementById("totalTeachers").innerText = teacherCount;
             
-            document.getElementById("dateDisplay").innerText = new Date().toLocaleDateString('en-GB', {
-                day: 'numeric', month: 'long', year: 'numeric'
-            });
-
+            // For teachers: Since your rule only allows users to read THEIR OWN doc, 
+            // you might need to change your 'users' rule to allow 'admin' to read all users
+            // to get a total teacher count.
         } catch (error) {
             console.error("Dashboard Error:", error);
-            // This will alert if the "Permissions" fix from the previous step wasn't published
-            if (error.code === 'permission-denied') {
-                alert("Please check your Firebase Rules - Permissions Denied.");
-            }
         }
     }
-
-    updateDashboard();
 </script>
