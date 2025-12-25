@@ -1,30 +1,60 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Dashboard</title>
+    <title>Dashboard | Shule ERP</title>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-<script>
-  const role = sessionStorage.getItem("role");
-  if (!role) location.href = "index.html";
-</script>
+<nav>
+    <span id="user-display"></span>
+    <button onclick="logout()" style="width: auto; float: right;">Logout</button>
+</nav>
 
-<h2>📊 Dashboard</h2>
-<p id="info"></p>
+<div class="center">
+    <h2>📊 School Management Dashboard</h2>
+    <p id="info"></p>
 
-<button onclick="logout()">Logout</button>
+    <div class="cards" id="menu-cards">
+        </div>
+</div>
 
-<script>
-  document.getElementById("info").innerText =
-    "Logged in as " + sessionStorage.getItem("role");
+<script type="module">
+    // Protection: Redirect if not logged in
+    const role = sessionStorage.getItem("role");
+    const user = sessionStorage.getItem("user");
 
-  function logout() {
-    sessionStorage.clear();
-    location.href = "index.html";
-  }
-</script>
+    if (!role) {
+        window.location.href = "index.html";
+    }
 
-</body>
-</html>
+    document.getElementById("info").innerText = `Access Level: ${role.toUpperCase()}`;
+    document.getElementById("user-display").innerText = `Logged in as: ${user}`;
 
+    const menuContainer = document.getElementById("menu-cards");
+
+    // Define features for each role
+    const features = [
+        { title: "Student Reports", link: "reports.html", roles: ["admin", "teacher"], icon: "📑" },
+        { title: "Parent SMS", link: "sms.html", roles: ["admin"], icon: "📩" },
+        { title: "Timetable", link: "timetable.html", roles: ["admin", "teacher"], icon: "📅" }
+    ];
+
+    // Filter and display cards based on role
+    features.forEach(f => {
+        if (f.roles.includes(role.toLowerCase())) {
+            const card = document.createElement("div");
+            card.className = "card";
+            card.innerHTML = `
+                <h3>${f.icon}</h3>
+                <h4>${f.title}</h4>
+                <button onclick="location.href='${f.link}'">Open</button>
+            `;
+            menuContainer.appendChild(card);
+        }
+    });
+
+    // Global logout function
+    window.logout = function() {
+        sessionStorage.clear();
+        window.location.href = "index.
