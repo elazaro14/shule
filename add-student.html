@@ -3,97 +3,124 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin - Student Registry | Shule ERP</title>
+    <title>Registry | Shule ERP</title>
     <link rel="stylesheet" href="style.css">
     <style>
-        .admin-header { display: flex; justify-content: space-between; align-items: center; background: #f8f9fa; padding: 15px; border-radius: 8px; margin-bottom: 20px; border-left: 5px solid #0d6efd; }
-        table { width: 100%; border-collapse: collapse; margin-top: 20px; background: white; }
-        th, td { border: 1px solid #ddd; padding: 12px; text-align: left; }
-        th { background-color: #0d6efd; color: white; }
-        .controls { display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; align-items: flex-end; }
-        .form-section { background: #fff; padding: 20px; border-radius: 8px; margin-bottom: 25px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
-        .btn-edit { background: #ffc107; color: black; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer; }
-        .btn-del { background: #dc3545; color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer; }
-        #lock-screen { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: white; z-index: 9999; text-align: center; padding-top: 100px; }
+        /* Compact UI Adjustments */
+        body { font-size: 14px; background: #f0f2f5; }
+        .dashboard-container { max-width: 1200px; margin: auto; padding: 10px; }
         
-        @media print {
-            nav, .form-section:first-of-type, .btn-edit, .btn-del, .controls { display: none; }
+        .admin-header { 
+            display: flex; justify-content: space-between; align-items: center; 
+            background: white; padding: 10px 20px; border-radius: 6px; 
+            margin-bottom: 15px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);
         }
+
+        /* Compact Form Grid */
+        .form-section { 
+            background: #fff; padding: 15px; border-radius: 6px; 
+            margin-bottom: 15px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); 
+        }
+        .input-grid { 
+            display: grid; grid-template-columns: 2fr 1fr 1.5fr auto; 
+            gap: 12px; align-items: end; 
+        }
+        .input-group label { display: block; font-weight: bold; margin-bottom: 4px; font-size: 12px; color: #555; }
+        input, select { 
+            width: 100%; padding: 6px 10px; border: 1px solid #ccc; 
+            border-radius: 4px; font-size: 14px; box-sizing: border-box;
+        }
+
+        /* Minimized Table Rows */
+        table { width: 100%; border-collapse: collapse; background: white; border-radius: 6px; overflow: hidden; }
+        th { background: #0d6efd; color: white; font-weight: 500; text-align: left; padding: 8px 12px; font-size: 13px; }
+        td { 
+            padding: 6px 12px; border-bottom: 1px solid #eee; 
+            font-size: 13px; color: #333; 
+        }
+        tr:hover { background-color: #f8f9fa; }
+
+        /* Action Buttons */
+        .btn { padding: 4px 10px; border: none; border-radius: 3px; cursor: pointer; font-size: 12px; text-decoration: none; display: inline-block; }
+        .btn-add { background: #198754; color: white; padding: 8px 20px; }
+        .btn-edit { background: #ffc107; color: #000; margin-right: 5px; }
+        .btn-view { background: #0dcaf0; color: white; margin-right: 5px; }
+        .btn-del { background: #dc3545; color: white; }
+
+        /* Access Control */
+        #lock-screen { display: none; position: fixed; inset: 0; background: white; z-index: 999; text-align: center; padding-top: 100px; }
     </style>
 </head>
 <body>
 
 <div id="lock-screen">
     <h1>🚫 Access Denied</h1>
-    <p>Only Administrators can access this page.</p>
-    <a href="dashboard.html">Return to Dashboard</a>
+    <p>Please log in as an administrator.</p>
+    <a href="index.html">Go to Login</a>
 </div>
 
-<nav><a href="dashboard.html" style="color: white; text-decoration: none;">⬅ Back to Dashboard</a></nav>
+<nav style="padding: 10px 20px; background: #333; color: white;">
+    <a href="dashboard.html" style="color: white; text-decoration: none;">🏠 Dashboard</a>
+</nav>
 
-<div class="dashboard-container" id="main-content" style="max-width: 1100px; margin: auto; padding: 20px;">
+<div class="dashboard-container" id="main-content">
     
     <div class="admin-header">
-        <h2>🔒 Admin Student Registry</h2>
-        <span id="admin-tag" style="background: #0d6efd; color: white; padding: 5px 10px; border-radius: 4px; font-weight: bold;">ADMIN MODE</span>
+        <h3 style="margin:0;">Student Registry</h3>
+        <span style="font-size: 12px; background: #e7f1ff; color: #0d6efd; padding: 4px 8px; border-radius: 4px; font-weight: bold;">ADMIN PANEL</span>
     </div>
 
     <div class="form-section">
-        <h3>Register New Student</h3>
-        <div class="controls">
-            <div style="flex: 2;">
+        <div class="input-grid">
+            <div class="input-group">
                 <label>Full Name</label>
-                <input type="text" id="newName" placeholder="Enter Full Name" style="width: 100%; padding: 10px;">
+                <input type="text" id="newName" placeholder="e.g. Agness Likinjiye">
             </div>
-            <div style="flex: 0.5;">
+            <div class="input-group">
                 <label>Sex</label>
-                <select id="newSex" style="width: 100%; padding: 10px;">
-                    <option value="M">M</option>
-                    <option value="F">F</option>
+                <select id="newSex">
+                    <option value="M">Male (M)</option>
+                    <option value="F">Female (F)</option>
                 </select>
             </div>
-            <div style="flex: 1;">
-                <label>Class</label>
-                <select id="newClass" style="width: 100%; padding: 10px;">
+            <div class="input-group">
+                <label>Class (Kidato)</label>
+                <select id="newClass">
                     <option value="Form 1">Form 1</option>
                     <option value="Form 2">Form 2</option>
                     <option value="Form 3">Form 3</option>
                     <option value="Form 4">Form 4</option>
                 </select>
             </div>
-            <button id="addBtn" style="background: #198754; color: white; height: 42px; cursor: pointer; padding: 0 20px; border: none; border-radius: 4px;">Add Student</button>
+            <button id="addBtn" class="btn btn-add">Add Student</button>
         </div>
     </div>
 
     <div class="form-section">
-        <div class="controls">
-            <div style="flex: 2;">
-                <input type="text" id="searchInput" placeholder="Search by name..." style="width: 100%; padding: 10px;">
-            </div>
-            <div style="flex: 1;">
-                <select id="filterClass" style="width: 100%; padding: 10px;">
-                    <option value="All">All Classes</option>
-                    <option value="Form 1">Form 1</option>
-                    <option value="Form 2">Form 2</option>
-                    <option value="Form 3">Form 3</option>
-                    <option value="Form 4">Form 4</option>
-                </select>
-            </div>
-            <button onclick="window.print()" style="background: #6c757d; color: white; height: 42px; padding: 0 20px; border: none; border-radius: 4px; cursor: pointer;">Print List</button>
+        <div style="display: flex; gap: 10px; margin-bottom: 10px;">
+            <input type="text" id="searchInput" placeholder="Search by name..." style="flex: 2;">
+            <select id="filterClass" style="flex: 1;">
+                <option value="All">All Classes</option>
+                <option value="Form 1">Form 1</option>
+                <option value="Form 2">Form 2</option>
+                <option value="Form 3">Form 3</option>
+                <option value="Form 4">Form 4</option>
+            </select>
+            <button onclick="window.print()" class="btn" style="background:#6c757d; color:white;">Print List</button>
         </div>
 
         <table>
             <thead>
                 <tr>
-                    <th style="width: 50px;">S/N</th>
-                    <th>NAME</th>
-                    <th style="width: 60px;">SEX</th>
-                    <th style="width: 120px;">CLASS</th>
-                    <th style="width: 180px;">ACTIONS</th>
+                    <th style="width: 40px;">S/N</th>
+                    <th>Full Name</th>
+                    <th style="width: 60px;">Sex</th>
+                    <th style="width: 100px;">Class</th>
+                    <th style="width: 220px; text-align: center;">Actions</th>
                 </tr>
             </thead>
             <tbody id="studentTableBody">
-                <tr><td colspan="5" style="text-align:center;">Loading students...</td></tr>
+                <tr><td colspan="5" style="text-align:center;">Fetching data...</td></tr>
             </tbody>
         </table>
     </div>
@@ -103,126 +130,89 @@
     import { db } from "./firebase.js";
     import { collection, addDoc, getDocs, deleteDoc, doc, updateDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-    // --- SECURITY CHECK ---
-    const role = sessionStorage.getItem("role");
-    if (role !== "admin") {
+    // SECURITY CHECK
+    if (sessionStorage.getItem("role") !== "admin") {
         document.getElementById("main-content").style.display = "none";
         document.getElementById("lock-screen").style.display = "block";
     }
 
     const studentCol = collection(db, "students");
-    let allStudents = []; // Cache students locally for instant filtering
+    let allStudents = [];
 
-    // --- FETCH DATA ---
     async function fetchStudents() {
         try {
             const snap = await getDocs(studentCol);
-            allStudents = snap.docs.map(sDoc => ({
-                id: sDoc.id,
-                ...sDoc.data()
-            }));
-            // Initial Sort by Name
+            allStudents = snap.docs.map(sDoc => ({ id: sDoc.id, ...sDoc.data() }));
             allStudents.sort((a, b) => (a.name || "").localeCompare(b.name || ""));
             renderTable();
-        } catch (e) {
-            console.error("Fetch error:", e);
-            document.getElementById("studentTableBody").innerHTML = `<tr><td colspan="5" style="color:red; text-align:center;">Error loading data. Check Permissions.</td></tr>`;
-        }
+        } catch (e) { console.error(e); }
     }
 
-    // --- RENDER TABLE (WITH FILTERS) ---
     function renderTable() {
         const tbody = document.getElementById("studentTableBody");
         const filter = document.getElementById("filterClass").value;
-        const searchTerm = document.getElementById("searchInput").value.toLowerCase();
+        const search = document.getElementById("searchInput").value.toLowerCase();
         
         tbody.innerHTML = "";
         let count = 1;
 
-        // Filter and Display
-        const filtered = allStudents.filter(student => {
-            const matchesClass = (filter === "All" || student.cls === filter);
-            const matchesSearch = (student.name || "").toLowerCase().includes(searchTerm);
-            return matchesClass && matchesSearch;
+        const filtered = allStudents.filter(s => {
+            return (filter === "All" || s.cls === filter) && (s.name || "").toLowerCase().includes(search);
         });
 
-        filtered.forEach((student) => {
+        filtered.forEach(s => {
             const row = document.createElement("tr");
             row.innerHTML = `
                 <td>${count++}</td>
-                <td>${student.name}</td>
-                <td>${student.sex}</td>
-                <td>${student.cls}</td>
-                <td>
-                    <button class="btn-edit" data-id="${student.id}" data-name="${student.name}">Edit</button>
-                    <button class="btn-del" data-id="${student.id}">Remove</button>
+                <td style="font-weight:500;">${s.name}</td>
+                <td>${s.sex}</td>
+                <td>${s.cls}</td>
+                <td style="text-align: center;">
+                    <a href="view-report.html?id=${s.id}" class="btn btn-view">Report</a>
+                    <button class="btn btn-edit" data-id="${s.id}" data-name="${s.name}">Edit</button>
+                    <button class="btn btn-del" data-id="${s.id}">Delete</button>
                 </td>
             `;
             tbody.appendChild(row);
         });
 
-        if (filtered.length === 0) {
-            tbody.innerHTML = "<tr><td colspan='5' style='text-align:center;'>No matching records found.</td></tr>";
-        }
-
-        // Re-attach event listeners to new buttons
-        attachActionListeners();
+        attachListeners();
     }
 
-    // --- ACTIONS: ADD, EDIT, DELETE ---
+    // ADD
     document.getElementById("addBtn").onclick = async () => {
         const name = document.getElementById("newName").value.trim();
         const sex = document.getElementById("newSex").value;
         const cls = document.getElementById("newClass").value;
-
-        if(!name) return alert("Please enter the student's full name.");
-
-        try {
-            await addDoc(studentCol, { name, sex, cls, createdAt: new Date() });
-            document.getElementById("newName").value = "";
-            await fetchStudents(); // Refresh data
-        } catch (e) {
-            alert("Permission Denied: Only Admin can add students.");
-        }
+        if(!name) return alert("Name required");
+        await addDoc(studentCol, { name, sex, cls, createdAt: new Date() });
+        document.getElementById("newName").value = "";
+        fetchStudents();
     };
 
-    function attachActionListeners() {
+    function attachListeners() {
         document.querySelectorAll(".btn-del").forEach(btn => {
-            btn.onclick = async (e) => {
-                const id = e.target.getAttribute("data-id");
-                if(confirm("Permanently delete this student?")) {
-                    await deleteDoc(doc(db, "students", id));
-                    await fetchStudents();
+            btn.onclick = async () => {
+                if(confirm("Delete student?")) {
+                    await deleteDoc(doc(db, "students", btn.dataset.id));
+                    fetchStudents();
                 }
             };
         });
-
         document.querySelectorAll(".btn-edit").forEach(btn => {
-            btn.onclick = async (e) => {
-                const id = e.target.getAttribute("data-id");
-                const oldName = e.target.getAttribute("data-name");
-                const newName = prompt("Edit Student Name:", oldName);
-                if(newName && newName !== oldName) {
-                    await updateDoc(doc(db, "students", id), { name: newName });
-                    await fetchStudents();
+            btn.onclick = async () => {
+                const newN = prompt("New name:", btn.dataset.name);
+                if(newN) {
+                    await updateDoc(doc(db, "students", btn.dataset.id), { name: newN });
+                    fetchStudents();
                 }
             };
         });
     }
 
-    // Event Listeners for Filters
     document.getElementById("searchInput").oninput = renderTable;
     document.getElementById("filterClass").onchange = renderTable;
-
-    // Load on start
     fetchStudents();
 </script>
 </body>
 </html>
-// Add this inside your renderTable() function in add-student.html
-<td>
-    <button class="btn-edit" onclick="editStudent(...)">Edit</button>
-    <a href="view-report.html?id=${student.id}" target="_blank">
-       <button style="background: #0dcaf0; border: none; padding: 5px; border-radius: 4px;">View Report</button>
-    </a>
-</td>
