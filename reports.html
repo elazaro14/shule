@@ -1,92 +1,186 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Enter Marks | Shule ERP</title>
+    <meta charset="UTF-8">
+    <title>Academic Reports | Shule ERP</title>
     <link rel="stylesheet" href="style.css">
+    <style>
+        .report-card { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; min-width: 1000px; }
+        th, td { border: 1px solid #ddd; padding: 8px; text-align: center; font-size: 13px; }
+        th { background-color: #0d6efd; color: white; }
+        .score-in { width: 45px; padding: 5px; text-align: center; border: 1px solid #ccc; border-radius: 4px; }
+        .read-only { background: #f8f9fa; font-weight: bold; border: none; width: 50px; text-align: center; }
+        .grade-cell, .remark-cell { font-weight: bold; }
+        /* Grade Colors */
+        .A { color: #198754; } .B { color: #0d6efd; } .C { color: #fd7e14; } .D { color: #6f42c1; } .F { color: #dc3545; }
+    </style>
 </head>
 <body>
 
-<nav><a href="dashboard.html">⬅ Back</a></nav>
+<nav><a href="dashboard.html">⬅ Back to Dashboard</a></nav>
 
-<div class="dashboard-container">
-    <h2>📝 Academic Results Entry</h2>
+<div class="dashboard-container" style="max-width: 1200px; margin: auto; padding: 20px;">
+    <h2>📊 Results Entry (With Remarks)</h2>
 
     <div class="form-section">
-        <div class="controls">
-            <select id="selectClass">
-                <option value="">-- Select Class --</option>
-                <option value="Form 1">Form 1</option>
-                <option value="Form 2">Form 2</option>
-                <option value="Form 3">Form 3</option>
-                <option value="Form 4">Form 4</option>
-            </select>
-
-            <select id="selectSubject">
-                <option value="">-- Select Subject --</option>
-            </select>
-            
-            <button id="loadListBtn">Load Student List</button>
+        <div class="controls" style="display: flex; gap: 10px; align-items: flex-end;">
+            <div style="flex: 1;">
+                <label>Class</label>
+                <select id="classSelect" style="width: 100%;">
+                    <option value="">-- Select Class --</option>
+                    <option value="Form 1">Form 1</option>
+                    <option value="Form 2">Form 2</option>
+                    <option value="Form 3">Form 3</option>
+                    <option value="Form 4">Form 4</option>
+                </select>
+            </div>
+            <div style="flex: 1;">
+                <label>Subject</label>
+                <select id="subjectSelect" style="width: 100%;">
+                    <option value="">-- Choose Class First --</option>
+                </select>
+            </div>
+            <button id="loadBtn" style="background: #0d6efd; color: white; height: 40px;">Load List</button>
         </div>
     </div>
 
-    <table id="marksTable" style="display:none;">
-        <thead>
-            <tr>
-                <th>S/N</th>
-                <th>Student Name</th>
-                <th>Score (0-100)</th>
-            </tr>
-        </thead>
-        <tbody id="studentListBody"></tbody>
-    </table>
-    
-    <button id="saveMarksBtn" style="display:none; margin-top:20px; background:#198754;">Save All Marks</button>
+    <div id="entrySection" style="display:none;" class="report-card">
+        <h3 id="tableHeader" style="margin-bottom: 15px; color: #333;"></h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>S/N</th>
+                    <th>Student Name</th>
+                    <th>Test 1</th>
+                    <th>Mid Term</th>
+                    <th>Test 2</th>
+                    <th>Exam</th>
+                    <th>Total</th>
+                    <th>Avg</th>
+                    <th>Grade</th>
+                    <th>Remarks</th>
+                </tr>
+            </thead>
+            <tbody id="marksTbody"></tbody>
+        </table>
+        <button id="saveAllBtn" style="margin-top: 20px; background: #198754; color: white; width: 100%; padding: 12px; font-size: 16px;">Save All Results</button>
+    </div>
 </div>
 
 <script type="module">
-    import { subjectLists } from "./data.js";
     import { db } from "./firebase.js";
-    import { collection, getDocs, query, where, addDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+    import { subjectLists } from "./data.js";
+    import { collection, getDocs, query, where, doc, setDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-    const classSelect = document.getElementById("selectClass");
-    const subjectSelect = document.getElementById("selectSubject");
+    const classSelect = document.getElementById("classSelect");
+    const subjectSelect = document.getElementById("subjectSelect");
 
-    // Update subjects dropdown when class changes
     classSelect.onchange = () => {
-        const selectedClass = classSelect.value;
-        subjectSelect.innerHTML = '<option value="">-- Select Subject --</option>';
-        
-        if(subjectLists[selectedClass]) {
-            subjectLists[selectedClass].forEach(sub => {
+        const cls = classSelect.value;
+        subjectSelect.innerHTML = '<option value="">-- Choose Subject --</option>';
+        if (subjectLists[cls]) {
+            subjectLists[cls].forEach(sub => {
                 subjectSelect.innerHTML += `<option value="${sub.code}">${sub.name}</option>`;
             });
         }
     };
 
-    // Load Students for that class
-    document.getElementById("loadListBtn").onclick = async () => {
+    document.getElementById("loadBtn").onclick = async () => {
         const cls = classSelect.value;
-        const sub = subjectSelect.value;
-        if(!cls || !sub) return alert("Select Class and Subject first");
+        const subCode = subjectSelect.value;
+        if (!cls || !subCode) return alert("Please select both Class and Subject");
 
         const q = query(collection(db, "students"), where("cls", "==", cls));
         const snap = await getDocs(q);
-        const tbody = document.getElementById("studentListBody");
+        const tbody = document.getElementById("marksTbody");
         tbody.innerHTML = "";
-
+        
         let count = 1;
-        snap.forEach(doc => {
+        snap.forEach(sDoc => {
+            const data = sDoc.data();
             tbody.innerHTML += `
-                <tr>
+                <tr class="student-row" data-id="${sDoc.id}" data-name="${data.name}">
                     <td>${count++}</td>
-                    <td>${doc.data().name}</td>
-                    <td><input type="number" class="mark-input" data-id="${doc.id}" min="0" max="100" style="width:80px"></td>
+                    <td style="text-align: left;">${data.name}</td>
+                    <td><input type="number" class="score-in t1" value="0"></td>
+                    <td><input type="number" class="score-in mid" value="0"></td>
+                    <td><input type="number" class="score-in t2" value="0"></td>
+                    <td><input type="number" class="score-in ex" value="0"></td>
+                    <td><input type="number" class="read-only total" readonly value="0"></td>
+                    <td><input type="number" class="read-only avg" readonly value="0"></td>
+                    <td class="grade-cell">-</td>
+                    <td class="remark-cell">-</td>
                 </tr>
             `;
         });
 
-        document.getElementById("marksTable").style.display = "table";
-        document.getElementById("saveMarksBtn").style.display = "block";
+        document.getElementById("tableHeader").innerText = `Results for ${cls} - ${subjectSelect.options[subjectSelect.selectedIndex].text}`;
+        document.getElementById("entrySection").style.display = "block";
+    };
+
+    // Calculation Formula with Remarks
+    document.addEventListener('input', (e) => {
+        if (e.target.classList.contains('score-in')) {
+            const row = e.target.closest('.student-row');
+            const t1 = parseFloat(row.querySelector('.t1').value) || 0;
+            const mid = parseFloat(row.querySelector('.mid').value) || 0;
+            const t2 = parseFloat(row.querySelector('.t2').value) || 0;
+            const ex = parseFloat(row.querySelector('.ex').value) || 0;
+
+            const total = t1 + mid + t2 + ex;
+            const avg = total / 4;
+
+            row.querySelector('.total').value = total.toFixed(0);
+            row.querySelector('.avg').value = avg.toFixed(1);
+
+            let grade = "F";
+            let remark = "FAILED";
+
+            if (avg >= 75) { grade = "A"; remark = "EXCELLENT"; }
+            else if (avg >= 65) { grade = "B"; remark = "GOOD"; }
+            else if (avg >= 45) { grade = "C"; remark = "AVERAGE"; }
+            else if (avg >= 30) { grade = "D"; remark = "SATISFACTORY"; }
+            else { grade = "F"; remark = "FAILED"; }
+
+            const gCell = row.querySelector('.grade-cell');
+            const rCell = row.querySelector('.remark-cell');
+            
+            gCell.innerText = grade;
+            gCell.className = `grade-cell ${grade}`;
+            rCell.innerText = remark;
+        }
+    });
+
+    document.getElementById("saveAllBtn").onclick = async () => {
+        const rows = document.querySelectorAll(".student-row");
+        const subCode = subjectSelect.value;
+        const cls = classSelect.value;
+
+        try {
+            for (let row of rows) {
+                const studentId = row.dataset.id;
+                const resRef = doc(db, "results", `${studentId}_${subCode}`);
+                
+                await setDoc(resRef, {
+                    studentId: studentId,
+                    studentName: row.dataset.name,
+                    class: cls,
+                    subjectCode: subCode,
+                    test1: parseFloat(row.querySelector('.t1').value),
+                    midTerm: parseFloat(row.querySelector('.mid').value),
+                    test2: parseFloat(row.querySelector('.t2').value),
+                    exam: parseFloat(row.querySelector('.ex').value),
+                    average: parseFloat(row.querySelector('.avg').value),
+                    grade: row.querySelector('.grade-cell').innerText,
+                    remark: row.querySelector('.remark-cell').innerText,
+                    updatedAt: new Date()
+                });
+            }
+            alert("Success: Results and Remarks saved!");
+        } catch (err) {
+            alert("Error: " + err.message);
+        }
     };
 </script>
 </body>
