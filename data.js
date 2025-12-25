@@ -1,3 +1,59 @@
+export const subjectLists = {
+    "Form 1": [
+        { name: "Historia na Maadi", code: "HMT" },
+        { name: "History", code: "HIST" },
+        { name: "Geography", code: "GEO" },
+        { name: "Kiswahili", code: "KISW" },
+        { name: "English Language", code: "ENG" },
+        { name: "Physics", code: "PHY" },
+        { name: "Chemistry", code: "CHEM" },
+        { name: "Biology", code: "BIO" },
+        { name: "Mathematics", code: "MATH" },
+        { name: "Business Studies", code: "BUS" }
+    ],
+    "Form 2": [
+        { name: "Historia na Maadi", code: "HMT" },
+        { name: "History", code: "HIST" },
+        { name: "Geography", code: "GEO" },
+        { name: "Kiswahili", code: "KISW" },
+        { name: "English Language", code: "ENG" },
+        { name: "Physics", code: "PHY" },
+        { name: "Chemistry", code: "CHEM" },
+        { name: "Biology", code: "BIO" },
+        { name: "Mathematics", code: "MATH" },
+        { name: "Business Studies", code: "BUS" }
+    ],
+    "Form 3": [
+        { name: "Civics", code: "CIV" },
+        { name: "History", code: "HIST" },
+        { name: "Geography", code: "GEO" },
+        { name: "Kiswahili", code: "KISW" },
+        { name: "English Language", code: "ENG" },
+        { name: "Physics", code: "PHY" },
+        { name: "Chemistry", code: "CHEM" },
+        { name: "Biology", code: "BIO" },
+        { name: "Mathematics", code: "MATH" },
+        { name: "Commerce", code: "COM" },
+        { name: "Bookkeeping", code: "BK" },
+        { name: "Literature", code: "LT" },
+        { name: "Nutrition", code: "NUT" }
+    ],
+    "Form 4": [
+        { name: "Civics", code: "CIV" },
+        { name: "History", code: "HIST" },
+        { name: "Geography", code: "GEO" },
+        { name: "Kiswahili", code: "KISW" },
+        { name: "English Language", code: "ENG" },
+        { name: "Physics", code: "PHY" },
+        { name: "Chemistry", code: "CHEM" },
+        { name: "Biology", code: "BIO" },
+        { name: "Mathematics", code: "MATH" },
+        { name: "Commerce", code: "COM" },
+        { name: "Bookkeeping", code: "BK" },
+        { name: "Literature", code: "LT" },
+        { name: "Nutrition", code: "NUT" }
+    ]
+};
 import { db } from "./firebase.js";
 import { 
     collection, 
