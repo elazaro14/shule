@@ -2,168 +2,185 @@
 <html lang="sw">
 <head>
     <meta charset="UTF-8">
-    <title>Ripoti ya Maendeleo - Olmoti Style</title>
+    <title>Results Entry | Shule ERP</title>
+    <link rel="stylesheet" href="style.css">
     <style>
-        body { font-family: 'Times New Roman', serif; background: #f4f4f4; padding: 10px; margin: 0; }
-        .report-page { background: white; width: 210mm; min-height: 297mm; margin: auto; padding: 30px; box-sizing: border-box; }
-        .header { text-align: center; line-height: 1.2; text-transform: uppercase; margin-bottom: 20px; }
-        .header h2, .header h3 { margin: 3px 0; }
-        .student-info { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px; border-bottom: 2px solid #000; padding-bottom: 10px; }
-        
-        table { width: 100%; border-collapse: collapse; margin-bottom: 15px; }
-        th, td { border: 1px solid black; padding: 5px; text-align: center; text-transform: uppercase; font-size: 11px; }
-        th { background: #f0f0f0; }
-        .subject-col { text-align: left; padding-left: 8px; font-weight: bold; width: 25%; }
-
-        .grading-key { display: flex; justify-content: space-between; font-size: 10px; border: 1px solid #000; padding: 8px; font-weight: bold; }
-        .footer-sections { margin-top: 20px; display: grid; grid-template-columns: 1fr 1fr; gap: 30px; }
-        .signature-line { border-bottom: 1px dotted black; margin-top: 25px; height: 15px; }
-        
-        @media print {
-            .no-print { display: none; }
-            body { background: none; padding: 0; }
-            .report-page { box-shadow: none; width: 100%; padding: 10px; }
-        }
+        .dashboard-container { max-width: 1100px; margin: auto; padding: 20px; font-family: sans-serif; }
+        .form-section { background: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); margin-bottom: 20px; }
+        .controls { display: flex; gap: 15px; align-items: flex-end; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; background: white; }
+        th, td { border: 1px solid #ddd; padding: 10px; text-align: center; }
+        th { background: #0d6efd; color: white; font-size: 14px; }
+        .score-in { width: 60px; padding: 5px; text-align: center; border: 1px solid #ccc; border-radius: 4px; }
+        .avg { font-weight: bold; color: #0d6efd; }
+        .grade { font-weight: bold; }
+        .save-btn { background: #198754; color: white; padding: 15px; width: 100%; border: none; border-radius: 6px; font-size: 16px; cursor: pointer; margin-top: 20px; }
+        .save-btn:hover { background: #146c43; }
     </style>
 </head>
 <body>
 
-<div class="no-print" style="text-align:center; margin-bottom:10px;">
-    <button onclick="window.print()" style="padding: 10px 20px; background: #198754; color: white; border: none; cursor: pointer; border-radius: 4px;">CHAPA RIPOTI (PRINT)</button>
-</div>
+<nav><a href="dashboard.html" style="text-decoration:none;">⬅ Back to Dashboard</a></nav>
 
-<div class="report-page">
-    <div class="header">
-        <h3>OFISI YA WAZIRI MKUU</h3>
-        <h3>TAWALA ZA MIKOA NA SERIKALI ZA MTAA</h3>
-        <h2>HALMASHAURI YA JIJI LA ARUSHA</h2>
-        <h2>SHULE YA SEKONDARI OLMOTI</h2>
-        <p>S.L.P 8249, ARUSHA</p>
-        <h3 style="text-decoration: underline; margin-top: 10px;">TAARIFA YA MAENDELEO YA MWANAFUNZI</h3>
-    </div>
+<div class="dashboard-container">
+    <h2>📊 Results Entry (Auto-Load & Save)</h2>
 
-    <div class="student-info">
-        <div><strong>JINA:</strong> <span id="studentName">...</span></div>
-        <div><strong>KIDATO:</strong> <span id="studentClass">...</span></div>
-        <div><strong>MUHULA:</strong> <span>I / 2025</span></div>
-        <div><strong>MWAKA:</strong> <span>2025</span></div>
-    </div>
-
-    <table>
-        <thead>
-            <tr>
-                <th>SOMO</th>
-                <th>JARIBIO (AVG)</th>
-                <th>MTIHANI</th>
-                <th>JUMLA</th>
-                <th>WASTANI</th>
-                <th>DARAJA</th>
-                <th>MAONI</th>
-            </tr>
-        </thead>
-        <tbody id="reportTbody"></tbody>
-    </table>
-
-    <div style="font-weight: bold; margin-bottom: 10px;">
-        WASTANI WA JUMLA: <span id="overallAvg">-</span> &nbsp;&nbsp;&nbsp; 
-        DIVISION: <span id="division">-</span> &nbsp;&nbsp;&nbsp;
-        NAFASI: <span id="rank">-</span> KATI YA <span id="totalStuds">-</span>
-    </div>
-
-    <div class="grading-key">
-        <span>A = 75-100 (VIZURI SANA)</span>
-        <span>B = 65-74 (VIZURI)</span>
-        <span>C = 45-64 (WASTANI)</span>
-        <span>D = 30-44 (INARIDHISHA)</span>
-        <span>F = 0-29 (FELI)</span>
-    </div>
-
-    <div class="footer-sections">
-        <div>
-            <p>Maoni ya mwalimu wa darasa:</p>
-            <div id="classTeacherComment" style="font-style: italic; font-size: 12px;"></div>
-            <div class="signature-line"></div>
-        </div>
-        <div>
-            <p>Maoni ya mkuu wa shule:</p>
-            <div class="signature-line"></div>
+    <div class="form-section">
+        <div class="controls">
+            <div style="flex: 1;">
+                <label>Class</label>
+                <select id="classSelect" style="width:100%; padding:8px;">
+                    <option value="">-- Select Class --</option>
+                    <option value="Form 1">Form 1</option>
+                    <option value="Form 2">Form 2</option>
+                    <option value="Form 3">Form 3</option>
+                    <option value="Form 4">Form 4</option>
+                </select>
+            </div>
+            <div style="flex: 1;">
+                <label>Subject</label>
+                <select id="subjectSelect" style="width:100%; padding:8px;">
+                    <option value="">-- Choose Subject --</option>
+                </select>
+            </div>
+            <button id="loadBtn" style="padding: 9px 20px; background: #0d6efd; color: white; border: none; border-radius: 4px; cursor: pointer;">Load Students</button>
         </div>
     </div>
+
+    <div id="entrySection" style="display:none;" class="form-section">
+        <h3 id="tableHeader"></h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>S/N</th>
+                    <th style="text-align:left;">Student Name</th>
+                    <th>T1</th>
+                    <th>Mid</th>
+                    <th>T2</th>
+                    <th>Exam</th>
+                    <th>Avg</th>
+                    <th>Grade</th>
+                </tr>
+            </thead>
+            <tbody id="marksTbody"></tbody>
+        </table>
+        <button id="saveAllBtn" class="save-btn">SAVE ALL RESULTS</button>
+    </div>
 </div>
+
+
 
 <script type="module">
     import { db } from "./firebase.js";
     import { subjectLists } from "./data.js";
-    import { doc, getDoc, getDocs, collection, query, where } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+    import { collection, getDocs, query, where, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-    async function generateReport() {
-        const urlParams = new URLSearchParams(window.location.search);
-        const studentId = urlParams.get('id');
-        if(!studentId) return;
+    const classSelect = document.getElementById("classSelect");
+    const subjectSelect = document.getElementById("subjectSelect");
+
+    classSelect.onchange = () => {
+        const cls = classSelect.value;
+        subjectSelect.innerHTML = '<option value="">-- Choose Subject --</option>';
+        if (subjectLists[cls]) {
+            subjectLists[cls].forEach(sub => {
+                subjectSelect.innerHTML += `<option value="${sub.code}">${sub.name}</option>`;
+            });
+        }
+    };
+
+    document.getElementById("loadBtn").onclick = async () => {
+        const cls = classSelect.value;
+        const subCode = subjectSelect.value;
+        if (!cls || !subCode) return alert("Select Class and Subject");
+
+        const q = query(collection(db, "students"), where("cls", "==", cls));
+        const snap = await getDocs(q);
+        const tbody = document.getElementById("marksTbody");
+        tbody.innerHTML = "<tr><td colspan='8'>Loading database...</td></tr>";
+        
+        let rowsHtml = "";
+        let count = 1;
+
+        for (const sDoc of snap.docs) {
+            const studentId = sDoc.id;
+            const studentName = sDoc.data().name;
+
+            // FETCH EXISTING DATA FOR THIS SUBJECT
+            const resSnap = await getDoc(doc(db, "results", `${studentId}_${subCode}`));
+            const saved = resSnap.exists() ? resSnap.data() : {};
+
+            rowsHtml += `
+                <tr class="student-row" data-id="${studentId}" data-name="${studentName}">
+                    <td>${count++}</td>
+                    <td style="text-align:left;">${studentName}</td>
+                    <td><input type="number" class="score-in t1" value="${saved.test1 ?? ''}"></td>
+                    <td><input type="number" class="score-in mid" value="${saved.midTerm ?? ''}"></td>
+                    <td><input type="number" class="score-in t2" value="${saved.test2 ?? ''}"></td>
+                    <td><input type="number" class="score-in ex" value="${saved.exam ?? ''}"></td>
+                    <td class="avg">${saved.average ?? '0'}</td>
+                    <td class="grade">${saved.grade ?? '-'}</td>
+                </tr>
+            `;
+        }
+        tbody.innerHTML = rowsHtml;
+        document.getElementById("tableHeader").innerText = `${subjectSelect.options[subjectSelect.selectedIndex].text} - ${cls}`;
+        document.getElementById("entrySection").style.display = "block";
+    };
+
+    document.addEventListener('input', (e) => {
+        if (e.target.classList.contains('score-in')) {
+            const row = e.target.closest('.student-row');
+            const t1 = parseFloat(row.querySelector('.t1').value);
+            const mid = parseFloat(row.querySelector('.mid').value);
+            const t2 = parseFloat(row.querySelector('.t2').value);
+            const exam = parseFloat(row.querySelector('.ex').value) || 0;
+
+            // Calculate Dynamic Jaribio (Average of filled tests)
+            let tests = [t1, mid, t2].filter(v => !isNaN(v));
+            let jaribio = tests.length > 0 ? (tests.reduce((a,b) => a+b, 0) / tests.length) : 0;
+            
+            // Formula: (Jaribio + Exam) / 2
+            let finalAvg = ((jaribio + exam) / 2).toFixed(1);
+            row.querySelector('.avg').innerText = finalAvg;
+
+            let g = "F";
+            if (finalAvg >= 75) g = "A";
+            else if (finalAvg >= 65) g = "B";
+            else if (finalAvg >= 45) g = "C";
+            else if (finalAvg >= 30) g = "D";
+            row.querySelector('.grade').innerText = g;
+        }
+    });
+
+    document.getElementById("saveAllBtn").onclick = async () => {
+        const rows = document.querySelectorAll(".student-row");
+        const subCode = subjectSelect.value;
+        const cls = classSelect.value;
 
         try {
-            const sSnap = await getDoc(doc(db, "students", studentId));
-            const student = sSnap.data();
-            document.getElementById("studentName").innerText = student.name;
-            document.getElementById("studentClass").innerText = student.cls;
+            for (let row of rows) {
+                const studentId = row.dataset.id;
+                const avg = parseFloat(row.querySelector('.avg').innerText);
 
-            const rSnap = await getDocs(query(collection(db, "results"), where("studentId", "==", studentId)));
-            const results = {};
-            rSnap.forEach(d => results[d.data().subjectCode] = d.data());
-
-            const subjects = subjectLists[student.cls] || [];
-            const tbody = document.getElementById("reportTbody");
-            let sumWastani = 0, countSomo = 0;
-
-            subjects.forEach(sub => {
-                const res = results[sub.code] || {};
-                
-                // 1. JARIBIO = Average of T1, Mid, T2 (Dynamic)
-                let jaribioSum = 0, jaribioCount = 0;
-                if(res.test1) { jaribioSum += res.test1; jaribioCount++; }
-                if(res.midTerm) { jaribioSum += res.midTerm; jaribioCount++; }
-                if(res.test2) { jaribioSum += res.test2; jaribioCount++; }
-                
-                const jaribioAvg = jaribioCount > 0 ? (jaribioSum / jaribioCount) : 0;
-                const mtihani = res.exam || 0;
-                
-                // 2. JUMLA = Jaribio + Mtihani
-                const jumla = jaribioAvg + mtihani;
-                
-                // 3. WASTANI = Jumla / 2
-                const wastani = (jumla / 2).toFixed(1);
-
-                // 4. DARAJA NA MAONI
-                let daraja = "F", maoni = "FELI";
-                const w = parseFloat(wastani);
-                if(w >= 75) { daraja = "A"; maoni = "VIZURI SANA"; }
-                else if(w >= 65) { daraja = "B"; maoni = "VIZURI"; }
-                else if(w >= 45) { daraja = "C"; maoni = "WASTANI"; }
-                else if(w >= 30) { daraja = "D"; maoni = "INARIDHISHA"; }
-                else { daraja = "F"; maoni = "FELI"; }
-
-                if(w > 0) {
-                    sumWastani += w;
-                    countSomo++;
-                    tbody.innerHTML += `
-                        <tr>
-                            <td class="subject-col">${sub.name}</td>
-                            <td>${jaribioAvg.toFixed(0)}</td>
-                            <td>${mtihani}</td>
-                            <td>${jumla.toFixed(0)}</td>
-                            <td>${wastani}</td>
-                            <td>${daraja}</td>
-                            <td>${maoni}</td>
-                        </tr>
-                    `;
+                if (avg > 0) {
+                    await setDoc(doc(db, "results", `${studentId}_${subCode}`), {
+                        studentId,
+                        studentName: row.dataset.name,
+                        class: cls,
+                        subjectCode: subCode,
+                        test1: parseFloat(row.querySelector('.t1').value) || null,
+                        midTerm: parseFloat(row.querySelector('.mid').value) || null,
+                        test2: parseFloat(row.querySelector('.t2').value) || null,
+                        exam: parseFloat(row.querySelector('.ex').value) || null,
+                        average: avg,
+                        grade: row.querySelector('.grade').innerText,
+                        updatedAt: new Date()
+                    });
                 }
-            });
-
-            document.getElementById("overallAvg").innerText = (sumWastani / countSomo).toFixed(1);
-
-        } catch (e) { console.error(e); }
-    }
-    generateReport();
+            }
+            alert("All results saved successfully!");
+        } catch (err) { alert("Error: " + err.message); }
+    };
 </script>
 </body>
 </html>
