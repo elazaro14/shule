@@ -1,3 +1,106 @@
+<!DOCTYPE html>
+<html lang="sw">
+<head>
+    <meta charset="UTF-8">
+    <title>Report Card - Olmoti Style</title>
+    <style>
+        body { font-family: 'Times New Roman', serif; background: #f4f4f4; padding: 20px; margin: 0; }
+        .report-page { background: white; width: 210mm; min-height: 297mm; margin: auto; padding: 40px; box-shadow: 0 0 10px rgba(0,0,0,0.1); box-sizing: border-box; position: relative;}
+        .header { text-align: center; line-height: 1.2; margin-bottom: 20px; text-transform: uppercase; }
+        .header h2, .header h3 { margin: 5px 0; font-weight: bold; }
+        .student-info { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px; border-bottom: 2px solid #000; padding-bottom: 10px; }
+        table { width: 100%; border-collapse: collapse; margin-bottom: 15px; }
+        th, td { border: 1px solid black; padding: 6px; text-align: center; text-transform: uppercase; font-size: 12px; height: 25px; }
+        th { background: #f0f0f0; font-weight: bold; }
+        .subject-col { text-align: left; padding-left: 10px; font-weight: bold; }
+        .grading-key { display: flex; justify-content: space-between; font-size: 11px; margin-top: 15px; border: 1px solid #000; padding: 10px; font-weight: bold; }
+        .footer-sections { margin-top: 30px; display: grid; grid-template-columns: 1fr 1fr; gap: 40px; }
+        .signature-line { border-bottom: 1px dotted black; margin-top: 30px; height: 20px; }
+        .no-print { text-align: center; margin-bottom: 20px; }
+        @media print {
+            body { background: none; padding: 0; }
+            .report-page { box-shadow: none; border: none; width: 100%; margin: 0; padding: 20px; }
+            .no-print { display: none; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="no-print">
+    <button onclick="window.print()" style="padding: 10px 25px; cursor: pointer; background: #198754; color: white; border: none; border-radius: 4px; font-weight: bold;">PRINT / SAVE PDF</button>
+</div>
+
+<div class="report-page">
+    <div class="header">
+        <h3>OFISI YA WAZIRI MKUU</h3>
+        <h3>TAWALA ZA MIKOA NA SERIKALI ZA MTAA</h3>
+        <h2>HALMASHAURI YA JIJI LA ARUSHA</h2>
+        <h2>SHULE YA SEKONDARI OLMOTI</h2>
+        <p>S.L.P 8249, ARUSHA</p>
+        <h3 style="text-decoration: underline; margin-top: 15px;">TAARIFA YA MAENDELEO YA MWANAFUNZI</h3>
+    </div>
+
+    <div class="student-info">
+        <div><strong>JINA:</strong> <span id="studentName">LOADING...</span></div>
+        <div><strong>KIDATO:</strong> <span id="studentClass">...</span></div>
+        <div><strong>MUHULA:</strong> <span>I</span></div>
+        <div><strong>MWAKA:</strong> <span>2025</span></div>
+    </div>
+
+    <table>
+        <thead>
+            <tr>
+                <th style="width: 30%;">SOMO</th>
+                <th>JARIBIO</th>
+                <th>MTIHANI</th>
+                <th>JUMLA</th>
+                <th>WASTANI</th>
+                <th>DARAJA</th>
+                <th>MAONI</th>
+            </tr>
+        </thead>
+        <tbody id="reportTbody"></tbody>
+        <tfoot>
+            <tr style="font-weight: bold; background: #f0f0f0;">
+                <td class="subject-col">JUMLA</td>
+                <td id="totJaribio"></td>
+                <td id="totMtihani"></td>
+                <td></td>
+                <td id="overallAvg"></td>
+                <td id="overallGrade"></td>
+                <td id="overallRemark"></td>
+            </tr>
+        </tfoot>
+    </table>
+
+    <div style="margin-top: 10px; font-weight: bold;">
+        NAFASI: <span id="rank">-</span> KATI YA <span id="totalInClass">-</span> &nbsp;&nbsp;&nbsp; 
+        POINTS: <span id="points">0</span> &nbsp;&nbsp;&nbsp; 
+        DIVISION: <span id="division">-</span>
+    </div>
+
+    <div class="grading-key">
+        <span>A=75-100 (VIZURI SANA)</span>
+        <span>B=65-74 (VIZURI)</span>
+        <span>C=45-64 (WASTANI)</span>
+        <span>D=30-44 (INARIDHISHA)</span>
+        <span>F=0-29 (FELI)</span>
+    </div>
+
+    <div class="footer-sections">
+        <div>
+            <p>Maoni ya mwalimu wa darasa:</p>
+            <div id="classTeacherRemark" style="font-style: italic;">...</div>
+            <div class="signature-line"></div>
+        </div>
+        <div>
+            <p>Maoni ya mkuu wa shule:</p>
+            <div id="headRemark" style="font-style: italic;">...</div>
+            <div class="signature-line"></div>
+        </div>
+    </div>
+</div>
+
 <script type="module">
     import { db } from "./firebase.js";
     import { subjectLists } from "./data.js";
@@ -6,79 +109,49 @@
     async function loadReport() {
         const urlParams = new URLSearchParams(window.location.search);
         const studentId = urlParams.get('id');
-        
         if(!studentId) return;
 
         try {
-            // 1. Fetch Student & All Students in Class (for Ranking)
             const studentSnap = await getDoc(doc(db, "students", studentId));
             const student = studentSnap.data();
-            const classQuery = query(collection(db, "students"), where("cls", "==", student.cls));
-            const allClassSnap = await getDocs(classQuery);
-            document.getElementById("totalStudents").innerText = allClassSnap.size;
-
             document.getElementById("studentName").innerText = student.name;
             document.getElementById("studentClass").innerText = student.cls;
 
-            // 2. Fetch Results
-            const resultsQuery = query(collection(db, "results"), where("studentId", "==", studentId));
-            const resultsSnap = await getDocs(resultsQuery);
+            const resultsSnap = await getDocs(query(collection(db, "results"), where("studentId", "==", studentId)));
             const resultsData = {};
-            resultsSnap.forEach(d => { resultsData[d.data().subjectCode] = d.data(); });
+            resultsSnap.forEach(d => resultsData[d.data().subjectCode] = d.data());
 
-            // 3. Populate Table & Track Points for Division
             const subjects = subjectLists[student.cls] || [];
             const tbody = document.getElementById("reportTbody");
-            let sumAvg = 0, countAvg = 0;
-            let pointsList = [];
+            let sumAvg = 0, countAvg = 0, points = [];
 
             subjects.forEach(sub => {
                 const res = resultsData[sub.code] || {};
                 const jaribio = (res.test1 || 0) + (res.midTerm || 0) + (res.test2 || 0);
                 const avg = res.average || 0;
-                const grade = res.grade || "-";
-                
-                if(avg > 0) { 
-                    sumAvg += avg; 
-                    countAvg++; 
-                    // Point mapping: A=1, B=2, C=3, D=4, F=5
-                    const pts = { "A":1, "B":2, "C":3, "D":4, "F":5 }[grade] || 5;
-                    pointsList.push(pts);
+                if(avg > 0) {
+                    sumAvg += avg; countAvg++;
+                    const p = {"A":1,"B":2,"C":3,"D":4,"F":5}[res.grade] || 5;
+                    points.push(p);
                 }
-
-                tbody.innerHTML += `
-                    <tr>
-                        <td class="subject-col">${sub.name}</td>
-                        <td>${jaribio || ''}</td>
-                        <td>${res.exam || ''}</td>
-                        <td>${res.test1 ? (jaribio + (res.exam || 0)) : ''}</td>
-                        <td>${avg || ''}</td>
-                        <td>${grade}</td>
-                        <td>${res.remark || ''}</td>
-                    </tr>
-                `;
+                tbody.innerHTML += `<tr><td class="subject-col">${sub.name}</td><td>${jaribio || ''}</td><td>${res.exam || ''}</td><td>${res.test1 ? (jaribio + (res.exam||0)) : ''}</td><td>${avg || ''}</td><td>${res.grade || ''}</td><td>${res.remark || ''}</td></tr>`;
             });
 
-            // 4. Calculate Division (Based on Best 7 Subjects)
-            pointsList.sort((a, b) => a - b);
-            const best7 = pointsList.slice(0, 7);
-            const totalPoints = best7.reduce((a, b) => a + b, 0);
-            
-            let division = "FAIL";
-            if (totalPoints >= 7 && totalPoints <= 17) division = "I";
-            else if (totalPoints <= 21) division = "II";
-            else if (totalPoints <= 25) division = "III";
-            else if (totalPoints <= 33) division = "IV";
-            else division = "0";
-
-            document.getElementById("division").innerText = division;
-            
-            const finalAvg = countAvg > 0 ? (sumAvg / countAvg).toFixed(1) : 0;
+            const finalAvg = (sumAvg / countAvg).toFixed(1);
             document.getElementById("overallAvg").innerText = finalAvg;
+            
+            // Division logic best 7
+            points.sort((a,b)=>a-b);
+            const totalPoints = points.slice(0, 7).reduce((a,b)=>a+b, 0);
+            document.getElementById("points").innerText = totalPoints;
 
-        } catch (e) {
-            console.error(e);
-        }
+            let div = "0";
+            if(totalPoints <= 17) div="I"; else if(totalPoints <= 21) div="II"; else if(totalPoints <= 25) div="III"; else if(totalPoints <= 33) div="IV";
+            document.getElementById("division").innerText = div;
+
+        } catch (e) { alert("Error: " + e.message); }
     }
     loadReport();
 </script>
+</body>
+</html>
