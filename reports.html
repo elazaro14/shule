@@ -1,199 +1,83 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="sw">
 <head>
     <meta charset="UTF-8">
-    <title>Academic Reports | Shule ERP</title>
+    <title>Results Entry | Shule ERP</title>
     <link rel="stylesheet" href="style.css">
-    <style>
-        .report-card { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); overflow-x: auto; }
-        table { width: 100%; border-collapse: collapse; min-width: 1000px; }
-        th, td { border: 1px solid #ddd; padding: 8px; text-align: center; font-size: 13px; }
-        th { background-color: #0d6efd; color: white; }
-        .score-in { width: 50px; padding: 5px; text-align: center; border: 1px solid #ccc; border-radius: 4px; }
-        .read-only { background: #f8f9fa; font-weight: bold; border: none; width: 55px; text-align: center; }
-        .grade-cell, .remark-cell { font-weight: bold; }
-        .A { color: #198754; } .B { color: #0d6efd; } .C { color: #fd7e14; } .D { color: #6f42c1; } .F { color: #dc3545; }
-    </style>
 </head>
 <body>
-
-<nav><a href="dashboard.html">⬅ Back to Dashboard</a></nav>
-
-<div class="dashboard-container" style="max-width: 1200px; margin: auto; padding: 20px;">
-    <h2>📊 Results Entry (Dynamic Average)</h2>
-
-    <div class="form-section">
-        <div class="controls" style="display: flex; gap: 10px; align-items: flex-end;">
-            <div style="flex: 1;">
-                <label>Class</label>
-                <select id="classSelect" style="width: 100%;">
-                    <option value="">-- Select Class --</option>
-                    <option value="Form 1">Form 1</option>
-                    <option value="Form 2">Form 2</option>
-                    <option value="Form 3">Form 3</option>
-                    <option value="Form 4">Form 4</option>
-                </select>
-            </div>
-            <div style="flex: 1;">
-                <label>Subject</label>
-                <select id="subjectSelect" style="width: 100%;">
-                    <option value="">-- Choose Class First --</option>
-                </select>
-            </div>
-            <button id="loadBtn" style="background: #0d6efd; color: white; height: 40px;">Load List</button>
+    <nav><a href="dashboard.html">⬅ Dashboard</a></nav>
+    <div class="dashboard-container" style="max-width: 1100px; margin: auto; padding: 20px;">
+        <h2>📊 Teacher Mark Entry</h2>
+        <div class="form-section">
+            <select id="classSelect"><option value="">-- Class --</option><option value="Form 1">Form 1</option><option value="Form 2">Form 2</option><option value="Form 3">Form 3</option><option value="Form 4">Form 4</option></select>
+            <select id="subjectSelect"><option value="">-- Subject --</option></select>
+            <button id="loadBtn">Load Students</button>
+        </div>
+        <div id="entrySection" style="display:none;">
+            <table border="1" width="100%">
+                <thead><tr><th>Name</th><th>T1</th><th>Mid</th><th>T2</th><th>Exam</th><th>Avg</th><th>Grade</th></tr></thead>
+                <tbody id="marksTbody"></tbody>
+            </table>
+            <button id="saveAllBtn" style="width:100%; padding:15px; background:green; color:white; margin-top:10px;">SAVE ALL RESULTS</button>
         </div>
     </div>
-
-    <div id="entrySection" style="display:none;" class="report-card">
-        <h3 id="tableHeader" style="margin-bottom: 15px; color: #333;"></h3>
-        <table>
-            <thead>
-                <tr>
-                    <th>S/N</th>
-                    <th>Student Name</th>
-                    <th>Test 1</th>
-                    <th>Mid Term</th>
-                    <th>Test 2</th>
-                    <th>Exam</th>
-                    <th>Total</th>
-                    <th>Avg</th>
-                    <th>Grade</th>
-                    <th>Remarks</th>
-                </tr>
-            </thead>
-            <tbody id="marksTbody"></tbody>
-        </table>
-        <button id="saveAllBtn" style="margin-top: 20px; background: #198754; color: white; width: 100%; padding: 12px; font-size: 16px;">Save All Results</button>
-    </div>
-</div>
 
 <script type="module">
     import { db } from "./firebase.js";
     import { subjectLists } from "./data.js";
     import { collection, getDocs, query, where, doc, setDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-    const classSelect = document.getElementById("classSelect");
-    const subjectSelect = document.getElementById("subjectSelect");
-
     classSelect.onchange = () => {
-        const cls = classSelect.value;
-        subjectSelect.innerHTML = '<option value="">-- Choose Subject --</option>';
-        if (subjectLists[cls]) {
-            subjectLists[cls].forEach(sub => {
-                subjectSelect.innerHTML += `<option value="${sub.code}">${sub.name}</option>`;
-            });
-        }
+        subjectSelect.innerHTML = '<option value="">-- Subject --</option>';
+        if(subjectLists[classSelect.value]) subjectLists[classSelect.value].forEach(s => subjectSelect.innerHTML += `<option value="${s.code}">${s.name}</option>`);
     };
 
-    document.getElementById("loadBtn").onclick = async () => {
-        const cls = classSelect.value;
-        const subCode = subjectSelect.value;
-        if (!cls || !subCode) return alert("Please select both Class and Subject");
-
-        const q = query(collection(db, "students"), where("cls", "==", cls));
+    loadBtn.onclick = async () => {
+        const q = query(collection(db, "students"), where("cls", "==", classSelect.value));
         const snap = await getDocs(q);
-        const tbody = document.getElementById("marksTbody");
-        tbody.innerHTML = "";
-        
-        let count = 1;
+        marksTbody.innerHTML = "";
         snap.forEach(sDoc => {
-            const data = sDoc.data();
-            tbody.innerHTML += `
-                <tr class="student-row" data-id="${sDoc.id}" data-name="${data.name}">
-                    <td>${count++}</td>
-                    <td style="text-align: left;">${data.name}</td>
-                    <td><input type="number" class="score-in t1" placeholder="-"></td>
-                    <td><input type="number" class="score-in mid" placeholder="-"></td>
-                    <td><input type="number" class="score-in t2" placeholder="-"></td>
-                    <td><input type="number" class="score-in ex" placeholder="-"></td>
-                    <td><input type="number" class="read-only total" readonly value="0"></td>
-                    <td><input type="number" class="read-only avg" readonly value="0"></td>
-                    <td class="grade-cell">-</td>
-                    <td class="remark-cell">-</td>
-                </tr>
-            `;
+            marksTbody.innerHTML += `<tr class="student-row" data-id="${sDoc.id}" data-name="${sDoc.data().name}">
+                <td>${sDoc.data().name}</td>
+                <td><input type="number" class="score-in t1" style="width:50px"></td>
+                <td><input type="number" class="score-in mid" style="width:50px"></td>
+                <td><input type="number" class="score-in t2" style="width:50px"></td>
+                <td><input type="number" class="score-in ex" style="width:50px"></td>
+                <td class="avg">0</td><td class="grade">-</td>
+            </tr>`;
         });
-
-        document.getElementById("tableHeader").innerText = `Results for ${cls} - ${subjectSelect.options[subjectSelect.selectedIndex].text}`;
-        document.getElementById("entrySection").style.display = "block";
+        entrySection.style.display = "block";
     };
 
-    // Corrected Calculation: Only divides by number of fields filled
-    document.addEventListener('input', (e) => {
-        if (e.target.classList.contains('score-in')) {
-            const row = e.target.closest('.student-row');
-            const inputs = row.querySelectorAll('.score-in');
-            
-            let total = 0;
-            let filledCount = 0;
-
-            inputs.forEach(input => {
-                if (input.value !== "") {
-                    total += parseFloat(input.value);
-                    filledCount++;
-                }
-            });
-
-            const avg = filledCount > 0 ? (total / filledCount) : 0;
-
-            row.querySelector('.total').value = total.toFixed(0);
-            row.querySelector('.avg').value = avg.toFixed(1);
-
-            let grade = "-";
-            let remark = "-";
-
-            if (filledCount > 0) {
-                if (avg >= 75) { grade = "A"; remark = "EXCELLENT"; }
-                else if (avg >= 65) { grade = "B"; remark = "GOOD"; }
-                else if (avg >= 45) { grade = "C"; remark = "AVERAGE"; }
-                else if (avg >= 30) { grade = "D"; remark = "SATISFACTORY"; }
-                else { grade = "F"; remark = "FAILED"; }
-            }
-
-            const gCell = row.querySelector('.grade-cell');
-            const rCell = row.querySelector('.remark-cell');
-            
-            gCell.innerText = grade;
-            gCell.className = `grade-cell ${grade}`;
-            rCell.innerText = remark;
+    document.addEventListener('input', e => {
+        if(e.target.classList.contains('score-in')) {
+            const row = e.target.closest('tr');
+            const scores = Array.from(row.querySelectorAll('.score-in')).map(i => parseFloat(i.value)).filter(v => !isNaN(v));
+            const avg = scores.length > 0 ? (scores.reduce((a,b)=>a+b,0) / scores.length).toFixed(1) : 0;
+            row.querySelector('.avg').innerText = avg;
+            let g = "F"; if(avg>=75) g="A"; else if(avg>=65) g="B"; else if(avg>=45) g="C"; else if(avg>=30) g="D";
+            row.querySelector('.grade').innerText = g;
         }
     });
 
-    document.getElementById("saveAllBtn").onclick = async () => {
+    saveAllBtn.onclick = async () => {
+        if(!subjectSelect.value) return alert("Select Subject!");
         const rows = document.querySelectorAll(".student-row");
-        const subCode = subjectSelect.value;
-        const cls = classSelect.value;
-
-        try {
-            for (let row of rows) {
-                const studentId = row.dataset.id;
-                const resRef = doc(db, "results", `${studentId}_${subCode}`);
-                
-                // Get values, ensuring we handle empty strings as null or 0
-                const t1 = row.querySelector('.t1').value;
-                const mid = row.querySelector('.mid').value;
-                const t2 = row.querySelector('.t2').value;
-                const ex = row.querySelector('.ex').value;
-
-                await setDoc(resRef, {
-                    studentId: studentId,
-                    studentName: row.dataset.name,
-                    class: cls,
-                    subjectCode: subCode,
-                    test1: t1 !== "" ? parseFloat(t1) : null,
-                    midTerm: mid !== "" ? parseFloat(mid) : null,
-                    test2: t2 !== "" ? parseFloat(t2) : null,
-                    exam: ex !== "" ? parseFloat(ex) : null,
-                    average: parseFloat(row.querySelector('.avg').value),
-                    grade: row.querySelector('.grade-cell').innerText,
-                    remark: row.querySelector('.remark-cell').innerText,
-                    updatedAt: new Date()
-                });
-            }
-            alert("Results saved with corrected average!");
-        } catch (err) {
-            alert("Error: " + err.message);
+        for(let row of rows) {
+            const avg = parseFloat(row.querySelector('.avg').innerText);
+            if(avg === 0) continue;
+            await setDoc(doc(db, "results", `${row.dataset.id}_${subjectSelect.value}`), {
+                studentId: row.dataset.id, subjectCode: subjectSelect.value,
+                test1: parseFloat(row.querySelector('.t1').value)||0,
+                midTerm: parseFloat(row.querySelector('.mid').value)||0,
+                test2: parseFloat(row.querySelector('.t2').value)||0,
+                exam: parseFloat(row.querySelector('.ex').value)||0,
+                average: avg, grade: row.querySelector('.grade').innerText,
+                remark: avg >= 30 ? "PASSED" : "FAILED"
+            });
         }
+        alert("Saved successfully!");
     };
 </script>
 </body>
