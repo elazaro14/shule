@@ -1,12 +1,93 @@
-<h2>📑 Student Report</h2>
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Enter Marks | Shule ERP</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
 
-<input id="name" placeholder="Student Name">
-<input id="math" placeholder="Math">
-<input id="eng" placeholder="English">
-<input id="bio" placeholder="Biology">
+<nav><a href="dashboard.html">⬅ Back</a></nav>
 
-<button onclick="generate()">Generate Report</button>
+<div class="dashboard-container">
+    <h2>📝 Academic Results Entry</h2>
 
-<pre id="report"></pre>
+    <div class="form-section">
+        <div class="controls">
+            <select id="selectClass">
+                <option value="">-- Select Class --</option>
+                <option value="Form 1">Form 1</option>
+                <option value="Form 2">Form 2</option>
+                <option value="Form 3">Form 3</option>
+                <option value="Form 4">Form 4</option>
+            </select>
 
-<script src="reports.js"></script>
+            <select id="selectSubject">
+                <option value="">-- Select Subject --</option>
+            </select>
+            
+            <button id="loadListBtn">Load Student List</button>
+        </div>
+    </div>
+
+    <table id="marksTable" style="display:none;">
+        <thead>
+            <tr>
+                <th>S/N</th>
+                <th>Student Name</th>
+                <th>Score (0-100)</th>
+            </tr>
+        </thead>
+        <tbody id="studentListBody"></tbody>
+    </table>
+    
+    <button id="saveMarksBtn" style="display:none; margin-top:20px; background:#198754;">Save All Marks</button>
+</div>
+
+<script type="module">
+    import { subjectLists } from "./data.js";
+    import { db } from "./firebase.js";
+    import { collection, getDocs, query, where, addDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+    const classSelect = document.getElementById("selectClass");
+    const subjectSelect = document.getElementById("selectSubject");
+
+    // Update subjects dropdown when class changes
+    classSelect.onchange = () => {
+        const selectedClass = classSelect.value;
+        subjectSelect.innerHTML = '<option value="">-- Select Subject --</option>';
+        
+        if(subjectLists[selectedClass]) {
+            subjectLists[selectedClass].forEach(sub => {
+                subjectSelect.innerHTML += `<option value="${sub.code}">${sub.name}</option>`;
+            });
+        }
+    };
+
+    // Load Students for that class
+    document.getElementById("loadListBtn").onclick = async () => {
+        const cls = classSelect.value;
+        const sub = subjectSelect.value;
+        if(!cls || !sub) return alert("Select Class and Subject first");
+
+        const q = query(collection(db, "students"), where("cls", "==", cls));
+        const snap = await getDocs(q);
+        const tbody = document.getElementById("studentListBody");
+        tbody.innerHTML = "";
+
+        let count = 1;
+        snap.forEach(doc => {
+            tbody.innerHTML += `
+                <tr>
+                    <td>${count++}</td>
+                    <td>${doc.data().name}</td>
+                    <td><input type="number" class="mark-input" data-id="${doc.id}" min="0" max="100" style="width:80px"></td>
+                </tr>
+            `;
+        });
+
+        document.getElementById("marksTable").style.display = "table";
+        document.getElementById("saveMarksBtn").style.display = "block";
+    };
+</script>
+</body>
+</html>
