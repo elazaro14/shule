@@ -9,10 +9,9 @@
         table { width: 100%; border-collapse: collapse; min-width: 1000px; }
         th, td { border: 1px solid #ddd; padding: 8px; text-align: center; font-size: 13px; }
         th { background-color: #0d6efd; color: white; }
-        .score-in { width: 45px; padding: 5px; text-align: center; border: 1px solid #ccc; border-radius: 4px; }
-        .read-only { background: #f8f9fa; font-weight: bold; border: none; width: 50px; text-align: center; }
+        .score-in { width: 50px; padding: 5px; text-align: center; border: 1px solid #ccc; border-radius: 4px; }
+        .read-only { background: #f8f9fa; font-weight: bold; border: none; width: 55px; text-align: center; }
         .grade-cell, .remark-cell { font-weight: bold; }
-        /* Grade Colors */
         .A { color: #198754; } .B { color: #0d6efd; } .C { color: #fd7e14; } .D { color: #6f42c1; } .F { color: #dc3545; }
     </style>
 </head>
@@ -21,7 +20,7 @@
 <nav><a href="dashboard.html">⬅ Back to Dashboard</a></nav>
 
 <div class="dashboard-container" style="max-width: 1200px; margin: auto; padding: 20px;">
-    <h2>📊 Results Entry (With Remarks)</h2>
+    <h2>📊 Results Entry (Dynamic Average)</h2>
 
     <div class="form-section">
         <div class="controls" style="display: flex; gap: 10px; align-items: flex-end;">
@@ -103,10 +102,10 @@
                 <tr class="student-row" data-id="${sDoc.id}" data-name="${data.name}">
                     <td>${count++}</td>
                     <td style="text-align: left;">${data.name}</td>
-                    <td><input type="number" class="score-in t1" value="0"></td>
-                    <td><input type="number" class="score-in mid" value="0"></td>
-                    <td><input type="number" class="score-in t2" value="0"></td>
-                    <td><input type="number" class="score-in ex" value="0"></td>
+                    <td><input type="number" class="score-in t1" placeholder="-"></td>
+                    <td><input type="number" class="score-in mid" placeholder="-"></td>
+                    <td><input type="number" class="score-in t2" placeholder="-"></td>
+                    <td><input type="number" class="score-in ex" placeholder="-"></td>
                     <td><input type="number" class="read-only total" readonly value="0"></td>
                     <td><input type="number" class="read-only avg" readonly value="0"></td>
                     <td class="grade-cell">-</td>
@@ -119,29 +118,37 @@
         document.getElementById("entrySection").style.display = "block";
     };
 
-    // Calculation Formula with Remarks
+    // Corrected Calculation: Only divides by number of fields filled
     document.addEventListener('input', (e) => {
         if (e.target.classList.contains('score-in')) {
             const row = e.target.closest('.student-row');
-            const t1 = parseFloat(row.querySelector('.t1').value) || 0;
-            const mid = parseFloat(row.querySelector('.mid').value) || 0;
-            const t2 = parseFloat(row.querySelector('.t2').value) || 0;
-            const ex = parseFloat(row.querySelector('.ex').value) || 0;
+            const inputs = row.querySelectorAll('.score-in');
+            
+            let total = 0;
+            let filledCount = 0;
 
-            const total = t1 + mid + t2 + ex;
-            const avg = total / 4;
+            inputs.forEach(input => {
+                if (input.value !== "") {
+                    total += parseFloat(input.value);
+                    filledCount++;
+                }
+            });
+
+            const avg = filledCount > 0 ? (total / filledCount) : 0;
 
             row.querySelector('.total').value = total.toFixed(0);
             row.querySelector('.avg').value = avg.toFixed(1);
 
-            let grade = "F";
-            let remark = "FAILED";
+            let grade = "-";
+            let remark = "-";
 
-            if (avg >= 75) { grade = "A"; remark = "EXCELLENT"; }
-            else if (avg >= 65) { grade = "B"; remark = "GOOD"; }
-            else if (avg >= 45) { grade = "C"; remark = "AVERAGE"; }
-            else if (avg >= 30) { grade = "D"; remark = "SATISFACTORY"; }
-            else { grade = "F"; remark = "FAILED"; }
+            if (filledCount > 0) {
+                if (avg >= 75) { grade = "A"; remark = "EXCELLENT"; }
+                else if (avg >= 65) { grade = "B"; remark = "GOOD"; }
+                else if (avg >= 45) { grade = "C"; remark = "AVERAGE"; }
+                else if (avg >= 30) { grade = "D"; remark = "SATISFACTORY"; }
+                else { grade = "F"; remark = "FAILED"; }
+            }
 
             const gCell = row.querySelector('.grade-cell');
             const rCell = row.querySelector('.remark-cell');
@@ -162,22 +169,28 @@
                 const studentId = row.dataset.id;
                 const resRef = doc(db, "results", `${studentId}_${subCode}`);
                 
+                // Get values, ensuring we handle empty strings as null or 0
+                const t1 = row.querySelector('.t1').value;
+                const mid = row.querySelector('.mid').value;
+                const t2 = row.querySelector('.t2').value;
+                const ex = row.querySelector('.ex').value;
+
                 await setDoc(resRef, {
                     studentId: studentId,
                     studentName: row.dataset.name,
                     class: cls,
                     subjectCode: subCode,
-                    test1: parseFloat(row.querySelector('.t1').value),
-                    midTerm: parseFloat(row.querySelector('.mid').value),
-                    test2: parseFloat(row.querySelector('.t2').value),
-                    exam: parseFloat(row.querySelector('.ex').value),
+                    test1: t1 !== "" ? parseFloat(t1) : null,
+                    midTerm: mid !== "" ? parseFloat(mid) : null,
+                    test2: t2 !== "" ? parseFloat(t2) : null,
+                    exam: ex !== "" ? parseFloat(ex) : null,
                     average: parseFloat(row.querySelector('.avg').value),
                     grade: row.querySelector('.grade-cell').innerText,
                     remark: row.querySelector('.remark-cell').innerText,
                     updatedAt: new Date()
                 });
             }
-            alert("Success: Results and Remarks saved!");
+            alert("Results saved with corrected average!");
         } catch (err) {
             alert("Error: " + err.message);
         }
