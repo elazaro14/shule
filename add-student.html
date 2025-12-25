@@ -6,23 +6,16 @@
     <title>Admin - Student Registry | Shule ERP</title>
     <link rel="stylesheet" href="style.css">
     <style>
-        /* UI Layout */
         .admin-header { display: flex; justify-content: space-between; align-items: center; background: #f8f9fa; padding: 15px; border-radius: 8px; margin-bottom: 20px; border-left: 5px solid #0d6efd; }
         table { width: 100%; border-collapse: collapse; margin-top: 20px; background: white; }
         th, td { border: 1px solid #ddd; padding: 12px; text-align: left; }
         th { background-color: #0d6efd; color: white; }
-        
-        /* Controls */
         .controls { display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; align-items: flex-end; }
         .form-section { background: #fff; padding: 20px; border-radius: 8px; margin-bottom: 25px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
-        
-        /* Action Buttons */
         .btn-edit { background: #ffc107; color: black; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer; }
         .btn-del { background: #dc3545; color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer; }
-        
-        /* Protection Overlay */
         #lock-screen { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: white; z-index: 9999; text-align: center; padding-top: 100px; }
-
+        
         @media print {
             nav, .form-section:first-of-type, .btn-edit, .btn-del, .controls { display: none; }
         }
@@ -50,35 +43,35 @@
         <div class="controls">
             <div style="flex: 2;">
                 <label>Full Name</label>
-                <input type="text" id="newName" placeholder="Enter Full Name" style="width: 100%;">
+                <input type="text" id="newName" placeholder="Enter Full Name" style="width: 100%; padding: 10px;">
             </div>
             <div style="flex: 0.5;">
                 <label>Sex</label>
-                <select id="newSex" style="width: 100%;">
+                <select id="newSex" style="width: 100%; padding: 10px;">
                     <option value="M">M</option>
                     <option value="F">F</option>
                 </select>
             </div>
             <div style="flex: 1;">
                 <label>Class</label>
-                <select id="newClass" style="width: 100%;">
+                <select id="newClass" style="width: 100%; padding: 10px;">
                     <option value="Form 1">Form 1</option>
                     <option value="Form 2">Form 2</option>
                     <option value="Form 3">Form 3</option>
                     <option value="Form 4">Form 4</option>
                 </select>
             </div>
-            <button id="addBtn" style="background: #198754; color: white; height: 42px;">Add Student</button>
+            <button id="addBtn" style="background: #198754; color: white; height: 42px; cursor: pointer; padding: 0 20px; border: none; border-radius: 4px;">Add Student</button>
         </div>
     </div>
 
     <div class="form-section">
         <div class="controls">
             <div style="flex: 2;">
-                <input type="text" id="searchInput" placeholder="Search by name..." style="width: 100%;">
+                <input type="text" id="searchInput" placeholder="Search by name..." style="width: 100%; padding: 10px;">
             </div>
             <div style="flex: 1;">
-                <select id="filterClass" style="width: 100%;">
+                <select id="filterClass" style="width: 100%; padding: 10px;">
                     <option value="All">All Classes</option>
                     <option value="Form 1">Form 1</option>
                     <option value="Form 2">Form 2</option>
@@ -86,7 +79,7 @@
                     <option value="Form 4">Form 4</option>
                 </select>
             </div>
-            <button onclick="window.print()" style="background: #6c757d; color: white; height: 42px;">Print List</button>
+            <button onclick="window.print()" style="background: #6c757d; color: white; height: 42px; padding: 0 20px; border: none; border-radius: 4px; cursor: pointer;">Print List</button>
         </div>
 
         <table>
@@ -99,18 +92,18 @@
                     <th style="width: 180px;">ACTIONS</th>
                 </tr>
             </thead>
-            <tbody id="studentTableBody"></tbody>
+            <tbody id="studentTableBody">
+                <tr><td colspan="5" style="text-align:center;">Loading students...</td></tr>
+            </tbody>
         </table>
     </div>
 </div>
 
-
-
 <script type="module">
     import { db } from "./firebase.js";
-    import { collection, addDoc, getDocs, deleteDoc, doc, updateDoc, query, where, orderBy } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+    import { collection, addDoc, getDocs, deleteDoc, doc, updateDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-    // --- SECURITY CHECK: ONLY ADMIN ---
+    // --- SECURITY CHECK ---
     const role = sessionStorage.getItem("role");
     if (role !== "admin") {
         document.getElementById("main-content").style.display = "none";
@@ -118,87 +111,111 @@
     }
 
     const studentCol = collection(db, "students");
+    let allStudents = []; // Cache students locally for instant filtering
 
-    // --- LOAD DATA ---
-    async function loadStudents() {
+    // --- FETCH DATA ---
+    async function fetchStudents() {
+        try {
+            const snap = await getDocs(studentCol);
+            allStudents = snap.docs.map(sDoc => ({
+                id: sDoc.id,
+                ...sDoc.data()
+            }));
+            // Initial Sort by Name
+            allStudents.sort((a, b) => (a.name || "").localeCompare(b.name || ""));
+            renderTable();
+        } catch (e) {
+            console.error("Fetch error:", e);
+            document.getElementById("studentTableBody").innerHTML = `<tr><td colspan="5" style="color:red; text-align:center;">Error loading data. Check Permissions.</td></tr>`;
+        }
+    }
+
+    // --- RENDER TABLE (WITH FILTERS) ---
+    function renderTable() {
         const tbody = document.getElementById("studentTableBody");
         const filter = document.getElementById("filterClass").value;
         const searchTerm = document.getElementById("searchInput").value.toLowerCase();
         
-        tbody.innerHTML = "<tr><td colspan='5'>Loading...</td></tr>";
+        tbody.innerHTML = "";
+        let count = 1;
 
-        try {
-            let q = query(studentCol, orderBy("name", "asc"));
-            if (filter !== "All") {
-                q = query(studentCol, where("cls", "==", filter), orderBy("name", "asc"));
-            }
+        // Filter and Display
+        const filtered = allStudents.filter(student => {
+            const matchesClass = (filter === "All" || student.cls === filter);
+            const matchesSearch = (student.name || "").toLowerCase().includes(searchTerm);
+            return matchesClass && matchesSearch;
+        });
 
-            const snap = await getDocs(q);
-            tbody.innerHTML = "";
-            let count = 1;
+        filtered.forEach((student) => {
+            const row = document.createElement("tr");
+            row.innerHTML = `
+                <td>${count++}</td>
+                <td>${student.name}</td>
+                <td>${student.sex}</td>
+                <td>${student.cls}</td>
+                <td>
+                    <button class="btn-edit" data-id="${student.id}" data-name="${student.name}">Edit</button>
+                    <button class="btn-del" data-id="${student.id}">Remove</button>
+                </td>
+            `;
+            tbody.appendChild(row);
+        });
 
-            snap.forEach((sDoc) => {
-                const data = sDoc.data();
-                if (data.name.toLowerCase().includes(searchTerm)) {
-                    tbody.innerHTML += `
-                        <tr>
-                            <td>${count++}</td>
-                            <td>${data.name}</td>
-                            <td>${data.sex}</td>
-                            <td>${data.cls}</td>
-                            <td>
-                                <button class="btn-edit" onclick="editStudent('${sDoc.id}', '${data.name}')">Edit</button>
-                                <button class="btn-del" onclick="deleteStudent('${sDoc.id}')">Remove</button>
-                            </td>
-                        </tr>
-                    `;
-                }
-            });
-        } catch (e) {
-            tbody.innerHTML = `<tr><td colspan='5' style='color:red;'>Error: ${e.message}</td></tr>`;
+        if (filtered.length === 0) {
+            tbody.innerHTML = "<tr><td colspan='5' style='text-align:center;'>No matching records found.</td></tr>";
         }
+
+        // Re-attach event listeners to new buttons
+        attachActionListeners();
     }
 
-    // --- ADD STUDENT ---
+    // --- ACTIONS: ADD, EDIT, DELETE ---
     document.getElementById("addBtn").onclick = async () => {
         const name = document.getElementById("newName").value.trim();
         const sex = document.getElementById("newSex").value;
         const cls = document.getElementById("newClass").value;
 
-        if(!name) return alert("Enter Name");
+        if(!name) return alert("Please enter the student's full name.");
 
         try {
             await addDoc(studentCol, { name, sex, cls, createdAt: new Date() });
             document.getElementById("newName").value = "";
-            loadStudents();
+            await fetchStudents(); // Refresh data
         } catch (e) {
-            alert("Permission Denied: Database rules block this action.");
+            alert("Permission Denied: Only Admin can add students.");
         }
     };
 
-    // --- DELETE ---
-    window.deleteStudent = async (id) => {
-        if(confirm("Delete this student permanently?")) {
-            await deleteDoc(doc(db, "students", id));
-            loadStudents();
-        }
-    };
+    function attachActionListeners() {
+        document.querySelectorAll(".btn-del").forEach(btn => {
+            btn.onclick = async (e) => {
+                const id = e.target.getAttribute("data-id");
+                if(confirm("Permanently delete this student?")) {
+                    await deleteDoc(doc(db, "students", id));
+                    await fetchStudents();
+                }
+            };
+        });
 
-    // --- EDIT ---
-    window.editStudent = async (id, oldName) => {
-        const newName = prompt("Edit Student Name:", oldName);
-        if(newName && newName !== oldName) {
-            await updateDoc(doc(db, "students", id), { name: newName });
-            loadStudents();
-        }
-    };
+        document.querySelectorAll(".btn-edit").forEach(btn => {
+            btn.onclick = async (e) => {
+                const id = e.target.getAttribute("data-id");
+                const oldName = e.target.getAttribute("data-name");
+                const newName = prompt("Edit Student Name:", oldName);
+                if(newName && newName !== oldName) {
+                    await updateDoc(doc(db, "students", id), { name: newName });
+                    await fetchStudents();
+                }
+            };
+        });
+    }
 
-    // Listeners
-    document.getElementById("searchInput").oninput = loadStudents;
-    document.getElementById("filterClass").onchange = loadStudents;
+    // Event Listeners for Filters
+    document.getElementById("searchInput").oninput = renderTable;
+    document.getElementById("filterClass").onchange = renderTable;
 
-    // Start
-    loadStudents();
+    // Load on start
+    fetchStudents();
 </script>
 </body>
 </html>
