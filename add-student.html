@@ -2,65 +2,97 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Manage Students | Shule ERP</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Registry | Shule ERP</title>
     <link rel="stylesheet" href="style.css">
     <style>
-        table { width: 100%; border-collapse: collapse; margin-top: 20px; background: white; }
+        /* Table Styling */
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; background: white; border-radius: 8px; overflow: hidden; }
         th, td { border: 1px solid #ddd; padding: 12px; text-align: left; }
-        th { background-color: #0d6efd; color: white; }
-        .controls { display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; }
-        select, input { padding: 10px; border: 1px solid #ccc; border-radius: 4px; }
-        .btn-edit { background: #ffc107; color: black; width: auto; padding: 5px 10px; }
-        .btn-del { background: #dc3545; color: white; width: auto; padding: 5px 10px; }
-        .form-section { background: #fff; padding: 20px; border-radius: 8px; margin-bottom: 30px; }
+        th { background-color: #0d6efd; color: white; font-weight: bold; }
+        tr:nth-child(even) { background-color: #f9f9f9; }
+        tr:hover { background-color: #f1f1f1; }
+
+        /* Controls Layout */
+        .controls { display: flex; gap: 15px; margin-bottom: 20px; flex-wrap: wrap; align-items: flex-end; }
+        .control-group { display: flex; flex-direction: column; flex: 1; min-width: 200px; }
+        select, input { padding: 10px; border: 1px solid #ccc; border-radius: 4px; margin-top: 5px; }
+
+        /* Action Buttons */
+        .btn-edit { background: #ffc107; color: black; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; margin-right: 5px; }
+        .btn-del { background: #dc3545; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; }
+        .btn-add { background: #198754; color: white; height: 40px; padding: 0 20px; }
+        
+        .form-section { background: #fff; padding: 20px; border-radius: 8px; margin-bottom: 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        
+        @media print {
+            nav, .form-section:first-of-type, .btn-edit, .btn-del, .controls { display: none; }
+            table { border: 1px solid black; }
+        }
     </style>
 </head>
 <body>
 
-<nav><a href="dashboard.html">⬅ Back to Dashboard</a></nav>
+<nav><a href="dashboard.html" style="color: white; text-decoration: none;">⬅ Back to Dashboard</a></nav>
 
-<div class="dashboard-container">
-    <h2>📝 Student Registry</h2>
+<div class="dashboard-container" style="max-width: 1000px; margin: 30px auto; padding: 0 20px;">
+    <h2>📝 Student Registry Management</h2>
 
     <div class="form-section">
         <h3>Add New Student</h3>
         <div class="controls">
-            <input type="text" id="newName" placeholder="Full Name">
-            <select id="newSex">
-                <option value="M">Male (M)</option>
-                <option value="F">Female (F)</option>
-            </select>
-            <select id="newClass">
-                <option value="Form 1">Form 1</option>
-                <option value="Form 2">Form 2</option>
-                <option value="Form 3">Form 3</option>
-                <option value="Form 4">Form 4</option>
-            </select>
-            <button id="addBtn" style="width: auto;">Add Student</button>
+            <div class="control-group">
+                <label>Full Name</label>
+                <input type="text" id="newName" placeholder="e.g. Lazaro Elias">
+            </div>
+            <div class="control-group" style="flex: 0.3; min-width: 80px;">
+                <label>Sex</label>
+                <select id="newSex">
+                    <option value="M">M</option>
+                    <option value="F">F</option>
+                </select>
+            </div>
+            <div class="control-group" style="flex: 0.5;">
+                <label>Class</label>
+                <select id="newClass">
+                    <option value="Form 1">Form 1</option>
+                    <option value="Form 2">Form 2</option>
+                    <option value="Form 3">Form 3</option>
+                    <option value="Form 4">Form 4</option>
+                </select>
+            </div>
+            <button id="addBtn" class="btn-add">Add Student</button>
         </div>
     </div>
 
     <div class="form-section">
         <h3>Student List</h3>
         <div class="controls">
-            <label>Filter by Class:</label>
-            <select id="filterClass" onchange="loadStudents()">
-                <option value="All">All Classes</option>
-                <option value="Form 1">Form 1</option>
-                <option value="Form 2">Form 2</option>
-                <option value="Form 3">Form 3</option>
-                <option value="Form 4">Form 4</option>
-            </select>
+            <div class="control-group">
+                <label>Search by Name</label>
+                <input type="text" id="searchInput" placeholder="Search students...">
+            </div>
+            <div class="control-group" style="flex: 0.5;">
+                <label>Filter by Class</label>
+                <select id="filterClass">
+                    <option value="All">All Classes</option>
+                    <option value="Form 1">Form 1</option>
+                    <option value="Form 2">Form 2</option>
+                    <option value="Form 3">Form 3</option>
+                    <option value="Form 4">Form 4</option>
+                </select>
+            </div>
+            <button onclick="window.print()" style="height: 40px; background: #6c757d; color: white;">Print List</button>
         </div>
 
         <table>
             <thead>
                 <tr>
-                    <th>S/N</th>
+                    <th style="width: 50px;">S/N</th>
                     <th>NAME</th>
-                    <th>SEX</th>
-                    <th>CLASS</th>
-                    <th>ACTIONS</th>
+                    <th style="width: 60px;">SEX</th>
+                    <th style="width: 100px;">CLASS</th>
+                    <th style="width: 180px;">ACTIONS</th>
                 </tr>
             </thead>
             <tbody id="studentTableBody">
@@ -69,76 +101,107 @@
     </div>
 </div>
 
+
+
 <script type="module">
     import { db } from "./firebase.js";
-    import { collection, addDoc, getDocs, deleteDoc, doc, updateDoc, query, where } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+    import { collection, addDoc, getDocs, deleteDoc, doc, updateDoc, query, where, orderBy } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
     const studentCol = collection(db, "students");
 
-    // --- Function: Add Student ---
+    // --- ADD STUDENT LOGIC ---
     document.getElementById("addBtn").onclick = async () => {
-        const name = document.getElementById("newName").value;
+        const name = document.getElementById("newName").value.trim();
         const sex = document.getElementById("newSex").value;
         const cls = document.getElementById("newClass").value;
 
-        if(!name) return alert("Enter Name");
+        if(!name) return alert("Please enter a name");
 
-        await addDoc(studentCol, { name, sex, cls });
-        location.reload(); // Refresh to see changes
-    };
-
-    // --- Function: Load & Filter Students ---
-    window.loadStudents = async () => {
-        const filter = document.getElementById("filterClass").value;
-        const tbody = document.getElementById("studentTableBody");
-        tbody.innerHTML = "<tr><td colspan='5'>Loading...</td></tr>";
-
-        let q = studentCol;
-        if (filter !== "All") {
-            q = query(studentCol, where("cls", "==", filter));
+        try {
+            await addDoc(studentCol, { 
+                name: name, 
+                sex: sex, 
+                cls: cls,
+                timestamp: new Date() 
+            });
+            document.getElementById("newName").value = "";
+            loadStudents(); // Refresh table
+        } catch (e) {
+            alert("Error adding student: " + e.message);
         }
-
-        const snap = await getDocs(q);
-        tbody.innerHTML = "";
-        let count = 1;
-
-        snap.forEach((sDoc) => {
-            const data = sDoc.data();
-            const row = `
-                <tr>
-                    <td>${count++}</td>
-                    <td>${data.name}</td>
-                    <td>${data.sex}</td>
-                    <td>${data.cls}</td>
-                    <td>
-                        <button class="btn-edit" onclick="editStudent('${sDoc.id}', '${data.name}')">Edit</button>
-                        <button class="btn-del" onclick="deleteStudent('${sDoc.id}')">Remove</button>
-                    </td>
-                </tr>
-            `;
-            tbody.innerHTML += row;
-        });
     };
 
-    // --- Function: Delete ---
+    // --- LOAD & FILTER & SEARCH LOGIC ---
+    async function loadStudents() {
+        const tbody = document.getElementById("studentTableBody");
+        const filter = document.getElementById("filterClass").value;
+        const searchTerm = document.getElementById("searchInput").value.toLowerCase();
+        
+        tbody.innerHTML = "<tr><td colspan='5'>Loading data...</td></tr>";
+
+        try {
+            // Apply Class Filter
+            let q = query(studentCol, orderBy("name", "asc"));
+            if (filter !== "All") {
+                q = query(studentCol, where("cls", "==", filter), orderBy("name", "asc"));
+            }
+
+            const snap = await getDocs(q);
+            tbody.innerHTML = "";
+            let count = 1;
+
+            snap.forEach((sDoc) => {
+                const data = sDoc.data();
+                // Apply Search Filter
+                if (data.name.toLowerCase().includes(searchTerm)) {
+                    const row = `
+                        <tr>
+                            <td>${count++}</td>
+                            <td>${data.name}</td>
+                            <td>${data.sex}</td>
+                            <td>${data.cls}</td>
+                            <td>
+                                <button class="btn-edit" onclick="editStudent('${sDoc.id}', '${data.name}')">Edit</button>
+                                <button class="btn-del" onclick="deleteStudent('${sDoc.id}')">Remove</button>
+                            </td>
+                        </tr>
+                    `;
+                    tbody.innerHTML += row;
+                }
+            });
+
+            if (tbody.innerHTML === "") {
+                tbody.innerHTML = "<tr><td colspan='5' style='text-align:center;'>No records found.</td></tr>";
+            }
+        } catch (e) {
+            tbody.innerHTML = `<tr><td colspan='5' style='color:red;'>Error: ${e.message}</td></tr>`;
+        }
+    }
+
+    // --- DELETE LOGIC ---
     window.deleteStudent = async (id) => {
-        if(confirm("Delete this student?")) {
+        if(confirm("Are you sure you want to remove this student?")) {
             await deleteDoc(doc(db, "students", id));
             loadStudents();
         }
     };
 
-    // --- Function: Edit ---
+    // --- EDIT LOGIC ---
     window.editStudent = async (id, oldName) => {
-        const newName = prompt("Edit Name:", oldName);
-        if(newName) {
+        const newName = prompt("Update Student Name:", oldName);
+        if(newName && newName !== oldName) {
             await updateDoc(doc(db, "students", id), { name: newName });
             loadStudents();
         }
     };
 
-    // Initial Load
+    // --- EVENT LISTENERS ---
+    document.getElementById("searchInput").addEventListener("input", loadStudents);
+    document.getElementById("filterClass").addEventListener("change", loadStudents);
+
+    // Initial load on page open
     loadStudents();
 </script>
+
 </body>
 </html>
