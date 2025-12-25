@@ -1,62 +1,144 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Add Student | Shule ERP</title>
+    <meta charset="UTF-8">
+    <title>Manage Students | Shule ERP</title>
     <link rel="stylesheet" href="style.css">
+    <style>
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; background: white; }
+        th, td { border: 1px solid #ddd; padding: 12px; text-align: left; }
+        th { background-color: #0d6efd; color: white; }
+        .controls { display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; }
+        select, input { padding: 10px; border: 1px solid #ccc; border-radius: 4px; }
+        .btn-edit { background: #ffc107; color: black; width: auto; padding: 5px 10px; }
+        .btn-del { background: #dc3545; color: white; width: auto; padding: 5px 10px; }
+        .form-section { background: #fff; padding: 20px; border-radius: 8px; margin-bottom: 30px; }
+    </style>
 </head>
 <body>
 
-<nav>
-    <a href="dashboard.html">⬅ Back to Dashboard</a>
-</nav>
+<nav><a href="dashboard.html">⬅ Back to Dashboard</a></nav>
 
-<div class="center">
-    <h2>📝 Register New Student</h2>
-    
-    <input type="text" id="studentName" placeholder="Full Name">
-    <input type="text" id="studentClass" placeholder="Class (e.g. Form 1)">
-    
-    <button id="saveBtn">Save to Firestore</button>
-    <p id="status"></p>
+<div class="dashboard-container">
+    <h2>📝 Student Registry</h2>
+
+    <div class="form-section">
+        <h3>Add New Student</h3>
+        <div class="controls">
+            <input type="text" id="newName" placeholder="Full Name">
+            <select id="newSex">
+                <option value="M">Male (M)</option>
+                <option value="F">Female (F)</option>
+            </select>
+            <select id="newClass">
+                <option value="Form 1">Form 1</option>
+                <option value="Form 2">Form 2</option>
+                <option value="Form 3">Form 3</option>
+                <option value="Form 4">Form 4</option>
+            </select>
+            <button id="addBtn" style="width: auto;">Add Student</button>
+        </div>
+    </div>
+
+    <div class="form-section">
+        <h3>Student List</h3>
+        <div class="controls">
+            <label>Filter by Class:</label>
+            <select id="filterClass" onchange="loadStudents()">
+                <option value="All">All Classes</option>
+                <option value="Form 1">Form 1</option>
+                <option value="Form 2">Form 2</option>
+                <option value="Form 3">Form 3</option>
+                <option value="Form 4">Form 4</option>
+            </select>
+        </div>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>S/N</th>
+                    <th>NAME</th>
+                    <th>SEX</th>
+                    <th>CLASS</th>
+                    <th>ACTIONS</th>
+                </tr>
+            </thead>
+            <tbody id="studentTableBody">
+                </tbody>
+        </table>
+    </div>
 </div>
 
 <script type="module">
-    import { addStudent } from "./data.js";
+    import { db } from "./firebase.js";
+    import { collection, addDoc, getDocs, deleteDoc, doc, updateDoc, query, where } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-    // Check if user is logged in
-    if (!sessionStorage.getItem("role")) {
-        window.location.href = "index.html";
-    }
+    const studentCol = collection(db, "students");
 
-    const btn = document.getElementById("saveBtn");
-    const status = document.getElementById("status");
+    // --- Function: Add Student ---
+    document.getElementById("addBtn").onclick = async () => {
+        const name = document.getElementById("newName").value;
+        const sex = document.getElementById("newSex").value;
+        const cls = document.getElementById("newClass").value;
 
-    btn.onclick = async () => {
-        const name = document.getElementById("studentName").value;
-        const cls = document.getElementById("studentClass").value;
+        if(!name) return alert("Enter Name");
 
-        if(!name || !cls) {
-            alert("Please fill all fields");
-            return;
+        await addDoc(studentCol, { name, sex, cls });
+        location.reload(); // Refresh to see changes
+    };
+
+    // --- Function: Load & Filter Students ---
+    window.loadStudents = async () => {
+        const filter = document.getElementById("filterClass").value;
+        const tbody = document.getElementById("studentTableBody");
+        tbody.innerHTML = "<tr><td colspan='5'>Loading...</td></tr>";
+
+        let q = studentCol;
+        if (filter !== "All") {
+            q = query(studentCol, where("cls", "==", filter));
         }
 
-        btn.disabled = true;
-        status.innerText = "Saving...";
+        const snap = await getDocs(q);
+        tbody.innerHTML = "";
+        let count = 1;
 
-        try {
-            await addStudent(name, cls);
-            status.style.color = "green";
-            status.innerText = "✅ Student added successfully!";
-            document.getElementById("studentName").value = "";
-            document.getElementById("studentClass").value = "";
-        } catch (e) {
-            status.style.color = "red";
-            status.innerText = "Error: " + e.message;
-        } finally {
-            btn.disabled = false;
+        snap.forEach((sDoc) => {
+            const data = sDoc.data();
+            const row = `
+                <tr>
+                    <td>${count++}</td>
+                    <td>${data.name}</td>
+                    <td>${data.sex}</td>
+                    <td>${data.cls}</td>
+                    <td>
+                        <button class="btn-edit" onclick="editStudent('${sDoc.id}', '${data.name}')">Edit</button>
+                        <button class="btn-del" onclick="deleteStudent('${sDoc.id}')">Remove</button>
+                    </td>
+                </tr>
+            `;
+            tbody.innerHTML += row;
+        });
+    };
+
+    // --- Function: Delete ---
+    window.deleteStudent = async (id) => {
+        if(confirm("Delete this student?")) {
+            await deleteDoc(doc(db, "students", id));
+            loadStudents();
         }
     };
-</script>
 
+    // --- Function: Edit ---
+    window.editStudent = async (id, oldName) => {
+        const newName = prompt("Edit Name:", oldName);
+        if(newName) {
+            await updateDoc(doc(db, "students", id), { name: newName });
+            loadStudents();
+        }
+    };
+
+    // Initial Load
+    loadStudents();
+</script>
 </body>
 </html>
