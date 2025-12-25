@@ -1,64 +1,122 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard | Shule ERP</title>
     <link rel="stylesheet" href="style.css">
+    <style>
+        /* Extra styling for the dashboard layout */
+        .dashboard-container {
+            max-width: 900px;
+            margin: 50px auto;
+            padding: 20px;
+        }
+        .welcome-section {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 30px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        .cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+        }
+        .card {
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            text-align: center;
+            transition: transform 0.2s;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            cursor: pointer;
+        }
+        .card:hover {
+            transform: translateY(-5px);
+            border: 2px solid #0d6efd;
+        }
+        .card h3 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+        .card h4 {
+            margin: 10px 0;
+            color: #333;
+        }
+        .logout-btn {
+            background: #dc3545;
+            width: auto;
+            padding: 10px 20px;
+        }
+        .logout-btn:hover {
+            background: #c82333;
+        }
+    </style>
 </head>
 <body>
 
 <nav>
-    <span id="user-display"></span>
-    <button onclick="logout()" style="width: auto; float: right;">Logout</button>
+    <div style="display: flex; justify-content: space-between; align-items: center;">
+        <strong>🏫 SHULE ERP</strong>
+        <button onclick="logout()" class="logout-btn">Logout</button>
+    </div>
 </nav>
 
-<div class="center">
-    <h2>📊 School Management Dashboard</h2>
-    <p id="info"></p>
+<div class="dashboard-container">
+    <div class="welcome-section">
+        <h2>📊 School Dashboard</h2>
+        <p id="info">Loading session...</p>
+        <p id="user-tag" style="color: #666; font-size: 0.9em;"></p>
+    </div>
 
     <div class="cards" id="menu-cards">
         </div>
 </div>
 
-<script type="module">
-    // Protection: Redirect if not logged in
+<script>
+    // 1. Protection: If no role is found, kick user back to login
     const role = sessionStorage.getItem("role");
-    const user = sessionStorage.getItem("user");
+    const userEmail = sessionStorage.getItem("user");
 
     if (!role) {
         window.location.href = "index.html";
     }
 
-    document.getElementById("info").innerText = `Access Level: ${role.toUpperCase()}`;
-    document.getElementById("user-display").innerText = `Logged in as: ${user}`;
+    // 2. Display User Info
+    document.getElementById("info").innerText = "Access Level: " + role.toUpperCase();
+    document.getElementById("user-tag").innerText = "Logged in as: " + userEmail;
 
-    const menuContainer = document.getElementById("menu-cards");
-
-    // Define features for each role
+    // 3. Define available features
     const features = [
+        { title: "Add Students", link: "add-student.html", roles: ["admin", "teacher"], icon: "➕" },
         { title: "Student Reports", link: "reports.html", roles: ["admin", "teacher"], icon: "📑" },
         { title: "Parent SMS", link: "sms.html", roles: ["admin"], icon: "📩" },
         { title: "Timetable", link: "timetable.html", roles: ["admin", "teacher"], icon: "📅" }
     ];
 
-    // Filter and display cards based on role
-    features.forEach(f => {
-        if (f.roles.includes(role.toLowerCase())) {
-            const card = document.createElement("div");
-            card.className = "card";
-            card.innerHTML = `
-                <h3>${f.icon}</h3>
-                <h4>${f.title}</h4>
-                <button onclick="location.href='${f.link}'">Open</button>
+    // 4. Generate Cards based on Permissions
+    const menuContainer = document.getElementById("menu-cards");
+
+    features.forEach(item => {
+        if (item.roles.includes(role.toLowerCase())) {
+            const cardDiv = document.createElement("div");
+            cardDiv.className = "card";
+            cardDiv.onclick = () => window.location.href = item.link;
+            cardDiv.innerHTML = `
+                <h3>${item.icon}</h3>
+                <h4>${item.title}</h4>
             `;
-            menuContainer.appendChild(card);
+            menuContainer.appendChild(cardDiv);
         }
     });
 
-    // Global logout function
-    window.logout = function() {
+    // 5. Logout Function
+    function logout() {
         sessionStorage.clear();
         window.location.href = "index.html";
-    };
+    }
 </script>
 
 </body>
