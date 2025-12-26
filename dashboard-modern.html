@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Olmoti Modern Analytics</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        :root { --bg: #f4f7fc; --sidebar: #1a1c23; --primary: #4e73df; --male: #36b9cc; --female: #e83e8c; }
+        body { margin: 0; font-family: 'Segoe UI', sans-serif; background: var(--bg); display: flex; min-height: 100vh; }
+        .sidebar { width: 250px; background: var(--sidebar); color: white; padding: 25px; }
+        .sidebar h2 { color: var(--male); border-bottom: 1px solid #333; padding-bottom: 10px; }
+        .sidebar a { color: #a4a6b3; text-decoration: none; display: block; padding: 12px; border-radius: 8px; margin-top: 10px; }
+        .sidebar a:hover, .sidebar a.active { background: #3a3b45; color: white; }
+        .main { flex: 1; padding: 30px; }
+        .section-title { font-weight: bold; margin: 30px 0 15px; color: #555; display: flex; align-items: center; gap: 10px; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; }
+        .card { background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); position: relative; border-left: 5px solid var(--primary); }
+        .card.male { border-left-color: var(--male); }
+        .card.female { border-left-color: var(--female); }
+        .card h3 { margin: 0; font-size: 13px; color: #888; text-transform: uppercase; }
+        .card .val { font-size: 32px; font-weight: bold; margin-top: 10px; color: #333; }
+    </style>
+</head>
+<body>
+    <div class="sidebar">
+        <h2>Olmoti ERP</h2>
+        <a href="dashboard-modern.html" class="active"><i class="fas fa-chart-line"></i> Dashboard</a>
+        <a href="add-student.html"><i class="fas fa-user-plus"></i> Registry</a>
+        <a href="reports.html"><i class="fas fa-edit"></i> Mark Entry</a>
+        <a href="view-report.html"><i class="fas fa-file-invoice"></i> Reports</a>
+        <a href="dashboard.html" style="margin-top:50px; opacity:0.6;"><i class="fas fa-undo"></i> Classic View</a>
+    </div>
+
+    <div class="main">
+        <h1>Analytics Overview</h1>
+        
+        <div class="section-title"><i class="fas fa-user-graduate"></i> Students</div>
+        <div class="grid">
+            <div class="card"><h3>Total Students</h3><div class="val" id="sT">0</div></div>
+            <div class="card male"><h3>Males</h3><div class="val" id="sM">0</div></div>
+            <div class="card female"><h3>Females</h3><div class="val" id="sF">0</div></div>
+        </div>
+
+        <div class="section-title"><i class="fas fa-chalkboard-teacher"></i> Teachers</div>
+        <div class="grid">
+            <div class="card"><h3>Total Teachers</h3><div class="val" id="tT">0</div></div>
+            <div class="card male"><h3>Males</h3><div class="val" id="tM">0</div></div>
+            <div class="card female"><h3>Females</h3><div class="val" id="tF">0</div></div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { db } from "./firebase.js";
+        import { collection, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+        async function update(col, tId, mId, fId) {
+            try {
+                const snap = await getDocs(collection(db, col));
+                let t=0, m=0, f=0;
+                snap.forEach(d => {
+                    t++;
+                    const sex = (d.data().sex || d.data().Sex || "").toUpperCase();
+                    if(sex.startsWith("M")) m++; else if(sex.startsWith("F")) f++;
+                });
+                document.getElementById(tId).innerText = t;
+                document.getElementById(mId).innerText = m;
+                document.getElementById(fId).innerText = f;
+            } catch(e) { console.error(e); }
+        }
+        update("students", "sT", "sM", "sF");
+        update("teachers", "tT", "tM", "tF");
+    </script>
+</body>
+</html>
