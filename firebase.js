@@ -1,22 +1,17 @@
-// Import Firebase SDKs from CDN
+// firebase.js
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import { getAuth } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 import { getFirestore } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { getAuth } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
-// Your Firebase project configuration
 const firebaseConfig = {
-  apiKey: "AIzaSyD1oj2HQLz4GUd_I-fl59BzELYpYcpto8E",
+  apiKey: "AIzaSyDFPLbIyIKVD03sXVsbh0lveLIW9fJNoOY", // Your new secure key
   authDomain: "shule-project-2e214.firebaseapp.com",
   projectId: "shule-project-2e214",
   storageBucket: "shule-project-2e214.appspot.com",
-  messagingSenderId: "1048482629660",
-  appId: "1:1048482629660:web:87faa286b97e2e4c7a37d9",
-  measurementId: "G-MGDC4X9FZ6"
+  messagingSenderId: "774134734612",
+  appId: "1:774134734612:web:715c0e189871587d656093"
 };
 
-// Initialize Firebase
-export const app = initializeApp(firebaseConfig);
-
-// Initialize Authentication and Firestore
-export const auth = getAuth(app);
+const app = initializeApp(firebaseConfig);
 export const db = getFirestore(app);
+export const auth = getAuth(app);
