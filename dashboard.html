@@ -1,43 +1,113 @@
-<script type="module">
-    import { db, auth } from "./firebase.js";
-    import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-    import { collection, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-
-    // SECURITY CHECK: Only load data if user is logged in
-    onAuthStateChanged(auth, (user) => {
-        if (user) {
-            console.log("Logged in:", user.email);
-            calculateStats();
-        } else {
-            window.location.href = "index.html";
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Olmoti School - Dashboard</title>
+    <style>
+        :root {
+            --primary: #4e73df;
+            --success: #1cc88a;
+            --info: #36b9cc;
+            --bg: #f8f9fc;
         }
-    });
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: var(--bg); margin: 0; padding: 20px; }
+        .header { margin-bottom: 30px; border-bottom: 2px solid #e3e6f0; padding-bottom: 10px; display: flex; justify-content: space-between; align-items: center; }
+        
+        /* Stats Grid */
+        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; }
+        .card { background: white; padding: 20px; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); border-left: 5px solid var(--primary); }
+        .card.male { border-left-color: var(--info); }
+        .card.female { border-left-color: var(--success); }
+        
+        .card h3 { margin: 0; font-size: 12px; text-transform: uppercase; color: #858796; letter-spacing: 1px; }
+        .card .value { font-size: 28px; font-weight: bold; color: #5a5c69; margin-top: 10px; }
+        
+        .btn-logout { background: #e74a3b; color: white; border: none; padding: 8px 15px; border-radius: 5px; cursor: pointer; }
+    </style>
+</head>
+<body>
 
-    async function calculateStats() {
-        try {
-            // Collection name must be exactly 'students' in Firebase
-            const querySnapshot = await getDocs(collection(db, "students"));
-            
-            let total = 0, males = 0, females = 0;
+    <div class="header">
+        <h2>School Analytics Dashboard</h2>
+        <button class="btn-logout" id="logoutBtn">Logout</button>
+    </div>
 
-            querySnapshot.forEach((doc) => {
-                const data = doc.data();
-                total++;
+    <div class="grid">
+        <div class="card">
+            <h3>Total Students</h3>
+            <div class="value" id="totalStuds">0</div>
+        </div>
+        <div class="card male">
+            <h3>Male Students (M)</h3>
+            <div class="value" id="maleStuds">0</div>
+        </div>
+        <div class="card female">
+            <h3>Female Students (F)</h3>
+            <div class="value" id="femaleStuds">0</div>
+        </div>
+    </div>
 
-                // Looks for 'sex' field. Case-insensitive (M/m or F/f)
-                const gender = (data.sex || "").toString().toUpperCase();
-                if (gender.startsWith("M")) males++;
-                else if (gender.startsWith("F")) females++;
+    <script type="module">
+        import { db, auth } from "./firebase.js";
+        import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+        import { collection, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+        // 1. Check Authentication
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                console.log("Authenticated:", user.email);
+                calculateStats();
+            } else {
+                console.log("Not logged in. Redirecting...");
+                window.location.href = "index.html";
+            }
+        });
+
+        // 2. Fetch and Calculate Data
+        async function calculateStats() {
+            try {
+                // IMPORTANT: Change "students" to match your Firestore collection name exactly
+                const querySnapshot = await getDocs(collection(db, "students"));
+                
+                let total = 0;
+                let males = 0;
+                let females = 0;
+
+                querySnapshot.forEach((doc) => {
+                    total++;
+                    const data = doc.data();
+                    
+                    // Logic to handle "sex" field (case insensitive)
+                    const s = (data.sex || data.Sex || "").toString().toUpperCase();
+                    if (s.startsWith("M")) {
+                        males++;
+                    } else if (s.startsWith("F")) {
+                        females++;
+                    }
+                });
+
+                // Update the UI - These IDs now exist in the HTML above
+                document.getElementById("totalStuds").innerText = total;
+                document.getElementById("maleStuds").innerText = males;
+                document.getElementById("femaleStuds").innerText = females;
+
+                console.log("Stats calculated successfully:", {total, males, females});
+
+            } catch (error) {
+                console.error("Dashboard Error:", error);
+                if (error.code === 'permission-denied') {
+                    alert("Access Denied: Check your Firestore Security Rules.");
+                }
+            }
+        }
+
+        // 3. Logout Logic
+        document.getElementById("logoutBtn").addEventListener("click", () => {
+            signOut(auth).then(() => {
+                window.location.href = "index.html";
             });
-
-            // Update your HTML elements
-            document.getElementById("totalStuds").innerText = total;
-            document.getElementById("maleStuds").innerText = males;
-            document.getElementById("femaleStuds").innerText = females;
-
-        } catch (error) {
-            console.error("Dashboard Error:", error);
-            // If you see 'Permission Denied' here, your Firestore Rules are wrong
-        }
-    }
-</script>
+        });
+    </script>
+</body>
+</html>
