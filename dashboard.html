@@ -3,48 +3,102 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Olmoti School - Dashboard</title>
+    <title>Olmoti Analytics | Admin Portal</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
         :root {
+            --bg: #f0f2f5;
+            --sidebar: #1a1c23;
+            --card-bg: #ffffff;
             --primary: #4e73df;
-            --success: #1cc88a;
-            --info: #36b9cc;
-            --bg: #f8f9fc;
+            --male: #36b9cc;
+            --female: #e83e8c;
+            --text-dark: #2d3436;
         }
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: var(--bg); margin: 0; padding: 20px; }
-        .header { margin-bottom: 30px; border-bottom: 2px solid #e3e6f0; padding-bottom: 10px; display: flex; justify-content: space-between; align-items: center; }
-        
-        /* Stats Grid */
-        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; }
-        .card { background: white; padding: 20px; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); border-left: 5px solid var(--primary); }
-        .card.male { border-left-color: var(--info); }
-        .card.female { border-left-color: var(--success); }
-        
-        .card h3 { margin: 0; font-size: 12px; text-transform: uppercase; color: #858796; letter-spacing: 1px; }
-        .card .value { font-size: 28px; font-weight: bold; color: #5a5c69; margin-top: 10px; }
-        
-        .btn-logout { background: #e74a3b; color: white; border: none; padding: 8px 15px; border-radius: 5px; cursor: pointer; }
+
+        body { margin: 0; font-family: 'Inter', system-ui, sans-serif; background: var(--bg); display: flex; min-height: 100vh; }
+
+        /* Sidebar Navigation */
+        .sidebar { width: 240px; background: var(--sidebar); color: white; padding: 20px; display: flex; flex-direction: column; }
+        .sidebar h2 { font-size: 20px; border-bottom: 1px solid #333; padding-bottom: 15px; color: var(--male); }
+        .nav-link { padding: 12px; color: #a4a6b3; text-decoration: none; display: flex; align-items: center; gap: 10px; border-radius: 8px; transition: 0.3s; margin-top: 5px; }
+        .nav-link:hover, .nav-link.active { background: #3a3b45; color: white; }
+        .logout-btn { margin-top: auto; background: #e74a3b; color: white; border: none; padding: 12px; border-radius: 8px; cursor: pointer; }
+
+        /* Main Content Area */
+        .content { flex: 1; padding: 30px; }
+        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; }
+        .header h1 { margin: 0; color: var(--text-dark); font-size: 24px; }
+
+        /* Statistics Arrangement */
+        .section-title { font-size: 18px; color: #555; margin: 30px 0 15px; display: flex; align-items: center; gap: 10px; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; }
+
+        /* Card Styling */
+        .card { background: var(--card-bg); padding: 25px; border-radius: 15px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); position: relative; overflow: hidden; }
+        .card::after { content: ""; position: absolute; left: 0; top: 0; height: 100%; width: 5px; }
+        .card.total::after { background: var(--primary); }
+        .card.male::after { background: var(--male); }
+        .card.female::after { background: var(--female); }
+
+        .card h3 { margin: 0; font-size: 13px; text-transform: uppercase; color: #888; }
+        .card .value { font-size: 36px; font-weight: 800; color: var(--text-dark); margin: 10px 0; }
+        .card .icon { position: absolute; right: 20px; bottom: 20px; font-size: 40px; opacity: 0.1; }
+
     </style>
 </head>
 <body>
 
-    <div class="header">
-        <h2>School Analytics Dashboard</h2>
-        <button class="btn-logout" id="logoutBtn">Logout</button>
+    <div class="sidebar">
+        <h2>Olmoti School</h2>
+        <a href="#" class="nav-link active"><i class="fas fa-chart-line"></i> Dashboard</a>
+        <a href="#" class="nav-link"><i class="fas fa-user-graduate"></i> Students</a>
+        <a href="#" class="nav-link"><i class="fas fa-chalkboard-teacher"></i> Teachers</a>
+        <button class="logout-btn" id="logoutBtn"><i class="fas fa-sign-out-alt"></i> Logout</button>
     </div>
 
-    <div class="grid">
-        <div class="card">
-            <h3>Total Students</h3>
-            <div class="value" id="totalStuds">0</div>
+    <div class="content">
+        <div class="header">
+            <h1>Analytics Overview</h1>
+            <div id="userEmail" style="color: #666; font-size: 14px;"></div>
         </div>
-        <div class="card male">
-            <h3>Male Students (M)</h3>
-            <div class="value" id="maleStuds">0</div>
+
+        <div class="section-title"><i class="fas fa-user-graduate"></i> Student Summary</div>
+        <div class="grid">
+            <div class="card total">
+                <h3>Total Students</h3>
+                <div class="value" id="sTotal">0</div>
+                <i class="fas fa-users icon"></i>
+            </div>
+            <div class="card male">
+                <h3>Male Students</h3>
+                <div class="value" id="sMale">0</div>
+                <i class="fas fa-mars icon"></i>
+            </div>
+            <div class="card female">
+                <h3>Female Students</h3>
+                <div class="value" id="sFemale">0</div>
+                <i class="fas fa-venus icon"></i>
+            </div>
         </div>
-        <div class="card female">
-            <h3>Female Students (F)</h3>
-            <div class="value" id="femaleStuds">0</div>
+
+        <div class="section-title" style="margin-top: 50px;"><i class="fas fa-chalkboard-teacher"></i> Teacher Summary</div>
+        <div class="grid">
+            <div class="card total">
+                <h3>Total Teachers</h3>
+                <div class="value" id="tTotal">0</div>
+                <i class="fas fa-user-tie icon"></i>
+            </div>
+            <div class="card male">
+                <h3>Male Teachers</h3>
+                <div class="value" id="tMale">0</div>
+                <i class="fas fa-mars icon"></i>
+            </div>
+            <div class="card female">
+                <h3>Female Teachers</h3>
+                <div class="value" id="tFemale">0</div>
+                <i class="fas fa-venus icon"></i>
+            </div>
         </div>
     </div>
 
@@ -53,60 +107,44 @@
         import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
         import { collection, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-        // 1. Check Authentication
         onAuthStateChanged(auth, (user) => {
             if (user) {
-                console.log("Authenticated:", user.email);
-                calculateStats();
+                document.getElementById("userEmail").innerText = user.email;
+                loadAllData();
             } else {
-                console.log("Not logged in. Redirecting...");
                 window.location.href = "index.html";
             }
         });
 
-        // 2. Fetch and Calculate Data
-        async function calculateStats() {
-            try {
-                // IMPORTANT: Change "students" to match your Firestore collection name exactly
-                const querySnapshot = await getDocs(collection(db, "students"));
-                
-                let total = 0;
-                let males = 0;
-                let females = 0;
+        async function loadAllData() {
+            // Load Students
+            fetchAndCount("students", "sTotal", "sMale", "sFemale");
+            // Load Teachers
+            fetchAndCount("teachers", "tTotal", "tMale", "tFemale");
+        }
 
-                querySnapshot.forEach((doc) => {
-                    total++;
-                    const data = doc.data();
-                    
-                    // Logic to handle "sex" field (case insensitive)
-                    const s = (data.sex || data.Sex || "").toString().toUpperCase();
-                    if (s.startsWith("M")) {
-                        males++;
-                    } else if (s.startsWith("F")) {
-                        females++;
-                    }
+        async function fetchAndCount(colName, totalId, maleId, femaleId) {
+            try {
+                const snap = await getDocs(collection(db, colName));
+                let t = 0, m = 0, f = 0;
+
+                snap.forEach(doc => {
+                    t++;
+                    const sex = (doc.data().sex || doc.data().Sex || "").toString().toUpperCase();
+                    if (sex.startsWith("M")) m++;
+                    else if (sex.startsWith("F")) f++;
                 });
 
-                // Update the UI - These IDs now exist in the HTML above
-                document.getElementById("totalStuds").innerText = total;
-                document.getElementById("maleStuds").innerText = males;
-                document.getElementById("femaleStuds").innerText = females;
-
-                console.log("Stats calculated successfully:", {total, males, females});
-
-            } catch (error) {
-                console.error("Dashboard Error:", error);
-                if (error.code === 'permission-denied') {
-                    alert("Access Denied: Check your Firestore Security Rules.");
-                }
+                document.getElementById(totalId).innerText = t;
+                document.getElementById(maleId).innerText = m;
+                document.getElementById(femaleId).innerText = f;
+            } catch (err) {
+                console.error(`Error loading ${colName}:`, err);
             }
         }
 
-        // 3. Logout Logic
         document.getElementById("logoutBtn").addEventListener("click", () => {
-            signOut(auth).then(() => {
-                window.location.href = "index.html";
-            });
+            signOut(auth).then(() => window.location.href = "index.html");
         });
     </script>
 </body>
