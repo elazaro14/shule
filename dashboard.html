@@ -1,151 +1,36 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Olmoti Analytics | Admin Portal</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <style>
-        :root {
-            --bg: #f0f2f5;
-            --sidebar: #1a1c23;
-            --card-bg: #ffffff;
-            --primary: #4e73df;
-            --male: #36b9cc;
-            --female: #e83e8c;
-            --text-dark: #2d3436;
-        }
+<div class="sidebar">
+    <h2>Olmoti School</h2> <a href="dashboard.html" class="nav-link active"><i class="fas fa-chart-line"></i> Dashboard</a> <a href="add-student.html" class="nav-link"><i class="fas fa-user-plus"></i> Add Student</a>
+    <a href="reports.html" class="nav-link"><i class="fas fa-edit"></i> Mark Entry</a>
+    <a href="view-report.html" class="nav-link"><i class="fas fa-file-invoice"></i> View Reports</a>
+    <button class="logout-btn" id="logoutBtn"><i class="fas fa-sign-out-alt"></i> Logout</button> </div>
 
-        body { margin: 0; font-family: 'Inter', system-ui, sans-serif; background: var(--bg); display: flex; min-height: 100vh; }
+<script type="module">
+    import { db, auth } from "./firebase.js"; //
+    import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js"; //
+    import { collection, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js"; //
 
-        /* Sidebar Navigation */
-        .sidebar { width: 240px; background: var(--sidebar); color: white; padding: 20px; display: flex; flex-direction: column; }
-        .sidebar h2 { font-size: 20px; border-bottom: 1px solid #333; padding-bottom: 15px; color: var(--male); }
-        .nav-link { padding: 12px; color: #a4a6b3; text-decoration: none; display: flex; align-items: center; gap: 10px; border-radius: 8px; transition: 0.3s; margin-top: 5px; }
-        .nav-link:hover, .nav-link.active { background: #3a3b45; color: white; }
-        .logout-btn { margin-top: auto; background: #e74a3b; color: white; border: none; padding: 12px; border-radius: 8px; cursor: pointer; }
+    onAuthStateChanged(auth, (user) => {
+        if (user) { loadAllData(); } //
+        else { window.location.href = "index.html"; } //
+    });
 
-        /* Main Content Area */
-        .content { flex: 1; padding: 30px; }
-        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; }
-        .header h1 { margin: 0; color: var(--text-dark); font-size: 24px; }
+    async function loadAllData() {
+        // Fetch Students and Teachers counts based on the 'sex' field
+        updateStats("students", "sTotal", "sMale", "sFemale");
+        updateStats("teachers", "tTotal", "tMale", "tFemale");
+    }
 
-        /* Statistics Arrangement */
-        .section-title { font-size: 18px; color: #555; margin: 30px 0 15px; display: flex; align-items: center; gap: 10px; }
-        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; }
-
-        /* Card Styling */
-        .card { background: var(--card-bg); padding: 25px; border-radius: 15px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); position: relative; overflow: hidden; }
-        .card::after { content: ""; position: absolute; left: 0; top: 0; height: 100%; width: 5px; }
-        .card.total::after { background: var(--primary); }
-        .card.male::after { background: var(--male); }
-        .card.female::after { background: var(--female); }
-
-        .card h3 { margin: 0; font-size: 13px; text-transform: uppercase; color: #888; }
-        .card .value { font-size: 36px; font-weight: 800; color: var(--text-dark); margin: 10px 0; }
-        .card .icon { position: absolute; right: 20px; bottom: 20px; font-size: 40px; opacity: 0.1; }
-
-    </style>
-</head>
-<body>
-
-    <div class="sidebar">
-        <h2>Olmoti School</h2>
-        <a href="#" class="nav-link active"><i class="fas fa-chart-line"></i> Dashboard</a>
-        <a href="#" class="nav-link"><i class="fas fa-user-graduate"></i> Students</a>
-        <a href="#" class="nav-link"><i class="fas fa-chalkboard-teacher"></i> Teachers</a>
-        <button class="logout-btn" id="logoutBtn"><i class="fas fa-sign-out-alt"></i> Logout</button>
-    </div>
-
-    <div class="content">
-        <div class="header">
-            <h1>Analytics Overview</h1>
-            <div id="userEmail" style="color: #666; font-size: 14px;"></div>
-        </div>
-
-        <div class="section-title"><i class="fas fa-user-graduate"></i> Student Summary</div>
-        <div class="grid">
-            <div class="card total">
-                <h3>Total Students</h3>
-                <div class="value" id="sTotal">0</div>
-                <i class="fas fa-users icon"></i>
-            </div>
-            <div class="card male">
-                <h3>Male Students</h3>
-                <div class="value" id="sMale">0</div>
-                <i class="fas fa-mars icon"></i>
-            </div>
-            <div class="card female">
-                <h3>Female Students</h3>
-                <div class="value" id="sFemale">0</div>
-                <i class="fas fa-venus icon"></i>
-            </div>
-        </div>
-
-        <div class="section-title" style="margin-top: 50px;"><i class="fas fa-chalkboard-teacher"></i> Teacher Summary</div>
-        <div class="grid">
-            <div class="card total">
-                <h3>Total Teachers</h3>
-                <div class="value" id="tTotal">0</div>
-                <i class="fas fa-user-tie icon"></i>
-            </div>
-            <div class="card male">
-                <h3>Male Teachers</h3>
-                <div class="value" id="tMale">0</div>
-                <i class="fas fa-mars icon"></i>
-            </div>
-            <div class="card female">
-                <h3>Female Teachers</h3>
-                <div class="value" id="tFemale">0</div>
-                <i class="fas fa-venus icon"></i>
-            </div>
-        </div>
-    </div>
-
-    <script type="module">
-        import { db, auth } from "./firebase.js";
-        import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-        import { collection, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-
-        onAuthStateChanged(auth, (user) => {
-            if (user) {
-                document.getElementById("userEmail").innerText = user.email;
-                loadAllData();
-            } else {
-                window.location.href = "index.html";
-            }
+    async function updateStats(col, totalId, mId, fId) {
+        const snap = await getDocs(collection(db, col)); //
+        let t = 0, m = 0, f = 0;
+        snap.forEach(doc => {
+            t++;
+            const sex = (doc.data().sex || "").toUpperCase(); //
+            if (sex.startsWith("M")) m++; //
+            else if (sex.startsWith("F")) f++; //
         });
-
-        async function loadAllData() {
-            // Load Students
-            fetchAndCount("students", "sTotal", "sMale", "sFemale");
-            // Load Teachers
-            fetchAndCount("teachers", "tTotal", "tMale", "tFemale");
-        }
-
-        async function fetchAndCount(colName, totalId, maleId, femaleId) {
-            try {
-                const snap = await getDocs(collection(db, colName));
-                let t = 0, m = 0, f = 0;
-
-                snap.forEach(doc => {
-                    t++;
-                    const sex = (doc.data().sex || doc.data().Sex || "").toString().toUpperCase();
-                    if (sex.startsWith("M")) m++;
-                    else if (sex.startsWith("F")) f++;
-                });
-
-                document.getElementById(totalId).innerText = t;
-                document.getElementById(maleId).innerText = m;
-                document.getElementById(femaleId).innerText = f;
-            } catch (err) {
-                console.error(`Error loading ${colName}:`, err);
-            }
-        }
-
-        document.getElementById("logoutBtn").addEventListener("click", () => {
-            signOut(auth).then(() => window.location.href = "index.html");
-        });
-    </script>
-</body>
-</html>
+        document.getElementById(totalId).innerText = t; //
+        document.getElementById(mId).innerText = m; //
+        document.getElementById(fId).innerText = f; //
+    }
+</script>
