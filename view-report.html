@@ -1,29 +1,81 @@
 <!DOCTYPE html>
-<html>
+<html lang="sw">
 <head>
-    <title>Report Card</title>
+    <meta charset="UTF-8">
+    <title>Ripoti ya Maendeleo - Shule ya Sekondari Olmoti</title>
     <style>
-        body { font-family: serif; padding: 20px; background: #eee; }
-        .card { background: white; width: 200mm; margin: auto; padding: 40px; border: 2px solid #000; }
-        .header { text-align: center; border-bottom: 2px solid #000; margin-bottom: 20px; }
-        table { width: 100%; border-collapse: collapse; }
-        th, td { border: 1px solid #000; padding: 8px; text-align: center; }
-        .summary { margin-top: 20px; display: flex; justify-content: space-around; font-weight: bold; }
+        /* This is your exact original CSS */
+        body { font-family: 'Times New Roman', serif; background: #f4f4f4; padding: 10px; margin: 0; }
+        .report-page { background: white; width: 210mm; min-height: 297mm; margin: auto; padding: 30px; box-sizing: border-box; position: relative; }
+        .header { text-align: center; line-height: 1.1; text-transform: uppercase; margin-bottom: 15px; }
+        .header h2, .header h3 { margin: 2px 0; font-size: 16px; }
+        .student-info { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px; border-bottom: 2px solid #000; padding-bottom: 10px; }
+        
+        table { width: 100%; border-collapse: collapse; margin-bottom: 10px; }
+        th, td { border: 1px solid black; padding: 4px; text-align: center; text-transform: uppercase; font-size: 11px; }
+        th { background: #f0f0f0; }
+        .subject-col { text-align: left; padding-left: 8px; font-weight: bold; }
+
+        .summary-box { border: 1px solid black; padding: 10px; margin-top: 10px; display: grid; grid-template-columns: 1fr 1fr 1fr; }
+        .footer { margin-top: 30px; display: flex; justify-content: space-between; font-size: 12px; }
+
+        @media print {
+            .no-print { display: none; }
+            body { background: white; padding: 0; }
+            .report-page { border: none; width: 100%; }
+        }
     </style>
 </head>
 <body>
-    <div class="card">
-        <div class="header"><h2>OLMOTI SECONDARY SCHOOL</h2><p>Official Academic Report</p></div>
-        <p id="sInfo">Loading Student...</p>
-        <table>
-            <thead><tr><th>Subject</th><th>Avg</th><th>Grade</th><th>Remark</th></tr></thead>
-            <tbody id="rBody"></tbody>
-        </table>
-        <div class="summary">
-            <div>POINTS: <span id="pts">0</span></div>
-            <div>DIVISION: <span id="div">0</span></div>
+
+    <div class="no-print" style="text-align:center; padding:10px;">
+        <button onclick="window.print()">Print Report</button>
+        <button onclick="window.history.back()">Back</button>
+    </div>
+
+    <div class="report-page">
+        <div class="header">
+            <h3>JAMHURI YA MUUNGANO WA TANZANIA</h3>
+            <h3>WIZARA YA ELIMU, SAYANSI NA TEKNOLOJIA</h3>
+            <h2>SHULE YA SEKONDARI OLMOTI</h2>
+            <p>S.L.P 1234, ARUSHA. <br> <b>RIPOTI YA MAENDELEO YA MWANAFUNZI</b></p>
         </div>
-        <button onclick="window.print()" style="margin-top:20px;">Print Report</button>
+
+        <div class="student-info">
+            <div>JINA: <b id="rName">...</b></div>
+            <div>DARASA: <b id="rClass">...</b></div>
+            <div>JINSIA: <b id="rSex">...</b></div>
+            <div>MUHULA: WA PILI - 2025</div>
+        </div>
+
+        <table>
+            <thead>
+                <tr>
+                    <th rowspan="2">SOMO</th>
+                    <th colspan="3">MAJARIBIO (20%)</th>
+                    <th rowspan="2">MTIHANI (40%)</th>
+                    <th rowspan="2">WASTANI (%)</th>
+                    <th rowspan="2">DARAJA</th>
+                    <th rowspan="2">MAONI</th>
+                </tr>
+                <tr>
+                    <th>T1</th><th>MID</th><th>T2</th>
+                </tr>
+            </thead>
+            <tbody id="reportTbody">
+                </tbody>
+        </table>
+
+        <div class="summary-box">
+            <div>WASTANI WA JUMLA: <b id="overallAvg">0</b></div>
+            <div>JUMLA YA POUTI: <b id="totalPoints">0</b></div>
+            <div>DARAJA (DIV): <b id="division">0</b></div>
+        </div>
+
+        <div class="footer">
+            <div style="border-top: 1px solid black; width: 200px; text-align: center;">Sahihi ya Mkuu wa Shule</div>
+            <div style="border-top: 1px solid black; width: 200px; text-align: center;">Sahihi ya Mzazi</div>
+        </div>
     </div>
 
 <script type="module">
@@ -31,33 +83,73 @@
     import { doc, getDoc, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
     import { subjectLists } from "./data.js";
 
-    const id = new URLSearchParams(window.location.search).get('id');
-    async function gen() {
-        const s = await getDoc(doc(db, "students", id));
-        document.getElementById("sInfo").innerText = `NAME: ${s.data().name} | CLASS: ${s.data().cls}`;
-        
-        const q = query(collection(db, "results"), where("studentId", "==", id));
-        const rs = await getDocs(q);
-        const resMap = {}; rs.forEach(d => resMap[d.data().subjectCode] = d.data());
+    const params = new URLSearchParams(window.location.search);
+    const studentId = params.get('id');
 
-        const list = s.data().cls.includes("1") ? subjectLists["Form 1"] : subjectLists["Form 3"];
-        let pArr = [];
+    async function loadReport() {
+        if(!studentId) return;
+
+        // 1. Fetch Student Info
+        const sSnap = await getDoc(doc(db, "students", studentId));
+        const sData = sSnap.data();
+        document.getElementById("rName").innerText = sData.name;
+        document.getElementById("rClass").innerText = sData.cls;
+        document.getElementById("rSex").innerText = sData.sex;
+
+        // 2. Fetch Results
+        const q = query(collection(db, "results"), where("studentId", "==", studentId));
+        const rSnap = await getDocs(q);
+        const resultsMap = {};
+        rSnap.forEach(d => resultsMap[d.data().subjectCode] = d.data());
+
+        // 3. Render Table
+        const tbody = document.getElementById("reportTbody");
+        const list = (sData.cls.includes("1") || sData.cls.includes("2")) ? subjectLists["Form 1"] : subjectLists["Form 3"];
+        
+        let sumWastani = 0, countSomo = 0, pointsArr = [];
+
         list.forEach(sub => {
-            const r = resMap[sub.code];
+            const r = resultsMap[sub.code];
             if(r) {
-                const g = r.grade;
-                const p = {"A":1,"B":2,"C":3,"D":4,"F":5}[g];
-                pArr.push(p);
-                rBody.innerHTML += `<tr><td>${sub.name}</td><td>${r.average}</td><td>${g}</td><td>${r.average>=30?'PASS':'FAIL'}</td></tr>`;
+                // Calculate Average based ONLY on entered scores (Dynamic)
+                const scores = [r.test1, r.midTerm, r.test2, r.exam].filter(v => v !== undefined && v !== null && v !== "");
+                const wastani = r.average || 0;
+                const daraja = r.grade || "F";
+                
+                sumWastani += parseFloat(wastani);
+                countSomo++;
+                pointsArr.push({"A":1,"B":2,"C":3,"D":4,"F":5}[daraja] || 5);
+
+                tbody.innerHTML += `
+                    <tr>
+                        <td class="subject-col">${sub.name}</td>
+                        <td>${r.test1 || '-'}</td>
+                        <td>${r.midTerm || '-'}</td>
+                        <td>${r.test2 || '-'}</td>
+                        <td>${r.exam || '-'}</td>
+                        <td><b>${wastani}</b></td>
+                        <td><b>${daraja}</b></td>
+                        <td>${wastani >= 30 ? 'PASS' : 'FAIL'}</td>
+                    </tr>`;
             }
         });
-        
-        const pts = pArr.sort((a,b)=>a-b).slice(0,7).reduce((a,b)=>a+b, 0);
-        document.getElementById("pts").innerText = pts;
-        let d = "IV"; if(pts<=17) d="I"; else if(pts<=21) d="II"; else if(pts<=25) d="III";
-        document.getElementById("div").innerText = d;
+
+        // 4. Calculations for Division (Best 7)
+        const finalAvg = countSomo > 0 ? (sumWastani / countSomo).toFixed(1) : 0;
+        document.getElementById("overallAvg").innerText = finalAvg;
+
+        pointsArr.sort((a,b) => a-b);
+        const pts = pointsArr.slice(0, 7).reduce((a,b) => a+b, 0);
+        document.getElementById("totalPoints").innerText = pts;
+
+        let div = "IV";
+        if(pts >= 7 && pts <= 17) div = "I";
+        else if(pts <= 21) div = "II";
+        else if(pts <= 25) div = "III";
+        document.getElementById("division").innerText = div;
     }
-    gen();
+
+    loadReport();
 </script>
 </body>
 </html>
