@@ -1,36 +1,54 @@
-<div class="sidebar">
-    <h2>Olmoti School</h2> <a href="dashboard.html" class="nav-link active"><i class="fas fa-chart-line"></i> Dashboard</a> <a href="add-student.html" class="nav-link"><i class="fas fa-user-plus"></i> Add Student</a>
-    <a href="reports.html" class="nav-link"><i class="fas fa-edit"></i> Mark Entry</a>
-    <a href="view-report.html" class="nav-link"><i class="fas fa-file-invoice"></i> View Reports</a>
-    <button class="logout-btn" id="logoutBtn"><i class="fas fa-sign-out-alt"></i> Logout</button> </div>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Olmoti Dashboard</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <nav>
+        <a href="dashboard.html">Dashboard</a>
+        <a href="add-student.html">Registry</a>
+        <a href="reports.html">Marks</a>
+        <button id="logoutBtn" style="width: auto;">Logout</button>
+    </nav>
 
-<script type="module">
-    import { db, auth } from "./firebase.js"; //
-    import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js"; //
-    import { collection, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js"; //
+    <h2>School Summary</h2>
+    <div class="cards">
+        <div class="card">
+            <h3>Total Students</h3>
+            <p id="sTotal">0</p>
+        </div>
+        <div class="card">
+            <h3>Males</h3>
+            <p id="sMale">0</p>
+        </div>
+        <div class="card">
+            <h3>Females</h3>
+            <p id="sFemale">0</p>
+        </div>
+    </div>
 
-    onAuthStateChanged(auth, (user) => {
-        if (user) { loadAllData(); } //
-        else { window.location.href = "index.html"; } //
-    });
+    <script type="module">
+        import { db, auth } from "./firebase.js";
+        import { collection, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
-    async function loadAllData() {
-        // Fetch Students and Teachers counts based on the 'sex' field
-        updateStats("students", "sTotal", "sMale", "sFemale");
-        updateStats("teachers", "tTotal", "tMale", "tFemale");
-    }
+        async function loadCounts() {
+            const snap = await getDocs(collection(db, "students"));
+            let t=0, m=0, f=0;
+            snap.forEach(doc => {
+                t++;
+                const s = (doc.data().sex || "").toUpperCase();
+                if(s.startsWith("M")) m++; else if(s.startsWith("F")) f++;
+            });
+            document.getElementById("sTotal").innerText = t;
+            document.getElementById("sMale").innerText = m;
+            document.getElementById("sFemale").innerText = f;
+        }
+        loadCounts();
 
-    async function updateStats(col, totalId, mId, fId) {
-        const snap = await getDocs(collection(db, col)); //
-        let t = 0, m = 0, f = 0;
-        snap.forEach(doc => {
-            t++;
-            const sex = (doc.data().sex || "").toUpperCase(); //
-            if (sex.startsWith("M")) m++; //
-            else if (sex.startsWith("F")) f++; //
-        });
-        document.getElementById(totalId).innerText = t; //
-        document.getElementById(mId).innerText = m; //
-        document.getElementById(fId).innerText = f; //
-    }
-</script>
+        document.getElementById("logoutBtn").onclick = () => signOut(auth).then(() => window.location = "index.html");
+    </script>
+</body>
+</html>
