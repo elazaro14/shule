@@ -1,3 +1,65 @@
+<!DOCTYPE html>
+<html lang="sw">
+<head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="style.css">
+    <title>Ripoti ya Maendeleo - Olmoti</title>
+    <style>
+        /* Ensuring page visibility even if JS is slow */
+        body { font-family: 'Times New Roman', serif; visibility: visible !important; }
+        .report-page { background: white; min-height: 297mm; padding: 30px; }
+    </style>
+</head>
+<body>
+
+<div class="no-print" style="text-align:center; padding: 20px;">
+    <button onclick="window.print()">CHAPA (PRINT)</button>
+    <button onclick="window.history.back()">RUDI</button>
+</div>
+
+<div class="report-page">
+    <div class="header" style="text-align: center; text-transform: uppercase;">
+        [cite_start]<h3>OFISI YA WAZIRI MKUU [cite: 3]</h3>
+        [cite_start]<h3>TAWALA ZA MIKOA NA SERIKALI ZA MTAA [cite: 3]</h3>
+        [cite_start]<h2>HALMASHAURI YA JIJI LA ARUSHA [cite: 3]</h2>
+        [cite_start]<h2>SHULE YA SEKONDARI OLMOTI [cite: 3]</h2>
+        [cite_start]<p>S.L.P 8249, ARUSHA [cite: 4]</p>
+        [cite_start]<h3 style="text-decoration: underline;">TAARIFA YA MAENDELEO YA MWANAFUNZI KWA MZAZI/MLEZI [cite: 5]</h3>
+    </div>
+
+    <div class="student-info" style="display: grid; grid-template-columns: 1fr 1fr; margin-top: 20px;">
+        [cite_start]<div><strong>JINA:</strong> <span id="studentName">...</span> [cite: 6]</div>
+        [cite_start]<div><strong>KIDATO:</strong> <span id="studentClass">...</span> [cite: 7]</div>
+        [cite_start]<div><strong>MWAKA:</strong> <span>2025</span> [cite: 7]</div>
+        [cite_start]<div><strong>MUHULA:</strong> <span>I</span> [cite: 7]</div>
+    </div>
+
+    <table border="1" style="width:100%; border-collapse: collapse; margin-top:20px;">
+        <thead>
+            <tr>
+                [cite_start]<th>SOMO [cite: 7]</th>
+                [cite_start]<th>JARIBIO [cite: 7]</th>
+                [cite_start]<th>MTIHANI [cite: 7]</th>
+                [cite_start]<th>JUMLA [cite: 7]</th>
+                [cite_start]<th>WASTANI [cite: 7]</th>
+                [cite_start]<th>DARAJA [cite: 7]</th>
+                [cite_start]<th>MAONI [cite: 7]</th>
+            </tr>
+        </thead>
+        <tbody id="reportTbody"></tbody>
+    </table>
+
+    <div style="display: flex; justify-content: space-between; margin-top: 20px;">
+        [cite_start]<div><strong>WASTANI WA JUMLA:</strong> <span id="overallAvg">-</span> [cite: 7]</div>
+        [cite_start]<div><strong>POINTS (Best 7):</strong> <span id="totalPoints">-</span> [cite: 7]</div>
+        [cite_start]<div><strong>DIVISION:</strong> <span id="division">-</span> [cite: 9]</div>
+    </div>
+    
+    <div style="margin-top:10px;">
+        [cite_start]<strong>NAFASI:</strong> <span id="rank">...</span> <strong>KATI YA</strong> <span id="totalStuds">...</span> [cite: 9]
+    </div>
+</div>
+
 <script type="module">
     import { db } from "./firebase.js";
     import { subjectLists } from "./data.js";
@@ -6,110 +68,96 @@
     async function generateReport() {
         const urlParams = new URLSearchParams(window.location.search);
         const studentId = urlParams.get('id');
-        if(!studentId) return;
+        if(!studentId) {
+            alert("No Student ID found!");
+            return;
+        }
 
         try {
-            // 1. Get Current Student Info [cite: 6, 7]
+            // 1. Fetch Student
             const sSnap = await getDoc(doc(db, "students", studentId));
+            if (!sSnap.exists()) return;
             const student = sSnap.data();
             document.getElementById("studentName").innerText = student.name;
-            const currentClass = student.cls;
-            document.getElementById("studentClass").innerText = currentClass;
+            document.getElementById("studentClass").innerText = student.cls;
 
-            // 2. NAFASI (Ranking) Logic 
-            // Fetch all students in this class
-            const allStudsSnap = await getDocs(query(collection(db, "students"), where("cls", "==", currentClass)));
-            const classResultsSnap = await getDocs(collection(db, "results"));
+            // 2. Ranking Logic (NAFASI)
+            const allStudsSnap = await getDocs(query(collection(db, "students"), where("cls", "==", student.cls)));
+            const allResultsSnap = await getDocs(collection(db, "results"));
             
-            let classRankingArray = [];
-
-            // Calculate average for every student in the class to determine rank
+            let classRanking = [];
             allStudsSnap.forEach(sDoc => {
-                let sSum = 0;
-                let sCount = 0;
-                let sPoints = [];
-
-                classResultsSnap.forEach(rDoc => {
-                    const rData = rDoc.data();
-                    if(rData.studentId === sDoc.id) {
-                        const avg = parseFloat(rData.average) || 0;
-                        sSum += avg;
-                        sCount++;
-                        // Map grade to points for Best 7 [cite: 8, 9]
-                        const p = {"A":1,"B":2,"C":3,"D":4,"F":5}[rData.grade] || 5;
-                        sPoints.push(p);
+                let sSum = 0, sCount = 0, sPts = [];
+                allResultsSnap.forEach(rDoc => {
+                    const r = rDoc.data();
+                    if(r.studentId === sDoc.id) {
+                        const v = parseFloat(r.average) || 0;
+                        sSum += v; sCount++;
+                        sPts.push({"A":1,"B":2,"C":3,"D":4,"F":5}[r.grade] || 5);
                     }
                 });
-
                 if(sCount > 0) {
-                    const finalAvg = sSum / sCount;
-                    sPoints.sort((a, b) => a - b);
-                    const best7 = sPoints.slice(0, 7).reduce((a, b) => a + b, 0);
-                    
-                    classRankingArray.push({
-                        id: sDoc.id,
-                        avg: finalAvg,
-                        points: best7
-                    });
+                    sPts.sort((a,b)=>a-b);
+                    const best7 = sPts.slice(0, 7).reduce((a,b)=>a+b, 0);
+                    classRanking.push({ id: sDoc.id, avg: sSum/sCount, pts: best7 });
                 }
             });
 
-            // Rank Basis: Primary by Points (Lower is better), Secondary by Average (Higher is better) 
-            classRankingArray.sort((a, b) => a.points - b.points || b.avg - a.avg);
+            // Sort by Points (ascending) then Average (descending)
+            classRanking.sort((a,b) => a.pts - b.pts || b.avg - a.avg);
+            const myRank = classRanking.findIndex(x => x.id === studentId) + 1;
             
-            const myRank = classRankingArray.findIndex(x => x.id === studentId) + 1;
-            document.getElementById("rank").innerText = myRank;
+            document.getElementById("rank").innerText = myRank || "-";
             document.getElementById("totalStuds").innerText = allStudsSnap.size;
 
-            // 3. Render Table & Points for Current Student [cite: 7]
-            const rSnap = await getDocs(query(collection(db, "results"), where("studentId", "==", studentId)));
-            const results = {};
-            rSnap.forEach(d => results[d.data().subjectCode] = d.data());
-
-            const subjects = subjectLists[currentClass] || [];
+            // 3. Populate Table
+            const subjects = subjectLists[student.cls] || [];
             const tbody = document.getElementById("reportTbody");
-            let sumWastani = 0, countSomo = 0, pointsArr = [];
+            let sumWastani = 0, countSomo = 0, currentPts = [];
+
+            const myResSnap = await getDocs(query(collection(db, "results"), where("studentId", "==", studentId)));
+            const myRes = {};
+            myResSnap.forEach(d => myRes[d.data().subjectCode] = d.data());
 
             subjects.forEach(sub => {
-                const res = results[sub.code];
-                if(res) {
-                    const wastani = parseFloat(res.average) || 0;
-                    const daraja = res.grade || "F";
-                    
-                    sumWastani += wastani;
-                    countSomo++;
-                    // Point Calculation: A=1, B=2, C=3, D=4, F=5 
-                    pointsArr.push({"A":1,"B":2,"C":3,"D":4,"F":5}[daraja] || 5);
+                const r = myRes[sub.code];
+                if(r) {
+                    const avg = parseFloat(r.average) || 0;
+                    sumWastani += avg; countSomo++;
+                    currentPts.push({"A":1,"B":2,"C":3,"D":4,"F":5}[r.grade] || 5);
 
                     tbody.innerHTML += `<tr>
-                        <td class="subject-col">${sub.name}</td>
-                        <td>${res.test1 || '-'}</td>
-                        <td>${res.exam || '-'}</td>
-                        <td>${(parseFloat(res.test1||0) + parseFloat(res.exam||0))}</td>
-                        <td>${wastani}</td>
-                        <td>${daraja}</td>
-                        <td>${wastani >= 30 ? 'INARIDHISHA' : 'FELI'}</td>
+                        <td>${sub.name}</td>
+                        <td>${r.test1 || 0}</td>
+                        <td>${r.exam || 0}</td>
+                        <td>${(parseFloat(r.test1||0) + parseFloat(r.exam||0))}</td>
+                        <td>${avg}</td>
+                        <td>${r.grade}</td>
+                        <td>${avg >= 30 ? 'INARIDHISHA' : 'FELI'}</td>
                     </tr>`;
                 }
             });
 
-            // 4. Final Best 7 Points Calculation 
-            pointsArr.sort((a, b) => a - b); // Lowest 7 scores (1 is best, 5 is worst)
-            const totalBest7Points = pointsArr.slice(0, 7).reduce((a, b) => a + b, 0);
-            document.getElementById("totalPoints").innerText = totalBest7Points;
+            // 4. Summaries
+            if(countSomo > 0) {
+                document.getElementById("overallAvg").innerText = (sumWastani / countSomo).toFixed(1);
+                currentPts.sort((a,b)=>a-b);
+                const totalPts = currentPts.slice(0,7).reduce((a,b)=>a+b, 0);
+                document.getElementById("totalPoints").innerText = totalPts;
 
-            // Division Logic based on Points 
-            let divText = "IV";
-            if(totalBest7Points >= 7 && totalBest7Points <= 17) divText = "I";
-            else if(totalBest7Points <= 21) divText = "II";
-            else if(totalBest7Points <= 25) divText = "III";
-            else if(totalBest7Points <= 33) divText = "IV";
-            else divText = "0";
-            document.getElementById("division").innerText = divText;
+                let div = "IV";
+                if(totalPts <= 17) div = "I";
+                else if(totalPts <= 21) div = "II";
+                else if(totalPts <= 25) div = "III";
+                document.getElementById("division").innerText = div;
+            }
 
-            document.getElementById("overallAvg").innerText = (sumWastani / countSomo).toFixed(1);
-
-        } catch (e) { console.error("Error:", e); }
+        } catch (err) {
+            console.error("Critical Error:", err);
+            document.body.innerHTML = "<h1>Error Loading Data: " + err.message + "</h1>";
+        }
     }
     generateReport();
 </script>
+</body>
+</html>
