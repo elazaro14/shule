@@ -1,51 +1,40 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta charset="UTF-8">
     <title>Registry | Olmoti ERP</title>
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        .container { max-width: 1100px; margin: auto; background: #fff; padding: 20px; border-radius: 8px; }
-        .toolbar { display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; }
-        .search-bar { flex: 1; padding: 10px; border: 2px solid #4e73df; border-radius: 5px; min-width: 250px; }
-        table { width: 100%; border-collapse: collapse; margin-top: 15px; }
-        th { background: #4e73df; color: white; padding: 12px; text-align: left; }
-        td { border-bottom: 1px solid #eee; padding: 10px; }
-        .btn { padding: 8px 12px; border: none; border-radius: 4px; cursor: pointer; color: white; }
-        .btn-edit { background: #f6c23e; }
-        .btn-del { background: #e74a3b; }
-        .btn-csv { background: #1cc88a; }
+        .registry-container { max-width: 1000px; margin: auto; background: white; padding: 20px; border-radius: 8px; }
+        .toolbar { display: flex; gap: 10px; margin-bottom: 20px; }
+        .search-input { flex: 1; padding: 10px; border: 2px solid #4e73df; border-radius: 5px; }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { padding: 10px; border-bottom: 1px solid #ddd; text-align: left; }
+        th { background: #f8f9fc; color: #4e73df; }
+        .btn { padding: 8px 12px; border: none; border-radius: 4px; cursor: pointer; color: white; text-decoration: none; font-size: 12px; }
     </style>
 </head>
 <body>
-    <nav><a href="dashboard.html">Dashboard</a></nav>
-    <div class="container">
+    <nav><a href="dashboard.html">⬅ Dashboard</a></nav>
+    <div class="registry-container">
         <h2>Student Registry</h2>
         
         <div class="toolbar">
-            <input type="text" id="searchInput" class="search-bar" placeholder="Search by name or class...">
-            <button class="btn btn-csv" onclick="downloadTemplate()">Download Template</button>
-            <label class="btn btn-csv">Upload CSV <input type="file" id="csvFile" hidden onchange="uploadCSV(this)"></label>
+            <input type="text" id="searchInput" class="search-input" placeholder="Search name or class...">
+            <button class="btn" style="background:#1cc88a;" onclick="downloadCSV()">Template</button>
+            <label class="btn" style="background:#36b9cc;">Upload CSV <input type="file" id="csvIn" hidden onchange="handleCSV(this)"></label>
         </div>
 
-        <div class="toolbar" style="background:#f8f9fc; padding:15px; border-radius:8px;">
+        <div class="toolbar" style="background:#f4f4f4; padding:10px;">
             <input id="newName" placeholder="Name">
             <select id="newSex"><option value="M">Male</option><option value="F">Female</option></select>
-            <select id="newClass">
-                <option value="Form 1">Form 1</option><option value="Form 2">Form 2</option>
-                <option value="Form 3">Form 3</option><option value="Form 4">Form 4</option>
-            </select>
-            <button class="btn" style="background:#4e73df;" id="addBtn">Add Student</button>
+            <select id="newClass"><option>Form 1</option><option>Form 2</option><option>Form 3</option><option>Form 4</option></select>
+            <button class="btn" style="background:#4e73df;" id="addBtn">Add</button>
         </div>
 
         <table>
-            <thead>
-                <tr>
-                    <th>S/N</th><th>Name</th><th>Sex</th><th>Class</th><th>Actions</th>
-                </tr>
-            </thead>
-            <tbody id="registryBody"></tbody>
+            <thead><tr><th>S/N</th><th>Name</th><th>Sex</th><th>Class</th><th>Actions</th></tr></thead>
+            <tbody id="regBody"></tbody>
         </table>
     </div>
 
@@ -54,70 +43,48 @@
     import { collection, getDocs, addDoc, deleteDoc, doc, updateDoc, query, orderBy } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
     let students = [];
-    const col = collection(db, "students");
-
     async function load() {
-        const snap = await getDocs(query(col, orderBy("name")));
+        const snap = await getDocs(query(collection(db, "students"), orderBy("name")));
         students = snap.docs.map(d => ({id: d.id, ...d.data()}));
         render();
     }
 
     function render() {
-        const term = document.getElementById("searchInput").value.toLowerCase();
-        const tbody = document.getElementById("registryBody");
+        const term = searchInput.value.toLowerCase();
+        const tbody = document.getElementById("regBody");
         tbody.innerHTML = "";
-        
         const filtered = students.filter(s => s.name.toLowerCase().includes(term) || s.cls.toLowerCase().includes(term));
         
         filtered.forEach((s, i) => {
             tbody.innerHTML += `<tr>
                 <td>${i+1}</td>
-                <td>${s.name}</td>
+                <td><b>${s.name}</b></td>
                 <td>${s.sex}</td>
                 <td>${s.cls}</td>
                 <td>
-                    <button class="btn btn-edit" onclick="editStud('${s.id}','${s.name}')">Edit</button>
-                    <button class="btn btn-del" onclick="delStud('${s.id}')">Remove</button>
+                    <a href="view-report.html?id=${s.id}" class="btn" style="background:purple;">Report</a>
+                    <button class="btn" style="background:orange;" onclick="editStud('${s.id}','${s.name}')">Edit</button>
+                    <button class="btn" style="background:red;" onclick="delStud('${s.id}')">Del</button>
                 </td>
             </tr>`;
         });
     }
 
-    window.delStud = async (id) => { if(confirm("Delete student?")) { await deleteDoc(doc(db, "students", id)); load(); } };
-    window.editStud = async (id, old) => { 
-        const n = prompt("Edit Name:", old); 
-        if(n) { await updateDoc(doc(db, "students", id), {name: n}); load(); } 
-    };
-
-    document.getElementById("addBtn").onclick = async () => {
-        const name = document.getElementById("newName").value;
-        if(!name) return;
-        await addDoc(col, {name, sex: newSex.value, cls: newClass.value});
-        load();
-    };
-
-    window.downloadTemplate = () => {
-        const csv = "Name,Sex,Class\nJohn Doe,M,Form 1";
-        const blob = new Blob([csv], {type: 'text/csv'});
-        const url = window.URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url; a.download = 'template.csv'; a.click();
-    };
-
-    window.uploadCSV = (input) => {
+    window.delStud = async (id) => { if(confirm("Delete?")) { await deleteDoc(doc(db, "students", id)); load(); } };
+    window.editStud = async (id, old) => { const n = prompt("New Name:", old); if(n) { await updateDoc(doc(db,"students",id), {name:n}); load(); } };
+    window.downloadCSV = () => { const blob = new Blob(["Name,Sex,Class\nJohn Doe,M,Form 1"], {type:'text/csv'}); const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href=url; a.download='template.csv'; a.click(); };
+    window.handleCSV = (input) => {
         const reader = new FileReader();
         reader.onload = async (e) => {
             const lines = e.target.result.split("\n").slice(1);
-            for(let line of lines) {
-                const [n, s, c] = line.split(",");
-                if(n) await addDoc(col, {name: n.trim(), sex: s.trim(), cls: c.trim()});
-            }
+            for(let l of lines) { const [n,s,c] = l.split(","); if(n) await addDoc(collection(db,"students"),{name:n.trim(),sex:s.trim(),cls:c.trim()}); }
             load();
         };
         reader.readAsText(input.files[0]);
     };
 
-    document.getElementById("searchInput").oninput = render;
+    addBtn.onclick = async () => { if(newName.value) { await addDoc(collection(db,"students"), {name:newName.value, sex:newSex.value, cls:newClass.value}); newName.value=""; load(); } };
+    searchInput.oninput = render;
     load();
 </script>
 </body>
