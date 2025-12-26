@@ -3,42 +3,41 @@
     import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
     import { collection, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-    // 1. Monitor Authentication State
+    // SECURITY CHECK: Only load data if user is logged in
     onAuthStateChanged(auth, (user) => {
         if (user) {
-            console.log("Logged in as:", user.email);
-            loadSchoolStats();
+            console.log("Logged in:", user.email);
+            calculateStats();
         } else {
-            // Redirect to login if user isn't logged in
-            window.location.href = "index.html"; 
+            window.location.href = "index.html";
         }
     });
 
-    async function loadSchoolStats() {
+    async function calculateStats() {
         try {
+            // Collection name must be exactly 'students' in Firebase
             const querySnapshot = await getDocs(collection(db, "students"));
+            
             let total = 0, males = 0, females = 0;
 
             querySnapshot.forEach((doc) => {
                 const data = doc.data();
                 total++;
-                
-                // Counting based on the "sex" field (case-insensitive)
-                const s = (data.sex || "").toString().toUpperCase();
-                if (s === "M" || s === "MALE") males++;
-                if (s === "F" || s === "FEMALE") females++;
+
+                // Looks for 'sex' field. Case-insensitive (M/m or F/f)
+                const gender = (data.sex || "").toString().toUpperCase();
+                if (gender.startsWith("M")) males++;
+                else if (gender.startsWith("F")) females++;
             });
 
-            // Update your UI elements
+            // Update your HTML elements
             document.getElementById("totalStuds").innerText = total;
             document.getElementById("maleStuds").innerText = males;
             document.getElementById("femaleStuds").innerText = females;
 
         } catch (error) {
-            console.error("Dashboard Load Error:", error);
-            if(error.code === "permission-denied") {
-                alert("You don't have permission to view student data.");
-            }
+            console.error("Dashboard Error:", error);
+            // If you see 'Permission Denied' here, your Firestore Rules are wrong
         }
     }
 </script>
