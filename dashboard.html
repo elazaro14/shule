@@ -1,41 +1,44 @@
 <script type="module">
-    import { db, auth } from "./firebase.js"; // Make sure auth is exported from firebase.js
+    import { db, auth } from "./firebase.js";
     import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
     import { collection, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-    // Wait for the user to be logged in before fetching data
+    // 1. Monitor Authentication State
     onAuthStateChanged(auth, (user) => {
         if (user) {
-            console.log("User authenticated, loading data...");
-            updateDashboard();
+            console.log("Logged in as:", user.email);
+            loadSchoolStats();
         } else {
-            console.warn("No user logged in. Redirecting to login...");
+            // Redirect to login if user isn't logged in
             window.location.href = "index.html"; 
         }
     });
 
-    async function updateDashboard() {
+    async function loadSchoolStats() {
         try {
-            const studentSnap = await getDocs(collection(db, "students"));
+            const querySnapshot = await getDocs(collection(db, "students"));
             let total = 0, males = 0, females = 0;
 
-            studentSnap.forEach((doc) => {
+            querySnapshot.forEach((doc) => {
                 const data = doc.data();
                 total++;
+                
+                // Counting based on the "sex" field (case-insensitive)
                 const s = (data.sex || "").toString().toUpperCase();
-                if (s === "M") males++;
-                if (s === "F") females++;
+                if (s === "M" || s === "MALE") males++;
+                if (s === "F" || s === "FEMALE") females++;
             });
 
+            // Update your UI elements
             document.getElementById("totalStuds").innerText = total;
             document.getElementById("maleStuds").innerText = males;
             document.getElementById("femaleStuds").innerText = females;
-            
-            // For teachers: Since your rule only allows users to read THEIR OWN doc, 
-            // you might need to change your 'users' rule to allow 'admin' to read all users
-            // to get a total teacher count.
+
         } catch (error) {
-            console.error("Dashboard Error:", error);
+            console.error("Dashboard Load Error:", error);
+            if(error.code === "permission-denied") {
+                alert("You don't have permission to view student data.");
+            }
         }
     }
 </script>
