@@ -2,194 +2,123 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Registry | Olmoti ERP</title>
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        body { font-family: 'Inter', sans-serif; background: #f4f7fc; padding: 20px; }
-        .container { max-width: 1100px; margin: auto; background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
-        .controls { display: flex; flex-wrap: wrap; gap: 15px; margin-bottom: 20px; align-items: flex-end; }
-        .control-group { display: flex; flex-direction: column; gap: 5px; flex: 1; min-width: 150px; }
-        input, select { padding: 10px; border: 1px solid #ddd; border-radius: 6px; }
-        
-        .action-btns { display: flex; gap: 10px; margin-bottom: 20px; border-top: 1px solid #eee; pt: 15px; }
-        .btn { padding: 10px 15px; border: none; border-radius: 6px; cursor: pointer; display: flex; align-items: center; gap: 8px; font-weight: 500; }
-        .btn-add { background: #4e73df; color: white; }
-        .btn-csv { background: #1cc88a; color: white; }
-        .btn-del { background: #e74a3b; color: white; padding: 5px 10px; font-size: 12px; }
-        .btn-edit { background: #f6c23e; color: white; padding: 5px 10px; font-size: 12px; }
-
-        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-        th { background: #f8f9fc; color: #4e73df; padding: 12px; text-align: left; border-bottom: 2px solid #e3e6f0; }
-        td { padding: 12px; border-bottom: 1px solid #eee; }
-        tr:hover { background: #fbfbfc; }
-        .search-box { width: 100%; padding: 12px; margin-bottom: 20px; border: 2px solid #4e73df; border-radius: 8px; }
+        .container { max-width: 1100px; margin: auto; background: #fff; padding: 20px; border-radius: 8px; }
+        .toolbar { display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; }
+        .search-bar { flex: 1; padding: 10px; border: 2px solid #4e73df; border-radius: 5px; min-width: 250px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+        th { background: #4e73df; color: white; padding: 12px; text-align: left; }
+        td { border-bottom: 1px solid #eee; padding: 10px; }
+        .btn { padding: 8px 12px; border: none; border-radius: 4px; cursor: pointer; color: white; }
+        .btn-edit { background: #f6c23e; }
+        .btn-del { background: #e74a3b; }
+        .btn-csv { background: #1cc88a; }
     </style>
 </head>
 <body>
-
-<div class="container">
-    <div style="display:flex; justify-content: space-between; align-items: center;">
-        <h2><i class="fas fa-address-book"></i> Student Registry</h2>
-        <a href="dashboard.html" style="text-decoration:none; color:#4e73df;">← Back to Dashboard</a>
-    </div>
-
-    <input type="text" id="globalSearch" class="search-box" placeholder="🔍 Search student by name or class...">
-
-    <div class="controls">
-        <div class="control-group">
-            <label>Full Name</label>
-            <input type="text" id="newName" placeholder="Enter Full Name">
+    <nav><a href="dashboard.html">Dashboard</a></nav>
+    <div class="container">
+        <h2>Student Registry</h2>
+        
+        <div class="toolbar">
+            <input type="text" id="searchInput" class="search-bar" placeholder="Search by name or class...">
+            <button class="btn btn-csv" onclick="downloadTemplate()">Download Template</button>
+            <label class="btn btn-csv">Upload CSV <input type="file" id="csvFile" hidden onchange="uploadCSV(this)"></label>
         </div>
-        <div class="control-group">
-            <label>Sex</label>
-            <select id="newSex">
-                <option value="M">Male</option>
-                <option value="F">Female</option>
-            </select>
-        </div>
-        <div class="control-group">
-            <label>Class</label>
+
+        <div class="toolbar" style="background:#f8f9fc; padding:15px; border-radius:8px;">
+            <input id="newName" placeholder="Name">
+            <select id="newSex"><option value="M">Male</option><option value="F">Female</option></select>
             <select id="newClass">
-                <option value="Form 1">Form 1</option>
-                <option value="Form 2">Form 2</option>
-                <option value="Form 3">Form 3</option>
-                <option value="Form 4">Form 4</option>
+                <option value="Form 1">Form 1</option><option value="Form 2">Form 2</option>
+                <option value="Form 3">Form 3</option><option value="Form 4">Form 4</option>
             </select>
+            <button class="btn" style="background:#4e73df;" id="addBtn">Add Student</button>
         </div>
-        <button class="btn btn-add" id="addBtn"><i class="fas fa-plus"></i> Add Student</button>
-    </div>
 
-    <div class="action-btns">
-        <button class="btn btn-csv" onclick="downloadTemplate()"><i class="fas fa-download"></i> Download CSV Template</button>
-        <label class="btn btn-csv" style="background:#36b9cc;">
-            <i class="fas fa-upload"></i> Upload CSV
-            <input type="file" id="csvFile" accept=".csv" style="display:none;" onchange="handleCSV(this)">
-        </label>
+        <table>
+            <thead>
+                <tr>
+                    <th>S/N</th><th>Name</th><th>Sex</th><th>Class</th><th>Actions</th>
+                </tr>
+            </thead>
+            <tbody id="registryBody"></tbody>
+        </table>
     </div>
-
-    <table>
-        <thead>
-            <tr>
-                <th>S/N</th>
-                <th>Name</th>
-                <th>Sex</th>
-                <th>Class</th>
-                <th>Actions</th>
-            </tr>
-        </thead>
-        <tbody id="studentTable">
-            </tbody>
-    </table>
-</div>
 
 <script type="module">
     import { db } from "./firebase.js";
-    import { collection, addDoc, getDocs, deleteDoc, doc, updateDoc, query, orderBy } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+    import { collection, getDocs, addDoc, deleteDoc, doc, updateDoc, query, orderBy } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-    const studentCol = collection(db, "students");
-    let allStudents = [];
+    let students = [];
+    const col = collection(db, "students");
 
-    // 1. Fetch & Display
-    async function fetchStudents() {
-        const snap = await getDocs(query(studentCol, orderBy("name", "asc")));
-        allStudents = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-        renderTable(allStudents);
+    async function load() {
+        const snap = await getDocs(query(col, orderBy("name")));
+        students = snap.docs.map(d => ({id: d.id, ...d.data()}));
+        render();
     }
 
-    function renderTable(data) {
-        const tbody = document.getElementById("studentTable");
+    function render() {
+        const term = document.getElementById("searchInput").value.toLowerCase();
+        const tbody = document.getElementById("registryBody");
         tbody.innerHTML = "";
-        data.forEach((s, index) => {
-            tbody.innerHTML += `
-                <tr>
-                    <td>${index + 1}</td>
-                    <td><b>${s.name}</b></td>
-                    <td>${s.sex}</td>
-                    <td>${s.cls}</td>
-                    <td>
-                        <button class="btn-edit" onclick="editStudent('${s.id}', '${s.name}')"><i class="fas fa-edit"></i></button>
-                        <button class="btn-del" onclick="deleteStudent('${s.id}')"><i class="fas fa-trash"></i></button>
-                    </td>
-                </tr>`;
+        
+        const filtered = students.filter(s => s.name.toLowerCase().includes(term) || s.cls.toLowerCase().includes(term));
+        
+        filtered.forEach((s, i) => {
+            tbody.innerHTML += `<tr>
+                <td>${i+1}</td>
+                <td>${s.name}</td>
+                <td>${s.sex}</td>
+                <td>${s.cls}</td>
+                <td>
+                    <button class="btn btn-edit" onclick="editStud('${s.id}','${s.name}')">Edit</button>
+                    <button class="btn btn-del" onclick="delStud('${s.id}')">Remove</button>
+                </td>
+            </tr>`;
         });
     }
 
-    // 2. Search Functionality
-    document.getElementById("globalSearch").oninput = (e) => {
-        const term = e.target.value.toLowerCase();
-        const filtered = allStudents.filter(s => 
-            s.name.toLowerCase().includes(term) || 
-            s.cls.toLowerCase().includes(term)
-        );
-        renderTable(filtered);
+    window.delStud = async (id) => { if(confirm("Delete student?")) { await deleteDoc(doc(db, "students", id)); load(); } };
+    window.editStud = async (id, old) => { 
+        const n = prompt("Edit Name:", old); 
+        if(n) { await updateDoc(doc(db, "students", id), {name: n}); load(); } 
     };
 
-    // 3. Manual Add
     document.getElementById("addBtn").onclick = async () => {
-        const name = document.getElementById("newName").value.trim();
-        const sex = document.getElementById("newSex").value;
-        const cls = document.getElementById("newClass").value;
-        if(!name) return alert("Please enter a name");
-        
-        await addDoc(studentCol, { name, sex, cls, createdAt: new Date() });
-        document.getElementById("newName").value = "";
-        fetchStudents();
+        const name = document.getElementById("newName").value;
+        if(!name) return;
+        await addDoc(col, {name, sex: newSex.value, cls: newClass.value});
+        load();
     };
 
-    // 4. Edit & Delete
-    window.deleteStudent = async (id) => {
-        if(confirm("Are you sure you want to delete this student?")) {
-            await deleteDoc(doc(db, "students", id));
-            fetchStudents();
-        }
-    };
-
-    window.editStudent = async (id, currentName) => {
-        const newName = prompt("Edit Student Name:", currentName);
-        if(newName && newName !== currentName) {
-            await updateDoc(doc(db, "students", id), { name: newName });
-            fetchStudents();
-        }
-    };
-
-    // 5. CSV Template Download
     window.downloadTemplate = () => {
-        const csvContent = "data:text/csv;charset=utf-8,Name,Sex,Class\nJohn Doe,M,Form 1\nJane Smith,F,Form 2";
-        const encodedUri = encodeURI(csvContent);
-        const link = document.createElement("a");
-        link.setAttribute("href", encodedUri);
-        link.setAttribute("download", "student_template.csv");
-        document.body.appendChild(link);
-        link.click();
+        const csv = "Name,Sex,Class\nJohn Doe,M,Form 1";
+        const blob = new Blob([csv], {type: 'text/csv'});
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url; a.download = 'template.csv'; a.click();
     };
 
-    // 6. CSV Upload & Process
-    window.handleCSV = (input) => {
-        const file = input.files[0];
+    window.uploadCSV = (input) => {
         const reader = new FileReader();
         reader.onload = async (e) => {
-            const lines = e.target.result.split("\n");
-            for (let i = 1; i < lines.length; i++) {
-                const [name, sex, cls] = lines[i].split(",");
-                if(name && sex && cls) {
-                    await addDoc(studentCol, { 
-                        name: name.trim(), 
-                        sex: sex.trim().toUpperCase(), 
-                        cls: cls.trim(),
-                        createdAt: new Date()
-                    });
-                }
+            const lines = e.target.result.split("\n").slice(1);
+            for(let line of lines) {
+                const [n, s, c] = line.split(",");
+                if(n) await addDoc(col, {name: n.trim(), sex: s.trim(), cls: c.trim()});
             }
-            alert("CSV Uploaded Successfully!");
-            fetchStudents();
+            load();
         };
-        reader.readAsText(file);
+        reader.readAsText(input.files[0]);
     };
 
-    fetchStudents();
+    document.getElementById("searchInput").oninput = render;
+    load();
 </script>
-
 </body>
 </html>
