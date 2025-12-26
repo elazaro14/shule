@@ -1,17 +1,63 @@
-// Inside view-report.html script
-loadBtn.onclick = async () => {
-    const q = query(collection(db, "students"), where("cls", "==", classSelect.value));
-    const snap = await getDocs(q);
-    reportTbody.innerHTML = "";
-    snap.forEach(doc => {
-        reportTbody.innerHTML += `<tr>
-            <td>${doc.data().name}</td>
-            <td>
-                <a href="result-slip.html?id=${doc.id}" target="_blank" 
-                   style="background:#4e73df; color:white; padding:5px 10px; text-decoration:none; border-radius:4px;">
-                   📄 View Result Slip
-                </a>
-            </td>
-        </tr>`;
-    });
-};
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Report Card</title>
+    <style>
+        body { font-family: serif; padding: 20px; background: #eee; }
+        .card { background: white; width: 200mm; margin: auto; padding: 40px; border: 2px solid #000; }
+        .header { text-align: center; border-bottom: 2px solid #000; margin-bottom: 20px; }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { border: 1px solid #000; padding: 8px; text-align: center; }
+        .summary { margin-top: 20px; display: flex; justify-content: space-around; font-weight: bold; }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <div class="header"><h2>OLMOTI SECONDARY SCHOOL</h2><p>Official Academic Report</p></div>
+        <p id="sInfo">Loading Student...</p>
+        <table>
+            <thead><tr><th>Subject</th><th>Avg</th><th>Grade</th><th>Remark</th></tr></thead>
+            <tbody id="rBody"></tbody>
+        </table>
+        <div class="summary">
+            <div>POINTS: <span id="pts">0</span></div>
+            <div>DIVISION: <span id="div">0</span></div>
+        </div>
+        <button onclick="window.print()" style="margin-top:20px;">Print Report</button>
+    </div>
+
+<script type="module">
+    import { db } from "./firebase.js";
+    import { doc, getDoc, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+    import { subjectLists } from "./data.js";
+
+    const id = new URLSearchParams(window.location.search).get('id');
+    async function gen() {
+        const s = await getDoc(doc(db, "students", id));
+        document.getElementById("sInfo").innerText = `NAME: ${s.data().name} | CLASS: ${s.data().cls}`;
+        
+        const q = query(collection(db, "results"), where("studentId", "==", id));
+        const rs = await getDocs(q);
+        const resMap = {}; rs.forEach(d => resMap[d.data().subjectCode] = d.data());
+
+        const list = s.data().cls.includes("1") ? subjectLists["Form 1"] : subjectLists["Form 3"];
+        let pArr = [];
+        list.forEach(sub => {
+            const r = resMap[sub.code];
+            if(r) {
+                const g = r.grade;
+                const p = {"A":1,"B":2,"C":3,"D":4,"F":5}[g];
+                pArr.push(p);
+                rBody.innerHTML += `<tr><td>${sub.name}</td><td>${r.average}</td><td>${g}</td><td>${r.average>=30?'PASS':'FAIL'}</td></tr>`;
+            }
+        });
+        
+        const pts = pArr.sort((a,b)=>a-b).slice(0,7).reduce((a,b)=>a+b, 0);
+        document.getElementById("pts").innerText = pts;
+        let d = "IV"; if(pts<=17) d="I"; else if(pts<=21) d="II"; else if(pts<=25) d="III";
+        document.getElementById("div").innerText = d;
+    }
+    gen();
+</script>
+</body>
+</html>
