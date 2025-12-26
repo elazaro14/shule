@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Student Result Slip | Olmoti</title>
+    <style>
+        body { font-family: 'Courier New', Courier, monospace; padding: 40px; background: #f9f9f9; }
+        .slip-container { background: white; border: 2px solid #333; padding: 30px; max-width: 800px; margin: auto; }
+        .school-header { text-align: center; border-bottom: 2px double #333; margin-bottom: 20px; }
+        .student-info { display: grid; grid-template-columns: 1fr 1fr; margin-bottom: 20px; font-weight: bold; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { border: 1px solid #333; padding: 10px; text-align: left; }
+        .print-btn { background: #4e73df; color: white; padding: 10px 20px; border: none; cursor: pointer; margin-bottom: 10px; }
+        @media print { .print-btn { display: none; } body { padding: 0; background: white; } .slip-container { border: none; } }
+    </style>
+</head>
+<body>
+    <button class="print-btn" onclick="window.print()">🖨️ Print Result Slip</button>
+    
+    <div class="slip-container" id="slip">
+        <div class="school-header">
+            <h1>OLMOTI SECONDARY SCHOOL</h1>
+            <p>P.O. Box 1234, Arusha | Official Result Slip</p>
+        </div>
+
+        <div class="student-info">
+            <div>Name: <span id="slipName">Loading...</span></div>
+            <div>Class: <span id="slipClass">...</span></div>
+            <div>Student ID: <span id="slipID">...</span></div>
+            <div>Term: 2025 Annual</div>
+        </div>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>Subject</th>
+                    <th>T1</th>
+                    <th>Mid</th>
+                    <th>T2</th>
+                    <th>Exam</th>
+                    <th>Avg</th>
+                    <th>Grade</th>
+                </tr>
+            </thead>
+            <tbody id="slipBody"></tbody>
+        </table>
+    </div>
+
+    <script type="module">
+        import { db } from "./firebase.js";
+        import { collection, query, where, getDocs, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+        const urlParams = new URLSearchParams(window.location.search);
+        const studentId = urlParams.get('id');
+
+        async function generateSlip() {
+            if (!studentId) return alert("No Student Selected");
+
+            // 1. Get Student Personal Info
+            const studentDoc = await getDoc(doc(db, "students", studentId));
+            if (studentDoc.exists()) {
+                const data = studentDoc.data();
+                document.getElementById("slipName").innerText = data.name;
+                document.getElementById("slipClass").innerText = data.cls;
+                document.getElementById("slipID").innerText = studentId.substring(0,6).toUpperCase();
+            }
+
+            // 2. Get Academic Results
+            const q = query(collection(db, "results"), where("studentId", "==", studentId));
+            const snap = await getDocs(q);
+            let html = "";
+            snap.forEach(d => {
+                const r = d.data();
+                html += `<tr>
+                    <td>${r.subjectCode}</td>
+                    <td>${r.test1}</td>
+                    <td>${r.midTerm}</td>
+                    <td>${r.test2}</td>
+                    <td>${r.exam}</td>
+                    <td>${r.average}</td>
+                    <td><strong>${r.grade}</strong></td>
+                </tr>`;
+            });
+            document.getElementById("slipBody").innerHTML = html;
+        }
+        generateSlip();
+    </script>
+</body>
+</html>
