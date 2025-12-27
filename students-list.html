@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="sw">
+<head>
+    <meta charset="UTF-8">
+    <title>Orodha ya Wanafunzi | Olmoti</title>
+    <style>
+        :root { --blue: #1a237e; --bg: #f4f7f6; }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); margin: 0; padding: 20px; }
+        
+        .controls { 
+            background: white; padding: 20px; border-radius: 8px; 
+            display: flex; gap: 15px; margin-bottom: 20px; 
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            align-items: center;
+        }
+
+        input[type="text"], select {
+            padding: 10px; border: 1px solid #ccc; border-radius: 4px; font-size: 14px;
+        }
+        #searchInput { flex-grow: 1; }
+
+        table { width: 100%; border-collapse: collapse; background: white; border-radius: 8px; overflow: hidden; }
+        th, td { padding: 12px; text-align: left; border-bottom: 1px solid #ddd; }
+        th { background: var(--blue); color: white; }
+        
+        .action-btn { 
+            padding: 6px 12px; border-radius: 4px; text-decoration: none; 
+            font-size: 12px; font-weight: bold; color: white; margin-right: 5px;
+        }
+        .btn-view { background: #0288d1; }
+        .btn-edit { background: #ffa000; }
+
+        tr:hover { background-color: #f1f1f1; }
+        .no-results { text-align: center; padding: 20px; color: #666; }
+    </style>
+</head>
+<body>
+
+    <h2>Usimamizi wa Wanafunzi (Student Management)</h2>
+
+    <div class="controls">
+        <input type="text" id="searchInput" placeholder="Tafuta kwa jina la mwanafunzi...">
+        
+        <select id="filterClass">
+            <option value="">Darasa Zote</option>
+            <option>Form 1</option><option>Form 2</option>
+            <option>Form 3</option><option>Form 4</option>
+        </select>
+        
+        <a href="add-student.html" style="background: green; color:white; padding: 10px 20px; border-radius: 4px; text-decoration: none; font-weight: bold;">+ Ongeza Mwanafunzi</a>
+    </div>
+
+    <table>
+        <thead>
+            <tr>
+                <th>S/N</th>
+                <th>Jina Kamili</th>
+                <th>Darasa</th>
+                <th>Kitendo (Actions)</th>
+            </tr>
+        </thead>
+        <tbody id="studentTbody">
+            <tr><td colspan="4" style="text-align:center;">Inapakia data...</td></tr>
+        </tbody>
+    </table>
+
+<script type="module">
+    import { db } from "./firebase.js";
+    import { collection, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+    let allStudents = [];
+
+    async function loadStudents() {
+        const querySnapshot = await getDocs(collection(db, "students"));
+        allStudents = [];
+        querySnapshot.forEach((doc) => {
+            allStudents.push({ id: doc.id, ...doc.data() });
+        });
+        renderTable(allStudents);
+    }
+
+    function renderTable(data) {
+        const tbody = document.getElementById("studentTbody");
+        tbody.innerHTML = "";
+
+        if (data.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="4" class="no-results">Hakuna mwanafunzi aliyepatikana.</td></tr>';
+            return;
+        }
+
+        data.forEach((s, index) => {
+            tbody.innerHTML += `
+                <tr>
+                    <td>${index + 1}</td>
+                    <td>${s.name}</td>
+                    <td>${s.cls}</td>
+                    <td>
+                        <a href="view-report.html?id=${s.id}" class="action-btn btn-view">RIPOTI</a>
+                        <a href="edit-student.html?id=${s.id}" class="action-btn btn-edit">HARIRI</a>
+                    </td>
+                </tr>
+            `;
+        });
+    }
+
+    // Live Search Logic
+    document.getElementById("searchInput").addEventListener("input", filterData);
+    document.getElementById("filterClass").addEventListener("change", filterData);
+
+    function filterData() {
+        const searchTerm = document.getElementById("searchInput").value.toLowerCase();
+        const selectedClass = document.getElementById("filterClass").value;
+
+        const filtered = allStudents.filter(s => {
+            const matchesName = s.name.toLowerCase().includes(searchTerm);
+            const matchesClass = selectedClass === "" || s.cls === selectedClass;
+            return matchesName && matchesClass;
+        });
+
+        renderTable(filtered);
+    }
+
+    loadStudents();
+</script>
+</body>
+</html>
