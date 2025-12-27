@@ -2,53 +2,67 @@
 <html lang="sw">
 <head>
     <meta charset="UTF-8">
-    <title>Usimamizi wa Walimu | Olmoti</title>
+    <title>Orodha ya Watumiaji | Olmoti</title>
     <style>
         :root { --nav-blue: #1a237e; --gold: #c5a059; --bg: #f4f7f6; --sidebar-width: 250px; }
         body { margin: 0; font-family: 'Segoe UI', sans-serif; display: flex; background: var(--bg); }
+        
+        /* Sidebar Styles */
         .sidebar { width: var(--sidebar-width); background: var(--nav-blue); color: white; height: 100vh; position: fixed; }
+        .sidebar-header { padding: 25px; text-align: center; border-bottom: 1px solid var(--gold); }
+        .nav-links { list-style: none; padding: 0; }
+        .nav-links li a { display: block; padding: 15px 20px; color: #ccc; text-decoration: none; border-bottom: 1px solid rgba(255,255,255,0.1); }
+        .nav-links li a:hover, .nav-links li a.active { background: #283593; color: white; border-left: 5px solid var(--gold); }
+
         .main-content { margin-left: var(--sidebar-width); padding: 40px; flex-grow: 1; }
         
-        table { width: 100%; border-collapse: collapse; background: white; border-radius: 8px; overflow: hidden; }
+        .user-card { background: white; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); overflow: hidden; }
+        table { width: 100%; border-collapse: collapse; }
         th, td { padding: 15px; text-align: left; border-bottom: 1px solid #eee; }
-        th { background: #f8f9fa; color: var(--nav-blue); font-size: 13px; }
+        th { background: #f8f9fa; color: var(--nav-blue); font-size: 12px; text-transform: uppercase; }
 
-        .role-badge { padding: 4px 10px; border-radius: 20px; font-size: 11px; font-weight: bold; }
+        .role-badge { padding: 5px 12px; border-radius: 20px; font-size: 11px; font-weight: bold; }
         .role-admin { background: #fff3e0; color: #ef6c00; }
         .role-teacher { background: #e8f5e9; color: #2e7d32; }
-        
-        .login-time { color: #666; font-size: 12px; font-style: italic; }
-        .btn-reset { background: #f44336; color: white; border: none; padding: 8px 12px; border-radius: 4px; cursor: pointer; }
+
+        .last-seen { font-size: 12px; color: #757575; font-style: italic; }
+        .btn-reset { background: #ff5252; color: white; border: none; padding: 8px 15px; border-radius: 4px; cursor: pointer; font-size: 11px; font-weight: bold; }
+        .btn-reset:hover { background: #d32f2f; }
     </style>
 </head>
 <body>
 
     <div class="sidebar">
-        <div style="padding:25px; text-align:center; border-bottom:1px solid var(--gold);"><h3>OLMOTI SEC</h3></div>
-        <ul style="list-style:none; padding:0;">
-            <li><a href="dashboard.html" style="color:white; text-decoration:none; display:block; padding:15px;">🏠 Dashboard</a></li>
-            <li><a href="users-list.html" style="color:white; text-decoration:none; display:block; padding:15px; background:rgba(255,255,255,0.1);">👥 Walimu</a></li>
+        <div class="sidebar-header"><h3>OLMOTI SEC</h3></div>
+        <ul class="nav-links">
+            <li><a href="dashboard.html">🏠 Dashboard</a></li>
+            <li><a href="students-list.html">👥 Wanafunzi</a></li>
+            <li><a href="users-list.html" class="active">👥 Orodha ya Walimu</a></li>
         </ul>
     </div>
 
     <div class="main-content">
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
-            <h2>Orodha ya Watumiaji</h2>
-            <a href="create-user.html" style="background:var(--nav-blue); color:white; padding:10px 20px; text-decoration:none; border-radius:6px;">+ Sajili Mwalimu</a>
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:25px;">
+            <h2 style="color:var(--nav-blue); margin:0;">Usimamizi wa Walimu na Watumiaji</h2>
+            <a href="create-user.html" style="background:var(--nav-blue); color:white; padding:12px 20px; text-decoration:none; border-radius:6px; font-weight:bold;">+ SAJILI MWALIMU</a>
         </div>
 
-        <table>
-            <thead>
-                <tr>
-                    <th>Jina</th>
-                    <th>Email</th>
-                    <th>Wadhifa</th>
-                    <th>Mara ya Mwisho Kuingia</th>
-                    <th>Vitendo</th>
-                </tr>
-            </thead>
-            <tbody id="userTbody"></tbody>
-        </table>
+        <div class="user-card">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Jina la Mwalimu</th>
+                        <th>Email</th>
+                        <th>Wadhifa (Role)</th>
+                        <th>Mara ya Mwisho Kuingia</th>
+                        <th style="text-align:center;">Vitendo</th>
+                    </tr>
+                </thead>
+                <tbody id="userTbody">
+                    <tr><td colspan="5" style="text-align:center; padding:30px;">Inapakia watumiaji...</td></tr>
+                </tbody>
+            </table>
+        </div>
     </div>
 
     <script type="module">
@@ -56,37 +70,46 @@
         import { collection, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
         import { sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
-        async function loadUsers() {
-            const snap = await getDocs(collection(db, "users"));
+        async function fetchUsers() {
             const tbody = document.getElementById('userTbody');
-            tbody.innerHTML = "";
-            
-            snap.forEach(doc => {
-                const u = doc.data();
-                const lastSeen = u.lastLogin ? u.lastLogin : "Bado hajaingia";
+            try {
+                const snap = await getDocs(collection(db, "users"));
+                tbody.innerHTML = "";
                 
-                tbody.innerHTML += `
-                    <tr>
-                        <td style="font-weight:bold;">${u.name}</td>
-                        <td>${u.email}</td>
-                        <td><span class="role-badge ${u.role === 'admin' ? 'role-admin' : 'role-teacher'}">${u.role}</span></td>
-                        <td class="login-time">${lastSeen}</td>
-                        <td>
-                            <button class="btn-reset" onclick="resetPass('${u.email}')">Reset Pass</button>
-                        </td>
-                    </tr>
-                `;
-            });
+                snap.forEach(doc => {
+                    const u = doc.data();
+                    const roleClass = u.role === 'admin' ? 'role-admin' : 'role-teacher';
+                    const lastSeen = u.lastLogin || "Bado hajaingia";
+                    
+                    tbody.innerHTML += `
+                        <tr>
+                            <td style="font-weight:bold;">${u.name}</td>
+                            <td>${u.email}</td>
+                            <td><span class="role-badge ${roleClass}">${u.role.toUpperCase()}</span></td>
+                            <td class="last-seen">${lastSeen}</td>
+                            <td style="text-align:center;">
+                                <button class="btn-reset" onclick="resetUserPassword('${u.email}')">RESET PASSWORD</button>
+                            </td>
+                        </tr>
+                    `;
+                });
+            } catch (err) {
+                tbody.innerHTML = "<tr><td colspan='5'>Error loading users.</td></tr>";
+            }
         }
 
-        window.resetPass = async (email) => {
-            if(confirm("Tuma link ya password kwenda " + email + "?")) {
-                await sendPasswordResetEmail(auth, email);
-                alert("Imetumwa!");
+        window.resetUserPassword = async (email) => {
+            if(confirm(`Tuma link ya kubadili neno la siri kwenda kwa ${email}?`)) {
+                try {
+                    await sendPasswordResetEmail(auth, email);
+                    alert("Link imetumwa! Mwambie mwalimu aangalie Email yake.");
+                } catch (e) {
+                    alert("Imeshindikana kutuma: " + e.message);
+                }
             }
         };
 
-        loadUsers();
+        fetchUsers();
     </script>
 </body>
 </html>
