@@ -3,9 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Usimamizi wa Wanafunzi | Olmoti Secondary</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-    
+    <title>Ongeza Mwanafunzi | Olmoti Secondary</title>
     <style>
         :root {
             --nav-blue: #1a237e;
@@ -15,9 +13,9 @@
             --sidebar-width: 260px;
         }
 
-        body { margin: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; display: flex; background: var(--bg); }
+        body { margin: 0; font-family: 'Segoe UI', sans-serif; display: flex; background: var(--bg); }
 
-        /* --- SIDEBAR STYLING --- */
+        /* --- SIDEBAR --- */
         .sidebar {
             width: var(--sidebar-width);
             background: var(--nav-blue);
@@ -26,72 +24,57 @@
             position: fixed;
             display: flex;
             flex-direction: column;
-            box-shadow: 2px 0 5px rgba(0,0,0,0.2);
         }
-
-        .sidebar-header {
-            padding: 30px 20px;
-            text-align: center;
-            background: rgba(0,0,0,0.2);
-            border-bottom: 1px solid var(--gold);
-        }
-
-        .nav-links { list-style: none; padding: 20px 0; margin: 0; flex-grow: 1; }
+        .sidebar-header { padding: 30px 20px; text-align: center; border-bottom: 1px solid var(--gold); }
+        .nav-links { list-style: none; padding: 20px 0; margin: 0; }
         .nav-links li a {
             display: block;
             padding: 15px 25px;
             color: #cfd8dc;
             text-decoration: none;
             transition: 0.3s;
-            font-size: 15px;
         }
-        .nav-links li a:hover, .nav-links li a.active {
-            background: var(--nav-hover);
-            color: white;
-            border-left: 5px solid var(--gold);
-        }
+        .nav-links li a:hover { background: var(--nav-hover); color: white; border-left: 5px solid var(--gold); }
 
-        /* --- MAIN CONTENT STYLING --- */
+        /* --- CONTENT --- */
         .main-content {
             margin-left: var(--sidebar-width);
             flex-grow: 1;
             padding: 40px;
-            width: calc(100% - var(--sidebar-width));
         }
 
-        .header-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; }
-        
-        .controls { 
-            background: white; padding: 20px; border-radius: 8px; 
-            display: flex; gap: 15px; margin-bottom: 25px; 
-            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
-            align-items: center;
+        .form-card {
+            background: white;
+            max-width: 600px;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
         }
 
-        input[type="text"], select {
-            padding: 12px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px; outline: none;
+        .form-group { margin-bottom: 20px; }
+        label { display: block; margin-bottom: 8px; font-weight: bold; color: var(--nav-blue); }
+        input, select {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            box-sizing: border-box;
+            font-size: 16px;
         }
-        #searchInput { flex-grow: 1; }
 
-        /* --- TABLE STYLING --- */
-        .table-container { background: white; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); overflow: hidden; }
-        table { width: 100%; border-collapse: collapse; }
-        th, td { padding: 15px; text-align: left; border-bottom: 1px solid #eee; }
-        th { background: #f8f9fa; color: var(--nav-blue); font-weight: 600; text-transform: uppercase; font-size: 12px; }
-        
-        .action-btn { 
-            padding: 8px 16px; border-radius: 4px; text-decoration: none; 
-            font-size: 11px; font-weight: bold; color: white; display: inline-block;
+        .btn-save {
+            background: var(--nav-blue);
+            color: white;
+            padding: 15px 30px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 16px;
+            width: 100%;
         }
-        .btn-view { background: var(--nav-blue); }
-        .btn-edit { background: var(--gold); }
-        .btn-add { background: #2e7d32; padding: 12px 20px; }
-        .btn-excel { background: #1b5e20; border: none; cursor: pointer; color: white; font-weight: bold; padding: 12px 20px; border-radius: 6px; }
-
-        @media print {
-            .sidebar, .controls, .btn-add { display: none; }
-            .main-content { margin-left: 0; width: 100%; padding: 0; }
-        }
+        .btn-save:hover { background: var(--nav-hover); }
+        .message { margin-top: 15px; padding: 10px; border-radius: 4px; display: none; text-align: center; }
     </style>
 </head>
 <body>
@@ -99,126 +82,85 @@
     <div class="sidebar">
         <div class="sidebar-header">
             <h2 style="margin:0;">OLMOTI SEC</h2>
-            <small style="color:var(--gold)">SCHOOL MANAGEMENT SYSTEM</small>
+            <small style="color:var(--gold)">ONGEZA MWANAFUNZI</small>
         </div>
         <ul class="nav-links">
             <li><a href="dashboard.html">🏠 Dashboard</a></li>
-            <li><a href="students-list.html" class="active">👥 Wanafunzi (List)</a></li>
+            <li><a href="students-list.html">👥 Wanafunzi (List)</a></li>
             <li><a href="mark-entry.html">📝 Ingiza Alama</a></li>
             <li><a href="broadsheet.html">📊 Broadsheet</a></li>
-            <li><a href="class-dashboard.html">📈 Uchambuzi (Stats)</a></li>
         </ul>
-        <div style="padding: 20px; border-top: 1px solid rgba(255,255,255,0.1);">
-            <a href="index.html" style="color: #ef9a9a; text-decoration: none; font-size: 14px; font-weight: bold;">🚪 Toka (Log Out)</a>
-        </div>
     </div>
 
     <div class="main-content">
-        <div class="header-row">
-            <h1 style="color: var(--nav-blue); margin: 0;">Orodha ya Wanafunzi</h1>
-            <a href="add-student.html" class="action-btn btn-add">+ ONGEZA MWANAFUNZI</a>
-        </div>
+        <div class="form-card">
+            <h2 style="margin-top:0; color:var(--nav-blue);">Sajili Mwanafunzi Mpya</h2>
+            <hr style="border: 0; border-top: 1px solid #eee; margin-bottom: 25px;">
+            
+            <form id="addStudentForm">
+                <div class="form-group">
+                    <label>Jina Kamili (Full Name)</label>
+                    <input type="text" id="stdName" placeholder="Mfano: John J. Doe" required>
+                </div>
 
-        <div class="controls">
-            <input type="text" id="searchInput" placeholder="Tafuta mwanafunzi kwa jina...">
-            <select id="filterClass">
-                <option value="">Darasa Zote</option>
-                <option>Form 1</option><option>Form 2</option>
-                <option>Form 3</option><option>Form 4</option>
-            </select>
-            <button id="exportBtn" class="btn-excel">📥 EXCEL</button>
-        </div>
+                <div class="form-group">
+                    <label>Chagua Darasa (Select Class)</label>
+                    <select id="stdClass" required>
+                        <option value="">-- Chagua --</option>
+                        <option>Form 1</option>
+                        <option>Form 2</option>
+                        <option>Form 3</option>
+                        <option>Form 4</option>
+                    </select>
+                </div>
 
-        <div class="table-container">
-            <table id="studentTable">
-                <thead>
-                    <tr>
-                        <th style="width: 50px;">S/N</th>
-                        <th>JINA KAMILI</th>
-                        <th>DARASA</th>
-                        <th style="text-align: center;">VITENDO (ACTIONS)</th>
-                    </tr>
-                </thead>
-                <tbody id="studentTbody">
-                    <tr><td colspan="4" style="text-align:center;">Inapakia data...</td></tr>
-                </tbody>
-            </table>
+                <button type="submit" class="btn-save" id="saveBtn">HIFADHI MWANAFUNZI</button>
+            </form>
+            <div id="msg" class="message"></div>
         </div>
     </div>
 
-<script type="module">
-    import { db } from "./firebase.js";
-    import { collection, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+    <script type="module">
+        import { db } from "./firebase.js";
+        import { collection, addDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-    let allStudents = [];
+        const form = document.getElementById('addStudentForm');
+        const msg = document.getElementById('msg');
+        const saveBtn = document.getElementById('saveBtn');
 
-    // 1. Load Data from Firebase
-    async function fetchStudents() {
-        try {
-            const querySnapshot = await getDocs(collection(db, "students"));
-            allStudents = [];
-            querySnapshot.forEach((doc) => {
-                allStudents.push({ id: doc.id, ...doc.data() });
-            });
-            renderTable(allStudents);
-        } catch (error) {
-            console.error("Error fetching students:", error);
-            document.getElementById("studentTbody").innerHTML = '<tr><td colspan="4" style="color:red; text-align:center;">Error loading data. Check connection.</td></tr>';
-        }
-    }
+        form.onsubmit = async (e) => {
+            e.preventDefault();
+            
+            const name = document.getElementById('stdName').value;
+            const cls = document.getElementById('stdClass').value;
 
-    // 2. Render Table Function
-    function renderTable(data) {
-        const tbody = document.getElementById("studentTbody");
-        tbody.innerHTML = "";
+            saveBtn.disabled = true;
+            saveBtn.innerText = "Inahifadhi...";
 
-        if (data.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; padding:30px;">Hakuna mwanafunzi aliyepatikana.</td></tr>';
-            return;
-        }
+            try {
+                await addDoc(collection(db, "students"), {
+                    name: name,
+                    cls: cls,
+                    createdAt: new Date()
+                });
 
-        data.forEach((s, index) => {
-            tbody.innerHTML += `
-                <tr>
-                    <td>${index + 1}</td>
-                    <td style="font-weight:bold; color:#333;">${s.name}</td>
-                    <td><span style="background:#e3f2fd; padding:4px 10px; border-radius:15px; font-size:12px; color:#1565c0;">${s.cls}</span></td>
-                    <td style="text-align: center;">
-                        <a href="view-report.html?id=${s.id}" class="action-btn btn-view">RIPOTI</a>
-                        <a href="edit-student.html?id=${s.id}" class="action-btn btn-edit">HARIRI</a>
-                    </td>
-                </tr>
-            `;
-        });
-    }
-
-    // 3. Search and Filter Logic
-    function filterData() {
-        const searchTerm = document.getElementById("searchInput").value.toLowerCase();
-        const selectedClass = document.getElementById("filterClass").value;
-
-        const filtered = allStudents.filter(s => {
-            const matchesName = s.name.toLowerCase().includes(searchTerm);
-            const matchesClass = selectedClass === "" || s.cls === selectedClass;
-            return matchesName && matchesClass;
-        });
-
-        renderTable(filtered);
-    }
-
-    document.getElementById("searchInput").addEventListener("input", filterData);
-    document.getElementById("filterClass").addEventListener("change", filterData);
-
-    // 4. Export to Excel Logic
-    document.getElementById("exportBtn").onclick = () => {
-        const table = document.getElementById("studentTable");
-        const wb = XLSX.utils.table_to_book(table, { sheet: "Wanafunzi" });
-        const date = new Date().toISOString().split('T')[0];
-        XLSX.writeFile(wb, `Olmoti_Students_${date}.xlsx`);
-    };
-
-    // Run on Load
-    fetchStudents();
-</script>
+                msg.style.display = "block";
+                msg.style.background = "#e8f5e9";
+                msg.style.color = "#2e7d32";
+                msg.innerText = "Mwanafunzi amehifadhiwa kikamilifu!";
+                
+                form.reset();
+            } catch (error) {
+                console.error(error);
+                msg.style.display = "block";
+                msg.style.background = "#ffebee";
+                msg.style.color = "#c62828";
+                msg.innerText = "Hitilafu imetokea. Jaribu tena.";
+            } finally {
+                saveBtn.disabled = false;
+                saveBtn.innerText = "HIFADHI MWANAFUNZI";
+            }
+        };
+    </script>
 </body>
 </html>
