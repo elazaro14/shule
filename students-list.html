@@ -2,165 +2,100 @@
 <html lang="sw">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ongeza Mwanafunzi | Olmoti Secondary</title>
+    <title>Wanafunzi | Olmoti Secondary</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <style>
-        :root {
-            --nav-blue: #1a237e;
-            --nav-hover: #283593;
-            --gold: #c5a059;
-            --bg: #f4f7f6;
-            --sidebar-width: 260px;
-        }
-
+        :root { --nav-blue: #1a237e; --gold: #c5a059; --bg: #f4f7f6; --sidebar-width: 250px; }
         body { margin: 0; font-family: 'Segoe UI', sans-serif; display: flex; background: var(--bg); }
+        
+        /* Sidebar */
+        .sidebar { width: var(--sidebar-width); background: var(--nav-blue); color: white; height: 100vh; position: fixed; }
+        .sidebar-header { padding: 20px; text-align: center; border-bottom: 1px solid var(--gold); }
+        .nav-links { list-style: none; padding: 0; }
+        .nav-links li a { display: block; padding: 15px 20px; color: #ccc; text-decoration: none; border-bottom: 1px solid rgba(255,255,255,0.1); }
+        .nav-links li a:hover, .nav-links li a.active { background: #283593; color: white; border-left: 5px solid var(--gold); }
 
-        /* --- SIDEBAR --- */
-        .sidebar {
-            width: var(--sidebar-width);
-            background: var(--nav-blue);
-            color: white;
-            height: 100vh;
-            position: fixed;
-            display: flex;
-            flex-direction: column;
-        }
-        .sidebar-header { padding: 30px 20px; text-align: center; border-bottom: 1px solid var(--gold); }
-        .nav-links { list-style: none; padding: 20px 0; margin: 0; }
-        .nav-links li a {
-            display: block;
-            padding: 15px 25px;
-            color: #cfd8dc;
-            text-decoration: none;
-            transition: 0.3s;
-        }
-        .nav-links li a:hover { background: var(--nav-hover); color: white; border-left: 5px solid var(--gold); }
-
-        /* --- CONTENT --- */
-        .main-content {
-            margin-left: var(--sidebar-width);
-            flex-grow: 1;
-            padding: 40px;
-        }
-
-        .form-card {
-            background: white;
-            max-width: 600px;
-            padding: 30px;
-            border-radius: 10px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-        }
-
-        .form-group { margin-bottom: 20px; }
-        label { display: block; margin-bottom: 8px; font-weight: bold; color: var(--nav-blue); }
-        input, select {
-            width: 100%;
-            padding: 12px;
-            border: 1px solid #ccc;
-            border-radius: 6px;
-            box-sizing: border-box;
-            font-size: 16px;
-        }
-
-        .btn-save {
-            background: var(--nav-blue);
-            color: white;
-            padding: 15px 30px;
-            border: none;
-            border-radius: 6px;
-            cursor: pointer;
-            font-weight: bold;
-            font-size: 16px;
-            width: 100%;
-        }
-        .btn-save:hover { background: var(--nav-hover); }
-        .message { margin-top: 15px; padding: 10px; border-radius: 4px; display: none; text-align: center; }
+        /* Content */
+        .main-content { margin-left: var(--sidebar-width); padding: 30px; flex-grow: 1; width: calc(100% - var(--sidebar-width)); }
+        .controls { background: white; padding: 20px; border-radius: 8px; display: flex; gap: 10px; margin-bottom: 20px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        
+        table { width: 100%; border-collapse: collapse; background: white; border-radius: 8px; overflow: hidden; }
+        th, td { padding: 12px; text-align: left; border-bottom: 1px solid #ddd; }
+        th { background: #f8f9fa; color: var(--nav-blue); }
+        .btn { padding: 6px 12px; border-radius: 4px; text-decoration: none; font-size: 11px; font-weight: bold; color: white; }
     </style>
 </head>
 <body>
-
     <div class="sidebar">
-        <div class="sidebar-header">
-            <h2 style="margin:0;">OLMOTI SEC</h2>
-            <small style="color:var(--gold)">ONGEZA MWANAFUNZI</small>
-        </div>
+        <div class="sidebar-header"><h3>OLMOTI SEC</h3></div>
         <ul class="nav-links">
             <li><a href="dashboard.html">🏠 Dashboard</a></li>
-            <li><a href="students-list.html">👥 Wanafunzi (List)</a></li>
+            <li><a href="students-list.html" class="active">👥 Wanafunzi</a></li>
             <li><a href="mark-entry.html">📝 Ingiza Alama</a></li>
+            <li><a href="bulk-upload.html">📤 Bulk Upload</a></li>
             <li><a href="broadsheet.html">📊 Broadsheet</a></li>
         </ul>
     </div>
 
     <div class="main-content">
-        <div class="form-card">
-            <h2 style="margin-top:0; color:var(--nav-blue);">Sajili Mwanafunzi Mpya</h2>
-            <hr style="border: 0; border-top: 1px solid #eee; margin-bottom: 25px;">
-            
-            <form id="addStudentForm">
-                <div class="form-group">
-                    <label>Jina Kamili (Full Name)</label>
-                    <input type="text" id="stdName" placeholder="Mfano: John J. Doe" required>
-                </div>
-
-                <div class="form-group">
-                    <label>Chagua Darasa (Select Class)</label>
-                    <select id="stdClass" required>
-                        <option value="">-- Chagua --</option>
-                        <option>Form 1</option>
-                        <option>Form 2</option>
-                        <option>Form 3</option>
-                        <option>Form 4</option>
-                    </select>
-                </div>
-
-                <button type="submit" class="btn-save" id="saveBtn">HIFADHI MWANAFUNZI</button>
-            </form>
-            <div id="msg" class="message"></div>
+        <h2>Orodha ya Wanafunzi</h2>
+        <div class="controls">
+            <input type="text" id="searchInput" placeholder="Tafuta jina..." style="flex-grow:1; padding:10px;">
+            <select id="filterClass" style="padding:10px;">
+                <option value="">Darasa Zote</option>
+                <option>Form 1</option><option>Form 2</option>
+                <option>Form 3</option><option>Form 4</option>
+            </select>
+            <button id="exportBtn" style="background:#2e7d32; color:white; border:none; padding:10px 20px; cursor:pointer; border-radius:4px;">EXCEL</button>
+            <a href="add-student.html" style="background:var(--nav-blue); color:white; padding:10px; text-decoration:none; border-radius:4px;">+ Mpya</a>
         </div>
+
+        <table id="sTable">
+            <thead><tr><th>S/N</th><th>Jina</th><th>Darasa</th><th>Vitendo</th></tr></thead>
+            <tbody id="sTbody"></tbody>
+        </table>
     </div>
 
     <script type="module">
         import { db } from "./firebase.js";
-        import { collection, addDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { collection, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-        const form = document.getElementById('addStudentForm');
-        const msg = document.getElementById('msg');
-        const saveBtn = document.getElementById('saveBtn');
+        let students = [];
+        async function load() {
+            const snap = await getDocs(collection(db, "students"));
+            students = snap.docs.map(d => ({id: d.id, ...d.data()}));
+            render();
+        }
 
-        form.onsubmit = async (e) => {
-            e.preventDefault();
+        function render() {
+            const sName = document.getElementById('searchInput').value.toLowerCase();
+            const sCls = document.getElementById('filterClass').value;
+            const tbody = document.getElementById('sTbody');
+            tbody.innerHTML = "";
             
-            const name = document.getElementById('stdName').value;
-            const cls = document.getElementById('stdClass').value;
+            const filtered = students.filter(s => 
+                s.name.toLowerCase().includes(sName) && (sCls === "" || s.cls === sCls)
+            );
 
-            saveBtn.disabled = true;
-            saveBtn.innerText = "Inahifadhi...";
+            filtered.forEach((s, i) => {
+                tbody.innerHTML += `<tr>
+                    <td>${i+1}</td>
+                    <td>${s.name}</td>
+                    <td>${s.cls}</td>
+                    <td>
+                        <a href="view-report.html?id=${s.id}" class="btn" style="background:green;">RIPOTI</a>
+                        <a href="edit-student.html?id=${s.id}" class="btn" style="background:orange;">BADILI</a>
+                    </td>
+                </tr>`;
+            });
+        }
 
-            try {
-                await addDoc(collection(db, "students"), {
-                    name: name,
-                    cls: cls,
-                    createdAt: new Date()
-                });
-
-                msg.style.display = "block";
-                msg.style.background = "#e8f5e9";
-                msg.style.color = "#2e7d32";
-                msg.innerText = "Mwanafunzi amehifadhiwa kikamilifu!";
-                
-                form.reset();
-            } catch (error) {
-                console.error(error);
-                msg.style.display = "block";
-                msg.style.background = "#ffebee";
-                msg.style.color = "#c62828";
-                msg.innerText = "Hitilafu imetokea. Jaribu tena.";
-            } finally {
-                saveBtn.disabled = false;
-                saveBtn.innerText = "HIFADHI MWANAFUNZI";
-            }
+        document.getElementById('searchInput').oninput = render;
+        document.getElementById('filterClass').onchange = render;
+        document.getElementById('exportBtn').onclick = () => {
+            XLSX.writeFile(XLSX.utils.table_to_book(document.getElementById('sTable')), "Students_Olmoti.xlsx");
         };
+        load();
     </script>
 </body>
 </html>
