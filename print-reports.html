@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="sw">
+<head>
+    <meta charset="UTF-8">
+    <title>Bulk Printing | Olmoti Secondary</title>
+    <style>
+        body { font-family: 'Times New Roman', serif; margin: 0; background: #555; }
+        
+        .page {
+            background: white;
+            width: 210mm;
+            min-height: 297mm;
+            padding: 20mm;
+            margin: 10mm auto;
+            box-sizing: border-box;
+            page-break-after: always; /* KEY FOR BULK PRINTING */
+            position: relative;
+        }
+
+        .header { text-align: center; border-bottom: 2px solid #000; padding-bottom: 10px; }
+        .report-title { margin: 20px 0; text-decoration: underline; font-size: 18px; }
+        
+        .info-table { width: 100%; margin-bottom: 20px; }
+        .marks-table { width: 100%; border-collapse: collapse; }
+        .marks-table th, .marks-table td { border: 1px solid black; padding: 8px; text-align: center; }
+        
+        .footer { margin-top: 50px; display: flex; justify-content: space-between; }
+        .signature { border-top: 1px solid #000; width: 200px; text-align: center; margin-top: 40px; }
+
+        @media print {
+            body { background: none; margin: 0; }
+            .page { margin: 0; border: none; box-shadow: none; }
+            .no-print { display: none; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="no-print" style="padding: 20px; background: #333; color: white; text-align: center;">
+        <h2 id="status">Inatayarisha Ripoti...</h2>
+        <button onclick="window.print()" style="padding:10px 30px; cursor:pointer;">BONYEZA HAPA KU-PRINT</button>
+    </div>
+
+    <div id="container"></div>
+
+<script type="module">
+    import { db } from "./firebase.js";
+    import { collection, getDocs, query, where } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+    const params = new URLSearchParams(window.location.search);
+    const cls = params.get('cls');
+
+    async function start() {
+        const studSnap = await getDocs(query(collection(db, "students"), where("cls", "==", cls)));
+        const resSnap = await getDocs(collection(db, "results"));
+        const allResults = resSnap.docs.map(d => d.data());
+
+        const container = document.getElementById('container');
+        
+        studSnap.forEach(sDoc => {
+            const s = sDoc.data();
+            const myRes = allResults.filter(r => r.studentId === sDoc.id);
+
+            let rows = myRes.map(r => `
+                <tr>
+                    <td style="text-align:left;">${r.subjectCode}</td>
+                    <td>${r.test1 || '-'}</td>
+                    <td>${r.midTerm || '-'}</td>
+                    <td>${r.test2 || '-'}</td>
+                    <td>${r.exam || '-'}</td>
+                    <td>${r.average}</td>
+                    <td><b>${r.grade}</b></td>
+                </tr>
+            `).join('');
+
+            container.innerHTML += `
+                <div class="page">
+                    <div class="header">
+                        <h1>OLMOTI SECONDARY SCHOOL</h1>
+                        <p>P.O. BOX 123, ARUSHA | Simu: 0700 000 000</p>
+                    </div>
+                    <center><h3 class="report-title">RIPOTI YA MAENDELEO YA MWANAFUNZI</h3></center>
+                    
+                    <table class="info-table">
+                        <tr><td><b>JINA:</b> ${s.name}</td><td><b>DARASA:</b> ${s.cls}</td></tr>
+                        <tr><td><b>MUHULA:</b> Term 1</td><td><b>MWAKA:</b> 2025</td></tr>
+                    </table>
+
+                    <table class="marks-table">
+                        <thead>
+                            <tr>
+                                <th>SOMO</th><th>T1</th><th>MID</th><th>T2</th><th>EX</th><th>AVG</th><th>GRD</th>
+                            </tr>
+                        </thead>
+                        <tbody>${rows || '<tr><td colspan="7">Hakuna matokeo yaliyopatikana</td></tr>'}</tbody>
+                    </table>
+
+                    <div class="footer">
+                        <div class="signature">Sahihi ya Mwalimu</div>
+                        <div class="signature">Sahihi ya Mzazi</div>
+                    </div>
+                </div>
+            `;
+        });
+        document.getElementById('status').innerText = `Ripoti (${studSnap.size}) za ${cls} zipo tayari!`;
+    }
+    start();
+</script>
+</body>
+</html>
