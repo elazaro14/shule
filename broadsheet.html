@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="sw">
+<head>
+    <meta charset="UTF-8">
+    <title>Broadsheet | Olmoti Secondary</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 10px; font-size: 11px; }
+        .no-print { background: #f4f4f4; padding: 15px; text-align: center; margin-bottom: 20px; border-radius: 8px; }
+        
+        table { width: 100%; border-collapse: collapse; background: white; }
+        th, td { border: 1px solid #333; padding: 4px; text-align: center; }
+        th { background: #1a237e; color: white; height: 100px; white-space: nowrap; }
+        .vertical-text { writing-mode: vertical-rl; transform: rotate(180deg); }
+        
+        .name-col { text-align: left; padding-left: 10px; white-space: nowrap; font-weight: bold; }
+        .summary-col { background: #f9f9f9; font-weight: bold; }
+        
+        h2 { text-align: center; text-transform: uppercase; margin-bottom: 5px; }
+        
+        @media print {
+            .no-print { display: none; }
+            @page { size: landscape; margin: 5mm; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="no-print">
+    <a href="dashboard.html" style="padding:10px; background:#666; color:#fff; text-decoration:none;">⬅ Dashboard</a>
+    <select id="classSel" style="padding:8px;">
+        <option value="">-- Chagua Darasa --</option>
+        <option>Form 1</option><option>Form 2</option>
+        <option>Form 3</option><option>Form 4</option>
+    </select>
+    <button id="genBtn" style="padding:8px 20px; background:green; color:white; border:none; cursor:pointer;">Tengeneza Broadsheet</button>
+    <button onclick="window.print()" style="padding:8px 20px; background:blue; color:white; border:none; cursor:pointer;">Print / Save PDF</button>
+</div>
+
+<div id="sheetContent">
+    <h2 id="sheetTitle">Master Broadsheet</h2>
+    <table id="bTable">
+        <thead id="bHead"></thead>
+        <tbody id="bBody"></tbody>
+    </table>
+</div>
+
+<script type="module">
+    import { db } from "./firebase.js";
+    import { collection, getDocs, query, where } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+    import { subjectLists } from "./data.js";
+
+    genBtn.onclick = async () => {
+        const cls = classSel.value;
+        if(!cls) return alert("Chagua darasa!");
+        
+        sheetTitle.innerText = `BROADSHEET YA MATOKEO - ${cls.toUpperCase()} (2025)`;
+        const subjects = subjectLists[cls] || [];
+        
+        // 1. Build Header
+        let headHTML = `<tr><th rowspan="2">S/N</th><th rowspan="2">Jina la Mwanafunzi</th>`;
+        subjects.forEach(s => headHTML += `<th colspan="2">${s.name}</th>`);
+        headHTML += `<th rowspan="2" class="vertical-text">WASTANI</th><th rowspan="2" class="vertical-text">POINTS</th><th rowspan="2" class="vertical-text">DIV</th><th rowspan="2" class="vertical-text">RANK</th></tr><tr>`;
+        subjects.forEach(s => headHTML += `<th>AVG</th><th>GRD</th>`);
+        headHTML += `</tr>`;
+        bHead.innerHTML = headHTML;
+
+        // 2. Fetch Data
+        const sSnap = await getDocs(query(collection(db, "students"), where("cls", "==", cls)));
+        const rSnap = await getDocs(collection(db, "results"));
+        
+        const resultsMap = {};
+        rSnap.forEach(d => {
+            const data = d.data();
+            if(!resultsMap[data.studentId]) resultsMap[data.studentId] = {};
+            resultsMap[data.studentId][data.subjectCode] = data;
+        });
+
+        // 3. Process Rows
+        let studentsData = [];
+        sSnap.forEach(sDoc => {
+            const sid = sDoc.id;
+            const sName = sDoc.data().name;
+            let totalAvg = 0, countS = 0, pts = [];
+            let rowRes = {};
+
+            subjects.forEach(sub => {
+                const res = (resultsMap[sid] && resultsMap[sid][sub.code]) ? resultsMap[sid][sub.code] : null;
+                if(res) {
+                    rowRes[sub.code] = { avg: res.average, grd: res.grade };
+                    totalAvg += parseFloat(res.average);
+                    countS++;
+                    pts.push({"A":1,"B":2,"C":3,"D":4,"F":5}[res.grade]);
+                } else {
+                    rowRes[sub.code] = { avg: "-", grd: "-" };
+                }
+            });
+
+            // Summary Logic
+            let finalAvg = countS > 0 ? (totalAvg / countS).toFixed(1) : 0;
+            let finalPts = "INC", finalDiv = "-";
+            let sortPts = 999;
+
+            if(countS >= 7) {
+                pts.sort((a,b)=>a-b);
+                sortPts = pts.slice(0, 7).reduce((a,b)=>a+b, 0);
+                finalPts = sortPts;
+                if(sortPts <= 17) finalDiv = "I";
+                else if(sortPts <= 21) finalDiv = "II";
+                else if(sortPts <= 25) finalDiv = "III";
+                else finalDiv = "IV";
+            }
+
+            studentsData.push({ id: sid, name: sName, scores: rowRes, avg: finalAvg, pts: finalPts, div: finalDiv, sortPts: sortPts });
+        });
+
+        // 4. Rank and Render
+        studentsData.sort((a,b) => a.sortPts - b.sortPts || b.avg - a.avg);
+        
+        bBody.innerHTML = "";
+        studentsData.forEach((s, idx) => {
+            let row = `<tr><td>${idx+1}</td><td class="name-col">${s.name}</td>`;
+            subjects.forEach(sub => {
+                row += `<td>${s.scores[sub.code].avg}</td><td>${s.scores[sub.code].grd}</td>`;
+            });
+            row += `<td class="summary-col">${s.avg}</td><td class="summary-col">${s.pts}</td><td class="summary-col">${s.div}</td><td>${idx+1}</td></tr>`;
+            bBody.innerHTML += row;
+        });
+    };
+</script>
+</body>
+</html>
