@@ -24,7 +24,6 @@
         .footer-sections { margin-top: 15px; display: grid; grid-template-columns: 1fr 1fr; gap: 30px; }
         .signature-line { border-bottom: 1px dotted black; margin-top: 15px; height: 15px; }
         
-        /* Sehemu ya Mzazi Iliyopanuliwa */
         .parent-section { margin-top: 25px; border: 1px solid #000; padding: 15px; }
         .comment-box { height: 100px; border-bottom: 1px dotted #000; margin-bottom: 10px; }
 
@@ -78,11 +77,11 @@
             <table class="conduct-table">
                 <thead><tr><th colspan="2">TATHMINI YA TABIA (CONDUCT)</th></tr></thead>
                 <tbody>
-                    <tr><td>Utii (Obedience)</td><td style="width:60px;"></td></tr>
-                    <tr><td>Usafi (Neatness)</td><td></td></tr>
-                    <tr><td>Bidii (Diligent)</td><td></td></tr>
-                    <tr><td>Ushirikiano (Cooperation)</td><td></td></tr>
-                    <tr><td>Uongozi (Leadership)</td><td></td></tr>
+                    <tr><td>Utii (Obedience)</td><td style="width:60px;">B</td></tr>
+                    <tr><td>Usafi (Neatness)</td><td>B</td></tr>
+                    <tr><td>Bidii (Diligent)</td><td>B</td></tr>
+                    <tr><td>Ushirikiano (Cooperation)</td><td>B</td></tr>
+                    <tr><td>Uongozi (Leadership)</td><td>B</td></tr>
                 </tbody>
             </table>
         </div>
@@ -103,7 +102,7 @@
     </div>
 
     <div class="dates-section">
-        Shule imefungwa tarehe ........................................... itafunguliwa tarehe ...........................................
+        Shule imefungwa tarehe 05/12/2025 itafunguliwa tarehe 13/01/2026
     </div>
 
     <div class="footer-sections">
@@ -145,71 +144,92 @@
             const currentClass = student.cls;
             document.getElementById("studentClass").innerText = currentClass;
 
-            // 2. Tafuta Matokeo ya Darasa zima kwa ajili ya Nafasi (Ranking)
+            // 2. Tafuta Matokeo kwa ajili ya Nafasi na Points
             const allResultsSnap = await getDocs(collection(db, "results"));
-            const classAverages = [];
+            const allStudentsSnap = await getDocs(query(collection(db, "students"), where("cls", "==", currentClass)));
             
-            // Hapa tunatengeneza ramani ya wastani wa kila mwanafunzi darasani
-            const studentMap = {}; 
-            allResultsSnap.forEach(d => {
-                const data = d.data();
-                if(!studentMap[data.studentId]) studentMap[data.studentId] = { sum: 0, count: 0 };
-                studentMap[data.studentId].sum += data.average;
-                studentMap[data.studentId].count++;
-            });
+            document.getElementById("totalStuds").innerText = allStudentsSnap.size;
 
-            // Tafuta wanafunzi wa darasa hili tu
-            const allStudsSnap = await getDocs(query(collection(db, "students"), where("cls", "==", currentClass)));
-            document.getElementById("totalStuds").innerText = allStudsSnap.size;
+            let rankingData = [];
 
-            allStudsSnap.forEach(s => {
-                const stats = studentMap[s.id];
-                if(stats) {
-                    classAverages.push({ id: s.id, avg: stats.sum / stats.count });
+            allStudentsSnap.forEach(sDoc => {
+                let sSum = 0, sCount = 0, sPointsArr = [];
+                
+                allResultsSnap.forEach(rDoc => {
+                    const r = rDoc.data();
+                    if(r.studentId === sDoc.id) {
+                        const avg = parseFloat(r.average) || 0;
+                        sSum += avg;
+                        sCount++;
+                        
+                        // Grade to point mapping for ranking
+                        const pt = {"A":1,"B":2,"C":3,"D":4,"F":5}[r.grade] || 5;
+                        sPointsArr.push(pt);
+                    }
+                });
+
+                if(sCount > 0) {
+                    sPointsArr.sort((a,b) => a-b);
+                    const best7 = sPointsArr.slice(0, 7).reduce((a,b) => a+b, 0);
+                    
+                    // Assign Division for sorting
+                    let divWeight = 4; // Default IV
+                    if(best7 <= 17) divWeight = 1;
+                    else if(best7 <= 21) divWeight = 2;
+                    else if(best7 <= 25) divWeight = 3;
+
+                    rankingData.push({
+                        id: sDoc.id,
+                        avg: sSum / sCount,
+                        div: divWeight,
+                        points: best7
+                    });
                 }
             });
 
-            // Panga kwa wastani wa juu kwenda chini
-            classAverages.sort((a, b) => b.avg - a.avg);
-            const myRank = classAverages.findIndex(x => x.id === studentId) + 1;
+            // RANKING LOGIC: Sort by Division (Weight 1 is best) then by Average (Higher is better)
+            rankingData.sort((a, b) => a.div - b.div || b.avg - a.avg);
+            const myRank = rankingData.findIndex(x => x.id === studentId) + 1;
             document.getElementById("rank").innerText = myRank > 0 ? myRank : "-";
 
-            // 3. Jaza Jedwali la Matokeo ya Mwanafunzi Huyu
+            // 3. Jaza Jedwali la Mwanafunzi Huyu
             const rSnap = await getDocs(query(collection(db, "results"), where("studentId", "==", studentId)));
-            const results = {};
-            rSnap.forEach(d => results[d.data().subjectCode] = d.data());
+            const resultsMap = {};
+            rSnap.forEach(d => resultsMap[d.data().subjectCode] = d.data());
 
             const subjects = subjectLists[currentClass] || [];
             const tbody = document.getElementById("reportTbody");
             let sumWastani = 0, countSomo = 0, pointsArr = [];
 
             subjects.forEach(sub => {
-                const res = results[sub.code] || {};
-                let jSum = 0, jCount = 0;
-                if(res.test1) { jSum += res.test1; jCount++; }
-                if(res.midTerm) { jSum += res.midTerm; jCount++; }
-                if(res.test2) { jSum += res.test2; jCount++; }
-                
-                const jAvg = jCount > 0 ? (jSum / jCount) : 0;
-                const mtihani = res.exam || 0;
-                const jumla = jAvg + mtihani;
-                const wastani = (jumla / 2).toFixed(1);
+                const res = resultsMap[sub.code];
+                if(res) {
+                    const wastani = parseFloat(res.average) || 0;
+                    const daraja = res.grade || "F";
+                    let maoni = "FELI";
 
-                let daraja = "F", maoni = "FELI";
-                const w = parseFloat(wastani);
-                if(w >= 75) { daraja = "A"; maoni = "VIZURI SANA"; }
-                else if(w >= 65) { daraja = "B"; maoni = "VIZURI"; }
-                else if(w >= 45) { daraja = "C"; maoni = "WASTANI"; }
-                else if(w >= 30) { daraja = "D"; maoni = "INARIDHISHA"; }
-                
-                if(w > 0) {
-                    sumWastani += w;
+                    if(wastani >= 75) maoni = "VIZURI SANA";
+                    else if(wastani >= 65) maoni = "VIZURI";
+                    else if(wastani >= 45) maoni = "WASTANI";
+                    else if(wastani >= 30) maoni = "INARIDHISHA";
+                    
+                    sumWastani += wastani;
                     countSomo++;
                     pointsArr.push({"A":1,"B":2,"C":3,"D":4,"F":5}[daraja] || 5);
-                    tbody.innerHTML += `<tr><td class="subject-col">${sub.name}</td><td>${jAvg.toFixed(0)}</td><td>${mtihani}</td><td>${jumla.toFixed(0)}</td><td>${wastani}</td><td>${daraja}</td><td>${maoni}</td></tr>`;
+
+                    tbody.innerHTML += `<tr>
+                        <td class="subject-col">${sub.name}</td>
+                        <td>${res.test1 || '-'}</td>
+                        <td>${res.exam || '-'}</td>
+                        <td>${(parseFloat(res.test1||0) + parseFloat(res.exam||0)).toFixed(0)}</td>
+                        <td>${wastani}</td>
+                        <td>${daraja}</td>
+                        <td>${maoni}</td>
+                    </tr>`;
                 }
             });
 
+            // 4. Summaries (Best 7 Points & Division)
             const finalAvg = countSomo > 0 ? (sumWastani / countSomo).toFixed(1) : 0;
             document.getElementById("overallAvg").innerText = finalAvg;
 
@@ -217,14 +237,13 @@
             const pts = pointsArr.slice(0, 7).reduce((a,b)=>a+b, 0);
             document.getElementById("totalPoints").innerText = pts;
 
-            let divText = "0";
+            let divText = "IV";
             if(pts >= 7 && pts <= 17) divText="I";
             else if(pts <= 21) divText="II";
             else if(pts <= 25) divText="III";
-            else if(pts <= 33) divText="IV";
             document.getElementById("division").innerText = divText;
 
-        } catch (e) { console.error("Error generating report:", e); }
+        } catch (e) { console.error("Error:", e); }
     }
     generateReport();
 </script>
