@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="sw">
+<head>
+    <meta charset="UTF-8">
+    <title>Class Dashboard | Olmoti</title>
+    <style>
+        :root { --blue: #1a237e; --gold: #c5a059; }
+        body { font-family: 'Segoe UI', sans-serif; background: #f4f7f6; margin: 0; padding: 20px; }
+        .nav-bar { margin-bottom: 20px; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 30px; }
+        .card { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); text-align: center; }
+        .card h3 { margin: 0; color: #666; font-size: 14px; }
+        .card div { font-size: 28px; font-weight: bold; color: var(--blue); margin-top: 10px; }
+        
+        .section { background: white; padding: 25px; border-radius: 8px; margin-bottom: 20px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        h2 { border-bottom: 2px solid var(--gold); padding-bottom: 10px; color: var(--blue); }
+        
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+        th, td { border: 1px solid #ddd; padding: 12px; text-align: center; }
+        th { background: var(--blue); color: white; }
+        .div-i { background: #e8f5e9; font-weight: bold; }
+        .div-0 { background: #ffebee; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+<div class="nav-bar">
+    <a href="dashboard.html" style="text-decoration:none; color: var(--blue); font-weight:bold;">⬅ Dashboard</a>
+</div>
+
+<div class="section">
+    <h2>Academic Analysis</h2>
+    <select id="classSel" style="padding:10px; width: 200px;">
+        <option value="">-- Chagua Darasa --</option>
+        <option>Form 1</option><option>Form 2</option>
+        <option>Form 3</option><option>Form 4</option>
+    </select>
+    <button id="analyzeBtn" style="padding:10px 25px; background:var(--blue); color:white; border:none; border-radius:4px; cursor:pointer;">Analyze Class</button>
+</div>
+
+<div id="statsContent" style="display:none;">
+    <div class="grid">
+        <div class="card"><h3>Total Students</h3><div id="totalStuds">0</div></div>
+        <div class="card"><h3>Class Average</h3><div id="classAvg">0%</div></div>
+        <div class="card"><h3>Pass Rate</h3><div id="passRate">0%</div></div>
+        <div class="card"><h3>Best Subject</h3><div id="bestSub">-</div></div>
+    </div>
+
+    <div class="section">
+        <h2>Division Summary</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th class="div-i">DIV I</th>
+                    <th>DIV II</th>
+                    <th>DIV III</th>
+                    <th>DIV IV</th>
+                    <th class="div-0">DIV 0</th>
+                    <th>INC</th>
+                </tr>
+            </thead>
+            <tbody id="divTbody"></tbody>
+        </table>
+    </div>
+</div>
+
+<script type="module">
+    import { db } from "./firebase.js";
+    import { collection, getDocs, query, where } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+    analyzeBtn.onclick = async () => {
+        const cls = classSel.value;
+        if(!cls) return alert("Chagua darasa!");
+
+        const sSnap = await getDocs(query(collection(db, "students"), where("cls", "==", cls)));
+        const rSnap = await getDocs(collection(db, "results"));
+        
+        let students = [];
+        let divCounts = { "I": 0, "II": 0, "III": 0, "IV": 0, "0": 0, "INC": 0 };
+        let totalSum = 0;
+        let totalEntries = 0;
+
+        sSnap.forEach(sDoc => {
+            let sPoints = [];
+            let sSum = 0;
+            let sCount = 0;
+
+            rSnap.forEach(rDoc => {
+                const r = rDoc.data();
+                if(r.studentId === sDoc.id) {
+                    const avg = parseFloat(r.average) || 0;
+                    sSum += avg;
+                    sCount++;
+                    sPoints.push({"A":1,"B":2,"C":3,"D":4,"F":5}[r.grade]);
+                }
+            });
+
+            if(sCount >= 7) {
+                sPoints.sort((a,b)=>a-b);
+                const b7 = sPoints.slice(0, 7).reduce((a,b)=>a+b, 0);
+                if(b7 <= 17) divCounts["I"]++;
+                else if(b7 <= 21) divCounts["II"]++;
+                else if(b7 <= 25) divCounts["III"]++;
+                else if(b7 <= 33) divCounts["IV"]++;
+                else divCounts["0"]++;
+                
+                totalSum += (sSum / sCount);
+                totalEntries++;
+            } else {
+                divCounts["INC"]++;
+            }
+        });
+
+        // Update UI
+        document.getElementById("totalStuds").innerText = sSnap.size;
+        document.getElementById("classAvg").innerText = totalEntries > 0 ? (totalSum / totalEntries).toFixed(1) + "%" : "0%";
+        
+        const passed = divCounts["I"] + divCounts["II"] + divCounts["III"] + divCounts["IV"];
+        document.getElementById("passRate").innerText = totalEntries > 0 ? ((passed / totalEntries) * 100).toFixed(0) + "%" : "0%";
+
+        document.getElementById("divTbody").innerHTML = `
+            <tr>
+                <td class="div-i">${divCounts["I"]}</td>
+                <td>${divCounts["II"]}</td>
+                <td>${divCounts["III"]}</td>
+                <td>${divCounts["IV"]}</td>
+                <td class="div-0">${divCounts["0"]}</td>
+                <td>${divCounts["INC"]}</td>
+            </tr>
+        `;
+
+        document.getElementById("statsContent").style.display = "block";
+    };
+</script>
+</body>
+</html>
