@@ -1,18 +1,167 @@
-<style>
-    .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-top: 20px; }
-    .stat-card { background: white; padding: 20px; border-radius: 12px; text-align: center; border-bottom: 5px solid #ddd; }
-    .stat-card h4 { margin: 0; color: #555; font-size: 14px; }
-    .stat-card .percentage { font-size: 28px; font-weight: bold; margin: 10px 0; color: var(--nav-blue); }
-    .stat-card .label { font-size: 12px; color: #888; }
-    .pass-high { border-color: #2e7d32; } /* Green for high pass rate */
-    .pass-low { border-color: #d32f2f; }  /* Red for low pass rate */
-</style>
+<!DOCTYPE html>
+<html lang="sw">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard | Olmoti Secondary Portal</title>
+    <style>
+        :root {
+            --nav-blue: #1a237e;
+            --nav-hover: #283593;
+            --gold: #c5a059;
+            --bg: #f4f7f6;
+            --sidebar-width: 260px;
+        }
 
-<div class="welcome-banner">
-    <h1>Dashboard ya Kitaaluma</h1>
-    <p>Muhtasari wa ufaulu kwa shule nzima (Grades A - C).</p>
-</div>
+        body { margin: 0; font-family: 'Segoe UI', sans-serif; display: flex; background: var(--bg); color: #333; }
 
-<div class="stats-grid" id="statsGrid">
-    <div class="stat-card">Inachakata data...</div>
-</div>
+        /* --- SIDEBAR --- */
+        .sidebar { width: var(--sidebar-width); background: var(--nav-blue); color: white; height: 100vh; position: fixed; display: flex; flex-direction: column; }
+        .sidebar-header { padding: 30px 20px; text-align: center; border-bottom: 1px solid var(--gold); }
+        .nav-links { list-style: none; padding: 20px 0; margin: 0; flex-grow: 1; }
+        .nav-links li a { display: block; padding: 15px 25px; color: #cfd8dc; text-decoration: none; transition: 0.3s; }
+        .nav-links li a:hover, .nav-links li a.active { background: var(--nav-hover); color: white; border-left: 5px solid var(--gold); }
+
+        /* --- MAIN CONTENT --- */
+        .main-content { margin-left: var(--sidebar-width); flex-grow: 1; padding: 40px; width: calc(100% - var(--sidebar-width)); }
+        
+        .welcome-banner { background: var(--nav-blue); color: white; padding: 30px; border-radius: 12px; margin-bottom: 30px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+        
+        /* Analysis Grid */
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 20px; margin-bottom: 30px; }
+        .stat-card { background: white; padding: 25px; border-radius: 12px; text-align: center; box-shadow: 0 2px 10px rgba(0,0,0,0.05); border-bottom: 5px solid #ddd; }
+        .stat-card.pass-high { border-color: #2e7d32; }
+        .stat-card.pass-low { border-color: #d32f2f; }
+        .stat-card h4 { margin: 0; color: #666; font-size: 14px; text-transform: uppercase; }
+        .stat-card .percentage { font-size: 32px; font-weight: bold; margin: 10px 0; color: var(--nav-blue); }
+
+        /* Rankings & Actions Table */
+        .row-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 30px; }
+        .panel { background: white; padding: 25px; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
+        .panel h3 { margin-top: 0; color: var(--nav-blue); border-bottom: 2px solid var(--bg); padding-bottom: 10px; }
+        
+        .top-list { list-style: none; padding: 0; }
+        .top-list li { display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid #eee; font-size: 14px; }
+        .top-list li:last-child { border: none; }
+        .rank-badge { background: var(--gold); color: white; padding: 2px 8px; border-radius: 4px; font-weight: bold; margin-right: 10px; }
+
+        .action-card { display: block; background: var(--bg); padding: 15px; margin-bottom: 10px; border-radius: 8px; text-decoration: none; color: var(--nav-blue); font-weight: 600; text-align: center; transition: 0.2s; }
+        .action-card:hover { background: #e0e0e0; }
+    </style>
+</head>
+<body>
+
+    <div class="sidebar">
+        <div class="sidebar-header">
+            <h2 style="margin:0;">OLMOTI SEC</h2>
+            <small style="color:var(--gold)">ADMIN PORTAL</small>
+        </div>
+        <ul class="nav-links">
+            <li><a href="dashboard.html" class="active">🏠 Dashboard</a></li>
+            <li><a href="students-list.html">👥 Wanafunzi</a></li>
+            <li><a href="mark-entry.html">📝 Ingiza Alama</a></li>
+            <li><a href="users-list.html">👨‍🏫 Walimu</a></li>
+            <li><a href="broadsheet.html">📊 Broadsheet</a></li>
+        </ul>
+    </div>
+
+    <div class="main-content">
+        <div class="welcome-banner">
+            <h1 style="margin:0;">Habari, Karibu Olmoti</h1>
+            <p style="opacity:0.9;">Huu ndio muhtasari wa ufaulu na takwimu za shule kwa ujumla.</p>
+        </div>
+
+        <h3 style="color:var(--nav-blue);">Ufaulu kwa Madarasa (Grades A-C)</h3>
+        <div class="stats-grid" id="statsGrid">
+            <div class="stat-card">Inachakata data...</div>
+        </div>
+
+        <div class="row-grid">
+            <div class="panel">
+                <h3>🏆 Wanafunzi Bora (Shule Nzima)</h3>
+                <ul class="top-list" id="topList">
+                    <li style="color:#888;">Inatafuta wanafunzi bora...</li>
+                </ul>
+            </div>
+
+            <div class="panel">
+                <h3>🚀 Quick Links</h3>
+                <a href="mark-entry.html" class="action-card">Ingiza Alama Mpya</a>
+                <a href="broadsheet.html" class="action-card">Tazama Broadsheet</a>
+                <a href="create-user.html" class="action-card">Sajili Mwalimu Mpya</a>
+                <a href="bulk-upload.html" class="action-card">Pakia Wanafunzi (Excel)</a>
+            </div>
+        </div>
+    </div>
+
+<script type="module">
+    import { db } from "./firebase.js";
+    import { collection, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+    async function loadDashboardData() {
+        const statsGrid = document.getElementById('statsGrid');
+        const topList = document.getElementById('topList');
+
+        // 1. Fetch Data
+        const [studSnap, resSnap] = await Promise.all([
+            getDocs(collection(db, "students")),
+            getDocs(collection(db, "results"))
+        ]);
+
+        const studentMap = {};
+        studSnap.forEach(doc => studentMap[doc.id] = { ...doc.data(), totalAvg: 0, count: 0 });
+
+        let classStats = {
+            "Form 1": { total: 0, pass: 0 }, "Form 2": { total: 0, pass: 0 },
+            "Form 3": { total: 0, pass: 0 }, "Form 4": { total: 0, pass: 0 }
+        };
+
+        // 2. Process Statistics and Individual Averages
+        resSnap.forEach(doc => {
+            const data = doc.data();
+            const sid = data.studentId;
+            const avg = parseFloat(data.average) || 0;
+
+            if (studentMap[sid]) {
+                const cls = studentMap[sid].cls;
+                if (classStats[cls]) {
+                    classStats[cls].total++;
+                    if (['A', 'B', 'C'].includes(data.grade)) classStats[cls].pass++;
+                }
+                // For Rankings
+                studentMap[sid].totalAvg += avg;
+                studentMap[sid].count++;
+            }
+        });
+
+        // 3. Render Pass Rate Cards
+        statsGrid.innerHTML = "";
+        Object.entries(classStats).forEach(([cls, data]) => {
+            const rate = data.total > 0 ? Math.round((data.pass / data.total) * 100) : 0;
+            const status = rate >= 50 ? 'pass-high' : 'pass-low';
+            statsGrid.innerHTML += `
+                <div class="stat-card ${status}">
+                    <h4>${cls}</h4>
+                    <div class="percentage">${rate}%</div>
+                    <small>${data.pass} kati ya ${data.total} Masomo</small>
+                </div>`;
+        });
+
+        // 4. Calculate & Render Top 5
+        const rankedStudents = Object.values(studentMap)
+            .filter(s => s.count > 0)
+            .map(s => ({ name: s.name, cls: s.cls, score: (s.totalAvg / s.count).toFixed(1) }))
+            .sort((a, b) => b.score - a.score)
+            .slice(0, 5);
+
+        topList.innerHTML = rankedStudents.map((s, i) => `
+            <li>
+                <span><span class="rank-badge">#${i+1}</span> ${s.name} (${s.cls})</span>
+                <span style="font-weight:bold; color:var(--nav-blue);">${s.score}%</span>
+            </li>`).join('') || "<li>Hakuna data ya matokeo.</li>";
+    }
+
+    loadDashboardData();
+</script>
+</body>
+</html>
