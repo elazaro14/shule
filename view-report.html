@@ -163,7 +163,7 @@
     </div>
 
     <div class="parent-section">
-        <p><strong>MAONI YA MZAZI / MLEZI:</strong></p>
+        <p><strong>MAONI YA MZAZI / MLEZI (PARENT COMMENT):</strong></p>
         <div class="comment-box"></div>
         <div style="display: flex; justify-content: space-between; margin-top: 8px; font-size: 11px;">
             <span>Sahihi: ...........................</span>
@@ -183,32 +183,46 @@
         if(!studentId) return;
 
         try {
+            // 1. Fetch Student Header Data
             const sSnap = await getDoc(doc(db, "students", studentId));
             if(!sSnap.exists()) return;
             const student = sSnap.data();
             document.getElementById("studentName").innerText = student.name;
             document.getElementById("studentClass").innerText = student.cls;
 
+            // 2. Fetch Results for this student
             const rSnap = await getDocs(query(collection(db, "results"), where("studentId", "==", studentId)));
             const myResMap = {};
             rSnap.forEach(d => myResMap[d.data().subjectCode] = d.data());
 
+            // 3. Fetch All Students/Results for Ranking
+            const allResSnap = await getDocs(collection(db, "results"));
+            const allStudSnap = await getDocs(query(collection(db, "students"), where("cls", "==", student.cls)));
+            document.getElementById("totalStuds").innerText = allStudSnap.size;
+
             const subjects = subjectLists[student.cls] || [];
             const tbody = document.getElementById("reportTbody");
+            tbody.innerHTML = "";
+            
             let sumW = 0, countS = 0, ptsArr = [];
 
+            // 4. Calculate Individual Subject Rows
             subjects.forEach(sub => {
                 const res = myResMap[sub.code];
                 if(res) {
-                    // Logic: Jaribio = Avg of T1, Mid, T2 (filled only)
+                    // Logic: Jaribio = Average of T1, Mid, T2 (filled only)
                     let jScores = [];
-                    if(res.test1) jScores.push(parseFloat(res.test1));
-                    if(res.midTerm) jScores.push(parseFloat(res.midTerm));
-                    if(res.test2) jScores.push(parseFloat(res.test2));
+                    if(res.test1 && res.test1 !== "") jScores.push(parseFloat(res.test1));
+                    if(res.midTerm && res.midTerm !== "") jScores.push(parseFloat(res.midTerm));
+                    if(res.test2 && res.test2 !== "") jScores.push(parseFloat(res.test2));
                     
                     const jaribio = jScores.length > 0 ? (jScores.reduce((a,b)=>a+b,0)/jScores.length) : 0;
                     const mtihani = parseFloat(res.exam) || 0;
+                    
+                    // Total = Jaribio Average + Mtihani
                     const jumla = jaribio + mtihani;
+                    
+                    // Wastani = Jumla / 2
                     const wastani = (jumla / 2).toFixed(1);
 
                     let grade = "F", maoni = "FELI";
@@ -234,8 +248,9 @@
                 }
             });
 
-            // Statistics Logic
+            // 5. Final Stats Calculation (Overall Average, Best 7 Points, Division)
             document.getElementById("overallAvg").innerText = countS > 0 ? (sumW / countS).toFixed(1) : "0.0";
+            
             if(countS >= 7) {
                 ptsArr.sort((a,b)=>a-b);
                 const b7 = ptsArr.slice(0, 7).reduce((a,b)=>a+b, 0);
@@ -248,12 +263,43 @@
                 document.getElementById("division").innerText = "";
             }
 
-            // Ranking
-            const allS = await getDocs(query(collection(db, "students"), where("cls", "==", student.cls)));
-            document.getElementById("totalStuds").innerText = allS.size;
-            // ... (Add your ranking logic here if required)
+            // 6. Ranking Logic
+            let rankingData = [];
+            allStudSnap.forEach(sDoc => {
+                let sSum = 0, sCount = 0, sPts = [];
+                allResSnap.forEach(rDoc => {
+                    const r = rDoc.data();
+                    if(r.studentId === sDoc.id) {
+                        // Reproduce average logic for each student to rank correctly
+                        let sjScores = [];
+                        if(r.test1) sjScores.push(parseFloat(r.test1));
+                        if(r.midTerm) sjScores.push(parseFloat(r.midTerm));
+                        if(r.test2) sjScores.push(parseFloat(r.test2));
+                        const sj = sjScores.length > 0 ? (sjScores.reduce((a,b)=>a+b,0)/sjScores.length) : 0;
+                        const sm = parseFloat(r.exam) || 0;
+                        const sw = (sj + sm) / 2;
+                        
+                        sSum += sw; sCount++;
+                        let sg = "F";
+                        if(sw >= 75) sg="A"; else if(sw >= 65) sg="B"; else if(sw >= 45) sg="C"; else if(sw >= 30) sg="D";
+                        sPts.push({"A":1,"B":2,"C":3,"D":4,"F":5}[sg]);
+                    }
+                });
+                if(sCount >= 7) {
+                    sPts.sort((a,b)=>a-b);
+                    rankingData.push({ id: sDoc.id, pts: sPts.slice(0,7).reduce((a,b)=>a+b,0), avg: sSum/sCount });
+                } else {
+                    rankingData.push({ id: sDoc.id, pts: 999, avg: 0 });
+                }
+            });
+            rankingData.sort((a,b) => a.pts - b.pts || b.avg - a.avg);
+            const myRank = rankingData.findIndex(x => x.id === studentId) + 1;
+            document.getElementById("rank").innerText = myRank > 0 ? myRank : "-";
 
-        } catch (e) { console.error(e); }
+        } catch (e) { 
+            console.error(e); 
+            document.getElementById("reportTbody").innerHTML = "<tr><td colspan='7'>Matatizo ya kiufundi yamejitokeza.</td></tr>";
+        }
     }
     generateReport();
 </script>
