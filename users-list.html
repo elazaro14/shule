@@ -2,27 +2,23 @@
 <html lang="sw">
 <head>
     <meta charset="UTF-8">
-    <title>Orodha ya Walimu | Olmoti Secondary</title>
+    <title>Usimamizi wa Walimu | Olmoti</title>
     <style>
         :root { --nav-blue: #1a237e; --gold: #c5a059; --bg: #f4f7f6; --sidebar-width: 250px; }
         body { margin: 0; font-family: 'Segoe UI', sans-serif; display: flex; background: var(--bg); }
-        
         .sidebar { width: var(--sidebar-width); background: var(--nav-blue); color: white; height: 100vh; position: fixed; }
         .main-content { margin-left: var(--sidebar-width); padding: 40px; flex-grow: 1; }
         
-        .user-table { width: 100%; border-collapse: collapse; background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
+        table { width: 100%; border-collapse: collapse; background: white; border-radius: 8px; overflow: hidden; }
         th, td { padding: 15px; text-align: left; border-bottom: 1px solid #eee; }
-        th { background: #f8f9fa; color: var(--nav-blue); }
+        th { background: #f8f9fa; color: var(--nav-blue); font-size: 13px; }
 
-        .role-badge { padding: 4px 10px; border-radius: 20px; font-size: 11px; font-weight: bold; text-transform: uppercase; }
+        .role-badge { padding: 4px 10px; border-radius: 20px; font-size: 11px; font-weight: bold; }
         .role-admin { background: #fff3e0; color: #ef6c00; }
         .role-teacher { background: #e8f5e9; color: #2e7d32; }
-
-        .btn-reset { background: #f44336; color: white; border: none; padding: 8px 12px; border-radius: 4px; cursor: pointer; font-size: 12px; }
-        .btn-reset:hover { background: #d32f2f; }
         
-        .header-box { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; }
-        .btn-add { background: var(--nav-blue); color: white; text-decoration: none; padding: 10px 20px; border-radius: 6px; font-weight: bold; }
+        .login-time { color: #666; font-size: 12px; font-style: italic; }
+        .btn-reset { background: #f44336; color: white; border: none; padding: 8px 12px; border-radius: 4px; cursor: pointer; }
     </style>
 </head>
 <body>
@@ -31,28 +27,27 @@
         <div style="padding:25px; text-align:center; border-bottom:1px solid var(--gold);"><h3>OLMOTI SEC</h3></div>
         <ul style="list-style:none; padding:0;">
             <li><a href="dashboard.html" style="color:white; text-decoration:none; display:block; padding:15px;">🏠 Dashboard</a></li>
-            <li><a href="users-list.html" style="color:white; text-decoration:none; display:block; padding:15px; background:rgba(255,255,255,0.1);">👥 Orodha ya Walimu</a></li>
+            <li><a href="users-list.html" style="color:white; text-decoration:none; display:block; padding:15px; background:rgba(255,255,255,0.1);">👥 Walimu</a></li>
         </ul>
     </div>
 
     <div class="main-content">
-        <div class="header-box">
-            <h2 style="color:var(--nav-blue);">Usimamizi wa Walimu (Users)</h2>
-            <a href="create-user.html" class="btn-add">+ SAJILI MWALIMU MPYA</a>
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+            <h2>Orodha ya Watumiaji</h2>
+            <a href="create-user.html" style="background:var(--nav-blue); color:white; padding:10px 20px; text-decoration:none; border-radius:6px;">+ Sajili Mwalimu</a>
         </div>
 
-        <table class="user-table">
+        <table>
             <thead>
                 <tr>
-                    <th>Jina Kamili</th>
-                    <th>Email / Username</th>
-                    <th>Wadhifa (Role)</th>
+                    <th>Jina</th>
+                    <th>Email</th>
+                    <th>Wadhifa</th>
+                    <th>Mara ya Mwisho Kuingia</th>
                     <th>Vitendo</th>
                 </tr>
             </thead>
-            <tbody id="userTbody">
-                <tr><td colspan="4" style="text-align:center;">Inapakia walimu...</td></tr>
-            </tbody>
+            <tbody id="userTbody"></tbody>
         </table>
     </div>
 
@@ -62,40 +57,32 @@
         import { sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
         async function loadUsers() {
+            const snap = await getDocs(collection(db, "users"));
             const tbody = document.getElementById('userTbody');
-            try {
-                const snap = await getDocs(collection(db, "users"));
-                tbody.innerHTML = "";
+            tbody.innerHTML = "";
+            
+            snap.forEach(doc => {
+                const u = doc.data();
+                const lastSeen = u.lastLogin ? u.lastLogin : "Bado hajaingia";
                 
-                snap.forEach(doc => {
-                    const u = doc.data();
-                    const roleClass = u.role === 'admin' ? 'role-admin' : 'role-teacher';
-                    
-                    tbody.innerHTML += `
-                        <tr>
-                            <td style="font-weight:bold;">${u.name || 'Admin'}</td>
-                            <td>${u.email}</td>
-                            <td><span class="role-badge ${roleClass}">${u.role}</span></td>
-                            <td>
-                                <button class="btn-reset" onclick="resetPass('${u.email}')">RESET PASSWORD</button>
-                            </td>
-                        </tr>
-                    `;
-                });
-            } catch (e) {
-                tbody.innerHTML = "Error loading users.";
-            }
+                tbody.innerHTML += `
+                    <tr>
+                        <td style="font-weight:bold;">${u.name}</td>
+                        <td>${u.email}</td>
+                        <td><span class="role-badge ${u.role === 'admin' ? 'role-admin' : 'role-teacher'}">${u.role}</span></td>
+                        <td class="login-time">${lastSeen}</td>
+                        <td>
+                            <button class="btn-reset" onclick="resetPass('${u.email}')">Reset Pass</button>
+                        </td>
+                    </tr>
+                `;
+            });
         }
 
-        // Global function for the reset button
         window.resetPass = async (email) => {
-            if(confirm(`Tuma link ya kubadili neno la siri kwenda: ${email}?`)) {
-                try {
-                    await sendPasswordResetEmail(auth, email);
-                    alert("Link imetumwa! Mwalimu aangalie email yake (Inbox au Spam).");
-                } catch (error) {
-                    alert("Hitilafu: " + error.message);
-                }
+            if(confirm("Tuma link ya password kwenda " + email + "?")) {
+                await sendPasswordResetEmail(auth, email);
+                alert("Imetumwa!");
             }
         };
 
