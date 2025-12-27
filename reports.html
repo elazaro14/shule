@@ -1,29 +1,39 @@
-<link rel="stylesheet" href="style.css">
 <!DOCTYPE html>
 <html>
 <head>
     <title>Marks Entry | Olmoti</title>
     <link rel="stylesheet" href="style.css">
     <style>
-        .score-in { width: 45px; text-align: center; padding: 5px; border-radius: 4px; border: 1px solid #ccc; }
-        .total, .avg, .grade { font-weight: bold; }
-        table { background: white; width: 100%; border-collapse: collapse; font-size: 14px; }
-        th, td { border: 1px solid #ddd; padding: 8px; text-align: center; }
+        .score-in { width: 50px; text-align: center; padding: 5px; border-radius: 4px; border: 1px solid #ccc; }
+        .total, .avg, .grade { font-weight: bold; color: #1a237e; }
+        table { background: white; width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { border: 1px solid #ddd; padding: 10px; text-align: center; }
+        th { background: #1a237e; color: white; }
+        .save-bar { position: sticky; bottom: 0; background: white; padding: 15px; border-top: 2px solid #1a237e; display: none; text-align: center; }
     </style>
 </head>
 <body>
     <nav><a href="dashboard.html">⬅ Dashboard</a></nav>
     <div style="padding: 20px;">
-        <h2>Mark Entry</h2>
-        <select id="classSel"><option value="">-- Class --</option><option>Form 1</option><option>Form 2</option><option>Form 3</option><option>Form 4</option></select>
-        <select id="subSel"><option value="">-- Subject --</option></select>
-        <button id="loadBtn">Load Students</button>
+        <h2>Ingiza Alama (Mark Entry)</h2>
+        <select id="classSel">
+            <option value="">-- Chagua Darasa --</option>
+            <option>Form 1</option><option>Form 2</option>
+            <option>Form 3</option><option>Form 4</option>
+        </select>
+        <select id="subSel"><option value="">-- Chagua Somo --</option></select>
+        <button id="loadBtn" style="padding: 8px 20px; background: #1a237e; color: white; border: none; cursor: pointer;">Load Students</button>
 
-        <table id="mTable" style="display:none; margin-top:20px;">
-            <thead><tr><th>S/N</th><th>Name</th><th>T1</th><th>Mid</th><th>T2</th><th>Ex</th><th>Total</th><th>Avg</th><th>Grade</th></tr></thead>
+        <table id="mTable" style="display:none;">
+            <thead>
+                <tr><th>S/N</th><th>Jina la Mwanafunzi</th><th>T1</th><th>Mid</th><th>T2</th><th>Ex</th><th>Total</th><th>Avg</th><th>Grade</th></tr>
+            </thead>
             <tbody id="mTbody"></tbody>
         </table>
-        <button id="saveBtn" style="display:none; margin-top:20px; background:green; color:white; padding:12px;">SAVE ALL MARKS</button>
+    </div>
+
+    <div id="saveBar" class="save-bar">
+        <button id="saveBtn" style="background:green; color:white; padding:12px 40px; border:none; border-radius:5px; font-weight:bold; cursor:pointer;">HIFADHI ALAMA ZOTE (SAVE ALL)</button>
     </div>
 
 <script type="module">
@@ -33,56 +43,85 @@
 
     classSel.onchange = () => {
         const list = (classSel.value.includes("1") || classSel.value.includes("2")) ? subjectLists["Form 1"] : subjectLists["Form 3"];
-        subSel.innerHTML = '<option value="">-- Subject --</option>';
+        subSel.innerHTML = '<option value="">-- Somo --</option>';
         list.forEach(s => subSel.innerHTML += `<option value="${s.code}">${s.name}</option>`);
     };
 
     loadBtn.onclick = async () => {
-        const q = query(collection(db, "students"), where("cls", "==", classSel.value));
-        const snap = await getDocs(q);
+        if(!subSel.value) return alert("Chagua Somo kwanza!");
+        
+        // Load students and existing results simultaneously
+        const qStuds = query(collection(db, "students"), where("cls", "==", classSel.value));
+        const qRes = query(collection(db, "results"), where("subjectCode", "==", subSel.value));
+        
+        const [studSnap, resSnap] = await Promise.all([getDocs(qStuds), getDocs(qRes)]);
+        
+        const resultsMap = {};
+        resSnap.forEach(d => resultsMap[d.data().studentId] = d.data());
+
         mTbody.innerHTML = "";
         let i = 1;
-        snap.forEach(d => {
-            mTbody.innerHTML += `<tr class="row" data-id="${d.id}">
-                <td>${i++}</td><td>${d.data().name}</td>
-                <td><input type="number" class="score-in t1"></td>
-                <td><input type="number" class="score-in mid"></td>
-                <td><input type="number" class="score-in t2"></td>
-                <td><input type="number" class="score-in ex"></td>
-                <td class="total">0</td><td class="avg">0</td><td class="grade">-</td>
-            </tr>`;
+        studSnap.forEach(d => {
+            const res = resultsMap[d.id] || {};
+            mTbody.innerHTML += `
+                <tr class="row" data-id="${d.id}">
+                    <td>${i++}</td>
+                    <td style="text-align:left;">${d.data().name}</td>
+                    <td><input type="number" class="score-in t1" value="${res.test1 || ''}"></td>
+                    <td><input type="number" class="score-in mid" value="${res.midTerm || ''}"></td>
+                    <td><input type="number" class="score-in t2" value="${res.test2 || ''}"></td>
+                    <td><input type="number" class="score-in ex" value="${res.exam || ''}"></td>
+                    <td class="total">${res.total || 0}</td>
+                    <td class="avg">${res.average || 0}</td>
+                    <td class="grade">${res.grade || '-'}</td>
+                </tr>`;
         });
-        mTable.style.display = "table"; saveBtn.style.display = "block";
+        mTable.style.display = "table"; 
+        saveBar.style.display = "block";
     };
 
     document.addEventListener('input', e => {
         if(e.target.classList.contains('score-in')) {
             const row = e.target.closest('tr');
-            const vals = [row.querySelector('.t1').value, row.querySelector('.mid').value, row.querySelector('.t2').value, row.querySelector('.ex').value]
-                         .filter(v => v !== "").map(Number);
-            if(vals.length > 0) {
-                const tot = vals.reduce((a,b)=>a+b, 0);
-                const avg = (tot / vals.length).toFixed(1);
-                row.querySelector('.total').innerText = tot;
-                row.querySelector('.avg').innerText = avg;
-                let g = "F"; if(avg>=75) g="A"; else if(avg>=65) g="B"; else if(avg>=45) g="C"; else if(avg>=30) g="D";
-                row.querySelector('.grade').innerText = g;
-            }
+            const t1 = parseFloat(row.querySelector('.t1').value) || 0;
+            const mid = parseFloat(row.querySelector('.mid').value) || 0;
+            const t2 = parseFloat(row.querySelector('.t2').value) || 0;
+            const ex = parseFloat(row.querySelector('.ex').value) || 0;
+            
+            const inputs = [row.querySelector('.t1').value, row.querySelector('.mid').value, row.querySelector('.t2').value, row.querySelector('.ex').value].filter(v => v !== "");
+            const tot = t1 + mid + t2 + ex;
+            const avg = inputs.length > 0 ? (tot / inputs.length).toFixed(1) : 0;
+            
+            row.querySelector('.total').innerText = tot;
+            row.querySelector('.avg').innerText = avg;
+            
+            let g = "F"; 
+            if(avg>=75) g="A"; else if(avg>=65) g="B"; else if(avg>=45) g="C"; else if(avg>=30) g="D";
+            row.querySelector('.grade').innerText = g;
         }
     });
 
     saveBtn.onclick = async () => {
+        saveBtn.disabled = true;
+        saveBtn.innerText = "Inahifadhi... (Saving...)";
         const rows = document.querySelectorAll(".row");
         for(let r of rows) {
             const id = r.dataset.id;
             await setDoc(doc(db, "results", `${id}_${subSel.value}`), {
-                studentId: id, subjectCode: subSel.value,
-                test1: r.querySelector('.t1').value, midTerm: r.querySelector('.mid').value,
-                test2: r.querySelector('.t2').value, exam: r.querySelector('.ex').value,
-                average: r.querySelector('.avg').innerText, grade: r.querySelector('.grade').innerText
+                studentId: id, 
+                subjectCode: subSel.value,
+                test1: r.querySelector('.t1').value, 
+                midTerm: r.querySelector('.mid').value,
+                test2: r.querySelector('.t2').value, 
+                exam: r.querySelector('.ex').value,
+                total: r.querySelector('.total').innerText,
+                average: r.querySelector('.avg').innerText, 
+                grade: r.querySelector('.grade').innerText
             });
         }
-        alert("Saved!");
+        alert("Alama zimehifadhiwa!");
+        saveBtn.disabled = false;
+        saveBtn.innerText = "HIFADHI ALAMA ZOTE (SAVE ALL)";
     };
 </script>
 </body>
