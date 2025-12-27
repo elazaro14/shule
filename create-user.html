@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="sw">
+<head>
+    <meta charset="UTF-8">
+    <title>Sajili Mwalimu | Olmoti</title>
+    <style>
+        :root { --nav-blue: #1a237e; --bg: #f4f7f6; --sidebar-width: 250px; }
+        body { margin: 0; font-family: 'Segoe UI', sans-serif; display: flex; background: var(--bg); }
+        .sidebar { width: var(--sidebar-width); background: var(--nav-blue); color: white; height: 100vh; position: fixed; }
+        .main-content { margin-left: var(--sidebar-width); padding: 40px; flex-grow: 1; }
+        .card { background: white; padding: 30px; border-radius: 12px; max-width: 500px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+        input { width: 100%; padding: 12px; margin: 10px 0; border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box; }
+        .btn-gen { background: var(--nav-blue); color: white; border: none; padding: 15px; width: 100%; border-radius: 6px; cursor: pointer; font-weight: bold; }
+        .result-box { margin-top: 20px; padding: 15px; background: #e8f5e9; border-radius: 6px; display: none; border: 1px solid #2e7d32; }
+    </style>
+</head>
+<body>
+    <div class="sidebar">...</div>
+
+    <div class="main-content">
+        <div class="card">
+            <h2>Sajili Akaunti ya Mwalimu</h2>
+            <p>Ingiza jina kamili, mfumo utatengeneza Email na Password moja kwa moja.</p>
+            
+            <input type="text" id="teacherFullName" placeholder="Mfano: Juma Hamisi">
+            <button id="generateBtn" class="btn-gen">TENGENEZA AKAUNTI</button>
+
+            <div id="result" class="result-box">
+                <p><strong>Akaunti Imetengenezwa!</strong></p>
+                <p>Email: <span id="resEmail"></span></p>
+                <p>Password: <span id="resPass">Olmoti@2025</span></p>
+                <small>Mpe mwalimu taarifa hizi ili aweze kuingia.</small>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { auth, db } from "./firebase.js";
+        import { createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+        import { doc, setDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+        document.getElementById('generateBtn').onclick = async () => {
+            const fullName = document.getElementById('teacherFullName').value.trim();
+            if(!fullName) return alert("Ingiza jina!");
+
+            // 1. Logic for Auto-Email (j.hamisi@olmoti.sc.tz)
+            const names = fullName.toLowerCase().split(" ");
+            const firstInitial = names[0].charAt(0);
+            const lastName = names[names.length - 1];
+            const autoEmail = `${firstInitial}.${lastName}@olmoti.sc.tz`;
+            const autoPass = "Olmoti@2025";
+
+            try {
+                // 2. Create in Firebase Auth
+                const userCredential = await createUserWithEmailAndPassword(auth, autoEmail, autoPass);
+                const user = userCredential.user;
+
+                // 3. Set Role as "teacher" in Firestore
+                await setDoc(doc(db, "users", user.uid), {
+                    name: fullName,
+                    email: autoEmail,
+                    role: "teacher" // Only Admin has "admin" role
+                });
+
+                // 4. Show result
+                document.getElementById('resEmail').innerText = autoEmail;
+                document.getElementById('result').style.display = "block";
+                document.getElementById('teacherFullName').value = "";
+                
+            } catch (error) {
+                console.error(error);
+                alert("Hitilafu: " + error.message);
+            }
+        };
+    </script>
+</body>
+</html>
