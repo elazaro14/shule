@@ -1,126 +1,3 @@
-<!DOCTYPE html>
-<html lang="sw">
-<head>
-    <meta charset="UTF-8">
-    <title>Ripoti ya Maendeleo - Shule ya Sekondari Olmoti</title>
-    <style>
-        :root {
-            --primary-blue: #1a237e;
-            --accent-gold: #c5a059;
-            --bg-light: #f4f7f6;
-            --white: #ffffff;
-            --success-green: #198754;
-        }
-
-        body { font-family: 'Times New Roman', serif; background: var(--bg-light); padding: 10px; margin: 0; }
-        
-        .no-print { 
-            text-align: center; 
-            margin-bottom: 20px; 
-            display: flex; 
-            justify-content: center; 
-            gap: 15px; 
-            padding: 10px;
-        }
-        .btn {
-            padding: 12px 25px;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            font-weight: bold;
-            font-family: 'Segoe UI', sans-serif;
-            transition: 0.3s;
-            text-decoration: none;
-            display: inline-block;
-            color: white;
-        }
-        .btn-dash { background: var(--primary-blue); }
-        .btn-print { background: var(--success-green); }
-        .btn-back { background: #6c757d; }
-
-        .report-page { 
-            background: var(--white); 
-            width: 210mm; 
-            min-height: 297mm; 
-            margin: auto; 
-            padding: 30px; 
-            box-sizing: border-box; 
-            box-shadow: 0 0 20px rgba(0,0,0,0.1);
-        }
-        
-        .header { text-align: center; line-height: 1.2; text-transform: uppercase; margin-bottom: 15px; border-bottom: 2px solid var(--primary-blue); padding-bottom: 10px; }
-        .header h2 { margin: 2px 0; font-size: 18px; color: var(--primary-blue); }
-        
-        table { width: 100%; border-collapse: collapse; margin-bottom: 15px; }
-        th, td { border: 1px solid black; padding: 6px; text-align: center; text-transform: uppercase; font-size: 12px; }
-        th { background: var(--primary-blue); color: white; }
-        .subject-col { text-align: left; padding-left: 10px; font-weight: bold; }
-
-        .stats-box { 
-            padding: 15px; 
-            border: 2px solid var(--accent-gold); 
-            background: #fffdf5;
-            line-height: 2.2;
-            font-size: 14px;
-        }
-
-        @media print {
-            .no-print { display: none; }
-            body { background: none; padding: 0; }
-            .report-page { box-shadow: none; width: 100%; margin: 0; border: none; }
-            th { background: #eee !important; color: black !important; }
-        }
-    </style>
-</head>
-<body>
-
-<div class="no-print">
-    <a href="dashboard.html" class="btn btn-dash">🏠 DASHBOARD</a>
-    <button onclick="window.print()" class="btn btn-print">🖨️ PRINT REPORT</button>
-    <button onclick="window.history.back()" class="btn btn-back">⬅️ BACK</button>
-</div>
-
-<div class="report-page">
-    <div class="header">
-        <h3>OFISI YA WAZIRI MKUU</h3>
-        <h3>TAWALA ZA MIKOA NA SERIKALI ZA MTAA</h3>
-        <h2>HALMASHAURI YA JIJI LA ARUSHA</h2>
-        <h2>SHULE YA SEKONDARI OLMOTI</h2>
-        <h3 style="text-decoration: underline; margin-top: 10px;">TAARIFA YA MAENDELEO YA MWANAFUNZI</h3>
-    </div>
-
-    <div style="display: flex; justify-content: space-between; margin-bottom: 20px;">
-        <div><strong>JINA:</strong> <span id="studentName">...</span></div>
-        <div><strong>KIDATO:</strong> <span id="studentClass">...</span></div>
-    </div>
-
-    <table>
-        <thead>
-            <tr>
-                <th style="width: 30%;">SOMO</th>
-                <th>JARIBIO</th>
-                <th>MTIHANI</th>
-                <th>JUMLA</th>
-                <th>WASTANI</th>
-                <th>DARAJA</th>
-                <th>MAONI</th>
-            </tr>
-        </thead>
-        <tbody id="reportTbody"></tbody>
-    </table>
-
-    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
-        <div class="stats-box">
-            <strong>WASTANI WA JUMLA:</strong> <span id="overallAvg">-</span><br>
-            <strong>POINTS:</strong> <span id="totalPoints">-</span><br>
-            <strong>DIVISION:</strong> <span id="division">-</span>
-        </div>
-        <div class="stats-box">
-            <strong>NAFASI:</strong> <span id="rank">...</span> <strong>KATI YA</strong> <span id="totalStuds">...</span>
-        </div>
-    </div>
-</div>
-
 <script type="module">
     import { db } from "./firebase.js";
     import { subjectLists } from "./data.js";
@@ -144,23 +21,36 @@
 
             const subjects = subjectLists[currentClass] || [];
             const tbody = document.getElementById("reportTbody");
+            tbody.innerHTML = ""; // Clear table
+            
             let sumTotalAvg = 0, countSubjects = 0, pointsArr = [];
 
             subjects.forEach(sub => {
                 const res = myResults[sub.code];
                 if(res) {
-                    // Logic: Jaribio = Average of T1, Mid, T2 (only filled ones)
-                    let jaribioSum = 0;
-                    let jaribioCount = 0;
+                    // --- NEW LOGIC START ---
                     
-                    if(res.test1 && res.test1 !== "") { jaribioSum += parseFloat(res.test1); jaribioCount++; }
-                    if(res.midTerm && res.midTerm !== "") { jaribioSum += parseFloat(res.midTerm); jaribioCount++; }
-                    if(res.test2 && res.test2 !== "") { jaribioSum += parseFloat(res.test2); jaribioCount++; }
+                    // 1. Calculate JARIBIO (Average of T1, Mid, T2 only if they exist)
+                    let scoresForJaribio = [];
+                    if (res.test1 && res.test1 !== "") scoresForJaribio.push(parseFloat(res.test1));
+                    if (res.midTerm && res.midTerm !== "") scoresForJaribio.push(parseFloat(res.midTerm));
+                    if (res.test2 && res.test2 !== "") scoresForJaribio.push(parseFloat(res.test2));
 
-                    const jaribioAvg = jaribioCount > 0 ? (jaribioSum / jaribioCount) : 0;
-                    const mtihani = parseFloat(res.exam) || 0;
-                    const jumla = jaribioAvg + mtihani;
+                    const jaribioValue = scoresForJaribio.length > 0 
+                        ? (scoresForJaribio.reduce((a, b) => a + b, 0) / scoresForJaribio.length) 
+                        : 0;
+
+                    // 2. Set MTIHANI (Directly from Exam)
+                    const mtihaniValue = parseFloat(res.exam) || 0;
+
+                    // 3. Calculate JUMLA (Jaribio Avg + Mtihani)
+                    const jumla = jaribioValue + mtihaniValue;
+
+                    // 4. Calculate WASTANI (Final Percentage used for Grading)
+                    // Usually (Jumla / 2) if Jaribio is 50 and Mtihani is 50
                     const wastani = (jumla / 2).toFixed(1);
+
+                    // --- NEW LOGIC END ---
 
                     let grade = "F";
                     const w = parseFloat(wastani);
@@ -175,8 +65,8 @@
 
                     tbody.innerHTML += `<tr>
                         <td class="subject-col">${sub.name}</td>
-                        <td>${jaribioAvg.toFixed(0)}</td>
-                        <td>${mtihani}</td>
+                        <td>${jaribioValue.toFixed(0)}</td>
+                        <td>${mtihaniValue}</td>
                         <td>${jumla.toFixed(0)}</td>
                         <td>${wastani}</td>
                         <td>${grade}</td>
@@ -185,7 +75,7 @@
                 }
             });
 
-            // Overall Summary
+            // Summary Stats (Best 7 Logic)
             document.getElementById("overallAvg").innerText = countSubjects > 0 ? (sumTotalAvg / countSubjects).toFixed(1) : "0.0";
 
             if(countSubjects >= 7) {
@@ -203,13 +93,11 @@
                 document.getElementById("division").innerText = "";
             }
 
-            // Simple Ranking Fetch
+            // Ranking
             const allStuds = await getDocs(query(collection(db, "students"), where("cls", "==", currentClass)));
             document.getElementById("totalStuds").innerText = allStuds.size;
 
-        } catch (e) { console.error(e); }
+        } catch (e) { console.error("Report Generation Error:", e); }
     }
     generateReport();
 </script>
-</body>
-</html>
