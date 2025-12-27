@@ -1,0 +1,85 @@
+<style>
+    :root {
+        --sidebar-width: 250px;
+        --nav-blue: #1a237e;
+        --nav-hover: #283593;
+        --gold: #c5a059;
+    }
+
+    body { margin: 0; display: flex; min-height: 100vh; background: #f4f7f6; }
+
+    /* Sidebar Styling */
+    .sidebar {
+        width: var(--sidebar-width);
+        background: var(--nav-blue);
+        color: white;
+        display: flex;
+        flex-direction: column;
+        position: fixed;
+        height: 100%;
+        transition: 0.3s;
+    }
+
+    .sidebar-header {
+        padding: 20px;
+        text-align: center;
+        background: rgba(0,0,0,0.2);
+        border-bottom: 1px solid var(--gold);
+    }
+
+    .sidebar-header img { width: 60px; margin-bottom: 10px; }
+
+    .nav-links { list-style: none; padding: 0; margin: 0; flex-grow: 1; }
+
+    .nav-links li a {
+        display: flex;
+        align-items: center;
+        padding: 15px 20px;
+        color: #e0e0e0;
+        text-decoration: none;
+        transition: 0.2s;
+        font-family: 'Segoe UI', sans-serif;
+    }
+
+    .nav-links li a:hover {
+        background: var(--nav-hover);
+        color: white;
+        border-left: 4px solid var(--gold);
+    }
+
+    .nav-links li a.active {
+        background: var(--nav-hover);
+        border-left: 4px solid var(--gold);
+        color: white;
+    }
+
+    /* Main Content Area */
+    .main-content {
+        margin-left: var(--sidebar-width);
+        flex-grow: 1;
+        padding: 30px;
+        width: calc(100% - var(--sidebar-width));
+    }
+
+    @media print {
+        .sidebar { display: none; }
+        .main-content { margin-left: 0; width: 100%; padding: 0; }
+    }
+</style>
+
+<div class="sidebar">
+    <div class="sidebar-header">
+        <h3>OLMOTI SEC</h3>
+        <small>Portal ya Walimu</small>
+    </div>
+    <ul class="nav-links">
+        <li><a href="dashboard.html">🏠 Dashboard</a></li>
+        <li><a href="students-list.html">👥 Orodha ya Wanafunzi</a></li>
+        <li><a href="mark-entry.html">📝 Ingiza Alama</a></li>
+        <li><a href="broadsheet.html">📊 Broadsheet</a></li>
+        <li><a href="class-dashboard.html">📈 Uchambuzi (Stats)</a></li>
+    </ul>
+    <div style="padding: 20px; border-top: 1px solid rgba(255,255,255,0.1);">
+        <a href="index.html" style="color: #ff8a80; text-decoration: none; font-size: 14px;">🚪 Log Out</a>
+    </div>
+</div>
