@@ -1,3 +1,87 @@
+<!DOCTYPE html>
+<html lang="sw">
+<head>
+    <meta charset="UTF-8">
+    <title>Ripoti | Olmoti Secondary</title>
+    <style>
+        :root { --blue: #1a237e; --gold: #c5a059; --bg: #f4f7f6; }
+        body { font-family: 'Times New Roman', serif; background: var(--bg); margin: 0; padding: 10px; }
+        
+        /* Navigation */
+        .no-print { display: flex; justify-content: center; gap: 10px; padding: 15px; }
+        .btn { padding: 10px 20px; border: none; border-radius: 4px; color: white; font-weight: bold; cursor: pointer; text-decoration: none; }
+        .btn-dash { background: var(--blue); }
+        .btn-print { background: #198754; }
+        .btn-back { background: #6c757d; }
+
+        /* Report Paper */
+        .report-page { 
+            background: white; width: 210mm; min-height: 297mm; 
+            margin: auto; padding: 30px; box-sizing: border-box; 
+            box-shadow: 0 0 10px rgba(0,0,0,0.1); 
+        }
+        
+        .header { text-align: center; border-bottom: 2px solid var(--blue); padding-bottom: 10px; margin-bottom: 20px; }
+        table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
+        th, td { border: 1px solid black; padding: 8px; text-align: center; font-size: 13px; }
+        th { background: var(--blue); color: white; }
+        
+        .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        .stats-box { border: 2px solid var(--gold); padding: 15px; line-height: 2; background: #fffdf5; }
+
+        @media print {
+            .no-print { display: none; }
+            .report-page { box-shadow: none; margin: 0; width: 100%; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="no-print">
+    <a href="dashboard.html" class="btn btn-dash">🏠 DASHBOARD</a>
+    <button onclick="window.print()" class="btn btn-print">🖨️ PRINT</button>
+    <button onclick="window.history.back()" class="btn btn-back">⬅️ BACK</button>
+</div>
+
+<div class="report-page">
+    <div class="header">
+        <h2>SHULE YA SEKONDARI OLMOTI</h2>
+        <h3 style="text-decoration: underline;">TAARIFA YA MAENDELEO YA MWANAFUNZI</h3>
+    </div>
+
+    <div style="display: flex; justify-content: space-between; margin-bottom: 20px; font-weight: bold;">
+        <div>JINA: <span id="studentName">Inapakia...</span></div>
+        <div>KIDATO: <span id="studentClass">...</span></div>
+    </div>
+
+    <table>
+        <thead>
+            <tr>
+                <th style="text-align: left;">SOMO</th>
+                <th>JARIBIO</th>
+                <th>MTIHANI</th>
+                <th>JUMLA</th>
+                <th>WASTANI</th>
+                <th>DARAJA</th>
+            </tr>
+        </thead>
+        <tbody id="reportTbody">
+            <tr><td colspan="6">Inatafuta matokeo...</td></tr>
+        </tbody>
+    </table>
+
+    <div class="stats-grid">
+        <div class="stats-box">
+            <strong>WASTANI WA JUMLA:</strong> <span id="overallAvg">-</span><br>
+            <strong>POINTS (BEST 7):</strong> <span id="totalPoints">-</span><br>
+            <strong>DIVISION:</strong> <span id="division">-</span>
+        </div>
+        <div class="stats-box">
+            <strong>NAFASI:</strong> <span id="rank">...</span> <strong>KATI YA</strong> <span id="totalStuds">...</span>
+        </div>
+    </div>
+</div>
+
 <script type="module">
     import { db } from "./firebase.js";
     import { subjectLists } from "./data.js";
@@ -6,98 +90,96 @@
     async function generateReport() {
         const urlParams = new URLSearchParams(window.location.search);
         const studentId = urlParams.get('id');
-        if(!studentId) return;
+        
+        // Safety check: if no ID, don't crash, just go back
+        if(!studentId) {
+            document.body.innerHTML = "<h1>Error: No Student ID found.</h1><a href='dashboard.html'>Go Back</a>";
+            return;
+        }
 
         try {
             const sSnap = await getDoc(doc(db, "students", studentId));
+            if(!sSnap.exists()) return;
+            
             const student = sSnap.data();
             document.getElementById("studentName").innerText = student.name;
-            const currentClass = student.cls;
-            document.getElementById("studentClass").innerText = currentClass;
+            document.getElementById("studentClass").innerText = student.cls;
 
             const rSnap = await getDocs(query(collection(db, "results"), where("studentId", "==", studentId)));
             const myResults = {};
             rSnap.forEach(d => myResults[d.data().subjectCode] = d.data());
 
-            const subjects = subjectLists[currentClass] || [];
+            const subjects = subjectLists[student.cls] || [];
             const tbody = document.getElementById("reportTbody");
-            tbody.innerHTML = ""; // Clear table
+            tbody.innerHTML = ""; 
             
-            let sumTotalAvg = 0, countSubjects = 0, pointsArr = [];
+            let totalWastani = 0, countS = 0, pointsArr = [];
 
             subjects.forEach(sub => {
                 const res = myResults[sub.code];
                 if(res) {
-                    // --- NEW LOGIC START ---
-                    
-                    // 1. Calculate JARIBIO (Average of T1, Mid, T2 only if they exist)
-                    let scoresForJaribio = [];
-                    if (res.test1 && res.test1 !== "") scoresForJaribio.push(parseFloat(res.test1));
-                    if (res.midTerm && res.midTerm !== "") scoresForJaribio.push(parseFloat(res.midTerm));
-                    if (res.test2 && res.test2 !== "") scoresForJaribio.push(parseFloat(res.test2));
+                    // 1. JARIBIO Calculation (Average of T1, Mid, T2)
+                    let jaribioScores = [];
+                    if(res.test1) jaribioScores.push(parseFloat(res.test1));
+                    if(res.midTerm) jaribioScores.push(parseFloat(res.midTerm));
+                    if(res.test2) jaribioScores.push(parseFloat(res.test2));
 
-                    const jaribioValue = scoresForJaribio.length > 0 
-                        ? (scoresForJaribio.reduce((a, b) => a + b, 0) / scoresForJaribio.length) 
+                    const jaribioAvg = jaribioScores.length > 0 
+                        ? (jaribioScores.reduce((a,b) => a+b, 0) / jaribioScores.length) 
                         : 0;
 
-                    // 2. Set MTIHANI (Directly from Exam)
-                    const mtihaniValue = parseFloat(res.exam) || 0;
+                    // 2. MTIHANI (Exam score only)
+                    const mtihani = parseFloat(res.exam) || 0;
 
-                    // 3. Calculate JUMLA (Jaribio Avg + Mtihani)
-                    const jumla = jaribioValue + mtihaniValue;
-
-                    // 4. Calculate WASTANI (Final Percentage used for Grading)
-                    // Usually (Jumla / 2) if Jaribio is 50 and Mtihani is 50
+                    // 3. JUMLA & WASTANI
+                    const jumla = jaribioAvg + mtihani;
                     const wastani = (jumla / 2).toFixed(1);
 
-                    // --- NEW LOGIC END ---
+                    // 4. GRADE
+                    let g = "F";
+                    const wNum = parseFloat(wastani);
+                    if(wNum >= 75) g="A"; else if(wNum >= 65) g="B"; else if(wNum >= 45) g="C"; else if(wNum >= 30) g="D";
 
-                    let grade = "F";
-                    const w = parseFloat(wastani);
-                    if(w >= 75) grade = "A";
-                    else if(w >= 65) grade = "B";
-                    else if(w >= 45) grade = "C";
-                    else if(w >= 30) grade = "D";
-
-                    sumTotalAvg += w;
-                    countSubjects++;
-                    pointsArr.push({"A":1,"B":2,"C":3,"D":4,"F":5}[grade]);
+                    totalWastani += wNum;
+                    countS++;
+                    pointsArr.push({"A":1,"B":2,"C":3,"D":4,"F":5}[g]);
 
                     tbody.innerHTML += `<tr>
-                        <td class="subject-col">${sub.name}</td>
-                        <td>${jaribioValue.toFixed(0)}</td>
-                        <td>${mtihaniValue}</td>
+                        <td style="text-align:left;">${sub.name}</td>
+                        <td>${jaribioAvg.toFixed(0)}</td>
+                        <td>${mtihani}</td>
                         <td>${jumla.toFixed(0)}</td>
                         <td>${wastani}</td>
-                        <td>${grade}</td>
-                        <td>${w >= 30 ? 'PASS' : 'FAIL'}</td>
+                        <td>${g}</td>
                     </tr>`;
                 }
             });
 
-            // Summary Stats (Best 7 Logic)
-            document.getElementById("overallAvg").innerText = countSubjects > 0 ? (sumTotalAvg / countSubjects).toFixed(1) : "0.0";
+            // Footer Logic
+            document.getElementById("overallAvg").innerText = countS > 0 ? (totalWastani / countS).toFixed(1) : "0.0";
 
-            if(countSubjects >= 7) {
+            if(countS >= 7) {
                 pointsArr.sort((a,b) => a-b);
                 const b7 = pointsArr.slice(0, 7).reduce((a,b) => a+b, 0);
                 document.getElementById("totalPoints").innerText = b7;
-                
                 let div = "IV";
-                if(b7 <= 17) div = "I";
-                else if(b7 <= 21) div = "II";
-                else if(b7 <= 25) div = "III";
+                if(b7 <= 17) div = "I"; else if(b7 <= 21) div = "II"; else if(b7 <= 25) div = "III";
                 document.getElementById("division").innerText = div;
             } else {
                 document.getElementById("totalPoints").innerText = "INC";
                 document.getElementById("division").innerText = "";
             }
 
-            // Ranking
-            const allStuds = await getDocs(query(collection(db, "students"), where("cls", "==", currentClass)));
-            document.getElementById("totalStuds").innerText = allStuds.size;
+            // Student Count
+            const allS = await getDocs(query(collection(db, "students"), where("cls", "==", student.cls)));
+            document.getElementById("totalStuds").innerText = allS.size;
 
-        } catch (e) { console.error("Report Generation Error:", e); }
+        } catch (error) {
+            console.error(error);
+            document.getElementById("reportTbody").innerHTML = "<tr><td colspan='6'>Error Loading Data.</td></tr>";
+        }
     }
     generateReport();
 </script>
+</body>
+</html>
