@@ -2,100 +2,262 @@
 <html lang="sw">
 <head>
     <meta charset="UTF-8">
-    <title>Wanafunzi | Olmoti Secondary</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Orodha ya Wanafunzi | Olmoti Secondary</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    
     <style>
-        :root { --nav-blue: #1a237e; --gold: #c5a059; --bg: #f4f7f6; --sidebar-width: 250px; }
-        body { margin: 0; font-family: 'Segoe UI', sans-serif; display: flex; background: var(--bg); }
-        
-        /* Sidebar */
-        .sidebar { width: var(--sidebar-width); background: var(--nav-blue); color: white; height: 100vh; position: fixed; }
-        .sidebar-header { padding: 20px; text-align: center; border-bottom: 1px solid var(--gold); }
-        .nav-links { list-style: none; padding: 0; }
-        .nav-links li a { display: block; padding: 15px 20px; color: #ccc; text-decoration: none; border-bottom: 1px solid rgba(255,255,255,0.1); }
-        .nav-links li a:hover, .nav-links li a.active { background: #283593; color: white; border-left: 5px solid var(--gold); }
+        :root {
+            --nav-blue: #1a237e;
+            --nav-hover: #283593;
+            --gold: #c5a059;
+            --bg: #f4f7f6;
+            --sidebar-width: 260px;
+        }
 
-        /* Content */
-        .main-content { margin-left: var(--sidebar-width); padding: 30px; flex-grow: 1; width: calc(100% - var(--sidebar-width)); }
-        .controls { background: white; padding: 20px; border-radius: 8px; display: flex; gap: 10px; margin-bottom: 20px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        body { margin: 0; font-family: 'Segoe UI', sans-serif; display: flex; background: var(--bg); color: #333; }
+
+        /* --- SIDEBAR --- */
+        .sidebar {
+            width: var(--sidebar-width);
+            background: var(--nav-blue);
+            color: white;
+            height: 100vh;
+            position: fixed;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 2px 0 10px rgba(0,0,0,0.1);
+        }
+
+        .sidebar-header {
+            padding: 30px 20px;
+            text-align: center;
+            background: rgba(0,0,0,0.2);
+            border-bottom: 1px solid var(--gold);
+        }
+
+        .nav-links { list-style: none; padding: 20px 0; margin: 0; flex-grow: 1; }
+        .nav-links li a {
+            display: flex;
+            align-items: center;
+            padding: 15px 25px;
+            color: #cfd8dc;
+            text-decoration: none;
+            transition: 0.3s;
+            font-size: 15px;
+        }
+        .nav-links li a:hover, .nav-links li a.active {
+            background: var(--nav-hover);
+            color: white;
+            border-left: 5px solid var(--gold);
+        }
+
+        /* --- MAIN CONTENT --- */
+        .main-content {
+            margin-left: var(--sidebar-width);
+            flex-grow: 1;
+            padding: 40px;
+            width: calc(100% - var(--sidebar-width));
+        }
+
+        .header-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+
+        .controls { 
+            background: white; 
+            padding: 20px; 
+            border-radius: 10px; 
+            display: flex; 
+            gap: 15px; 
+            margin-bottom: 25px; 
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            align-items: center;
+        }
+
+        input[type="text"], select {
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 14px;
+            outline: none;
+        }
+        #searchInput { flex-grow: 1; }
+
+        /* --- TABLE --- */
+        .table-container { 
+            background: white; 
+            border-radius: 10px; 
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05); 
+            overflow: hidden; 
+        }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { padding: 15px; text-align: left; border-bottom: 1px solid #eee; }
+        th { background: #f8f9fa; color: var(--nav-blue); font-weight: 600; font-size: 13px; }
         
-        table { width: 100%; border-collapse: collapse; background: white; border-radius: 8px; overflow: hidden; }
-        th, td { padding: 12px; text-align: left; border-bottom: 1px solid #ddd; }
-        th { background: #f8f9fa; color: var(--nav-blue); }
-        .btn { padding: 6px 12px; border-radius: 4px; text-decoration: none; font-size: 11px; font-weight: bold; color: white; }
+        .badge-cls {
+            background: #e3f2fd;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            color: #1565c0;
+            font-weight: bold;
+        }
+
+        /* --- BUTTONS --- */
+        .action-btn { 
+            padding: 8px 14px; 
+            border-radius: 6px; 
+            text-decoration: none; 
+            font-size: 11px; 
+            font-weight: bold; 
+            color: white; 
+            margin-right: 5px;
+            transition: 0.2s;
+        }
+        .btn-view { background: #1a237e; }
+        .btn-edit { background: #ffa000; }
+        .btn-add { background: #2e7d32; padding: 12px 20px; }
+        .btn-excel { background: #1b5e20; border: none; cursor: pointer; color: white; padding: 12px 20px; border-radius: 6px; font-weight: bold; }
+
+        @media print {
+            .sidebar, .controls, .btn-add { display: none; }
+            .main-content { margin-left: 0; width: 100%; padding: 0; }
+        }
     </style>
 </head>
 <body>
+
     <div class="sidebar">
-        <div class="sidebar-header"><h3>OLMOTI SEC</h3></div>
+        <div class="sidebar-header">
+            <h2 style="margin:0;">OLMOTI SEC</h2>
+            <small style="color:var(--gold)">SCHOOL PORTAL</small>
+        </div>
         <ul class="nav-links">
             <li><a href="dashboard.html">🏠 Dashboard</a></li>
             <li><a href="students-list.html" class="active">👥 Wanafunzi</a></li>
             <li><a href="mark-entry.html">📝 Ingiza Alama</a></li>
             <li><a href="bulk-upload.html">📤 Bulk Upload</a></li>
             <li><a href="broadsheet.html">📊 Broadsheet</a></li>
+            <li><a href="class-dashboard.html">📈 Uchambuzi</a></li>
         </ul>
+        <div style="padding: 20px; border-top: 1px solid rgba(255,255,255,0.1);">
+            <a href="index.html" style="color: #ff8a80; text-decoration: none; font-size: 14px;">🚪 Log Out</a>
+        </div>
     </div>
 
     <div class="main-content">
-        <h2>Orodha ya Wanafunzi</h2>
+        <div class="header-row">
+            <h1 style="color: var(--nav-blue); margin: 0;">Usimamizi wa Wanafunzi</h1>
+            <a href="add-student.html" class="action-btn btn-add">+ SAJILI MWANAFUNZI</a>
+        </div>
+
         <div class="controls">
-            <input type="text" id="searchInput" placeholder="Tafuta jina..." style="flex-grow:1; padding:10px;">
-            <select id="filterClass" style="padding:10px;">
+            <input type="text" id="searchInput" placeholder="Tafuta mwanafunzi kwa jina...">
+            <select id="filterClass">
                 <option value="">Darasa Zote</option>
                 <option>Form 1</option><option>Form 2</option>
                 <option>Form 3</option><option>Form 4</option>
             </select>
-            <button id="exportBtn" style="background:#2e7d32; color:white; border:none; padding:10px 20px; cursor:pointer; border-radius:4px;">EXCEL</button>
-            <a href="add-student.html" style="background:var(--nav-blue); color:white; padding:10px; text-decoration:none; border-radius:4px;">+ Mpya</a>
+            <button id="exportBtn" class="btn-excel">📥 EXCEL EXPORT</button>
         </div>
 
-        <table id="sTable">
-            <thead><tr><th>S/N</th><th>Jina</th><th>Darasa</th><th>Vitendo</th></tr></thead>
-            <tbody id="sTbody"></tbody>
-        </table>
+        <div class="table-container">
+            <table id="mainTable">
+                <thead>
+                    <tr>
+                        <th style="width: 50px;">S/N</th>
+                        <th>JINA LA MWANAFUNZI</th>
+                        <th>DARASA</th>
+                        <th style="text-align: center;">VITENDO (ACTIONS)</th>
+                    </tr>
+                </thead>
+                <tbody id="studentTbody">
+                    <tr><td colspan="4" style="text-align:center; padding: 30px;">Inapakia data... tafadhali subiri.</td></tr>
+                </tbody>
+            </table>
+        </div>
     </div>
 
-    <script type="module">
-        import { db } from "./firebase.js";
-        import { collection, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+<script type="module">
+    import { db } from "./firebase.js";
+    import { collection, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-        let students = [];
-        async function load() {
-            const snap = await getDocs(collection(db, "students"));
-            students = snap.docs.map(d => ({id: d.id, ...d.data()}));
-            render();
-        }
+    let allStudents = [];
 
-        function render() {
-            const sName = document.getElementById('searchInput').value.toLowerCase();
-            const sCls = document.getElementById('filterClass').value;
-            const tbody = document.getElementById('sTbody');
-            tbody.innerHTML = "";
-            
-            const filtered = students.filter(s => 
-                s.name.toLowerCase().includes(sName) && (sCls === "" || s.cls === sCls)
-            );
-
-            filtered.forEach((s, i) => {
-                tbody.innerHTML += `<tr>
-                    <td>${i+1}</td>
-                    <td>${s.name}</td>
-                    <td>${s.cls}</td>
-                    <td>
-                        <a href="view-report.html?id=${s.id}" class="btn" style="background:green;">RIPOTI</a>
-                        <a href="edit-student.html?id=${s.id}" class="btn" style="background:orange;">BADILI</a>
-                    </td>
-                </tr>`;
+    // Fetch Students from Firebase
+    async function loadStudents() {
+        try {
+            const querySnapshot = await getDocs(collection(db, "students"));
+            allStudents = [];
+            querySnapshot.forEach((doc) => {
+                allStudents.push({ id: doc.id, ...doc.data() });
             });
+            // Initial Sort by Name
+            allStudents.sort((a, b) => a.name.localeCompare(b.name));
+            renderTable(allStudents);
+        } catch (error) {
+            console.error("Error loading students:", error);
+            document.getElementById("studentTbody").innerHTML = '<tr><td colspan="4" style="text-align:center; color:red;">Imeshindikana kupakia data.</td></tr>';
+        }
+    }
+
+    // Render Table to UI
+    function renderTable(data) {
+        const tbody = document.getElementById("studentTbody");
+        tbody.innerHTML = "";
+
+        if (data.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; padding:30px;">Hakuna mwanafunzi aliyepatikana.</td></tr>';
+            return;
         }
 
-        document.getElementById('searchInput').oninput = render;
-        document.getElementById('filterClass').onchange = render;
-        document.getElementById('exportBtn').onclick = () => {
-            XLSX.writeFile(XLSX.utils.table_to_book(document.getElementById('sTable')), "Students_Olmoti.xlsx");
-        };
-        load();
-    </script>
+        data.forEach((s, index) => {
+            tbody.innerHTML += `
+                <tr>
+                    <td>${index + 1}</td>
+                    <td style="font-weight:600;">${s.name}</td>
+                    <td><span class="badge-cls">${s.cls}</span></td>
+                    <td style="text-align: center;">
+                        <a href="view-report.html?id=${s.id}" class="action-btn btn-view">RIPOTI</a>
+                        <a href="edit-student.html?id=${s.id}" class="action-btn btn-edit">BADILI</a>
+                    </td>
+                </tr>
+            `;
+        });
+    }
+
+    // Search and Filter Function
+    function filterStudents() {
+        const searchTerm = document.getElementById("searchInput").value.toLowerCase();
+        const selectedClass = document.getElementById("filterClass").value;
+
+        const filtered = allStudents.filter(s => {
+            const matchesName = s.name.toLowerCase().includes(searchTerm);
+            const matchesClass = selectedClass === "" || s.cls === selectedClass;
+            return matchesName && matchesClass;
+        });
+
+        renderTable(filtered);
+    }
+
+    // Event Listeners
+    document.getElementById("searchInput").addEventListener("input", filterStudents);
+    document.getElementById("filterClass").addEventListener("change", filterStudents);
+
+    // Export to Excel Function
+    document.getElementById("exportBtn").onclick = () => {
+        const table = document.getElementById("mainTable");
+        const wb = XLSX.utils.table_to_book(table, { sheet: "StudentList" });
+        const date = new Date().toISOString().split('T')[0];
+        XLSX.writeFile(wb, `Olmoti_Students_${date}.xlsx`);
+    };
+
+    // Load Data on Start
+    loadStudents();
+</script>
 </body>
 </html>
