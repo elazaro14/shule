@@ -32,10 +32,11 @@
             transition: 0.3s;
             text-decoration: none;
             display: inline-block;
+            color: white;
         }
-        .btn-dash { background: var(--primary-blue); color: white; }
-        .btn-print { background: var(--success-green); color: white; }
-        .btn-back { background: #6c757d; color: white; }
+        .btn-dash { background: var(--primary-blue); }
+        .btn-print { background: var(--success-green); }
+        .btn-back { background: #6c757d; }
 
         .report-page { 
             background: var(--white); 
@@ -50,12 +51,11 @@
         .header { text-align: center; line-height: 1.2; text-transform: uppercase; margin-bottom: 15px; border-bottom: 2px solid var(--primary-blue); padding-bottom: 10px; }
         .header h2 { margin: 2px 0; font-size: 18px; color: var(--primary-blue); }
         
-        .student-info { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin: 20px 0; padding: 15px; border: 1px solid #ddd; border-radius: 5px; }
-        
         table { width: 100%; border-collapse: collapse; margin-bottom: 15px; }
         th, td { border: 1px solid black; padding: 6px; text-align: center; text-transform: uppercase; font-size: 12px; }
         th { background: var(--primary-blue); color: white; }
-        
+        .subject-col { text-align: left; padding-left: 10px; font-weight: bold; }
+
         .stats-box { 
             padding: 15px; 
             border: 2px solid var(--accent-gold); 
@@ -68,6 +68,7 @@
             .no-print { display: none; }
             body { background: none; padding: 0; }
             .report-page { box-shadow: none; width: 100%; margin: 0; border: none; }
+            th { background: #eee !important; color: black !important; }
         }
     </style>
 </head>
@@ -85,12 +86,11 @@
         <h3>TAWALA ZA MIKOA NA SERIKALI ZA MTAA</h3>
         <h2>HALMASHAURI YA JIJI LA ARUSHA</h2>
         <h2>SHULE YA SEKONDARI OLMOTI</h2>
-        <p>S.L.P 8249, ARUSHA</p>
         <h3 style="text-decoration: underline; margin-top: 10px;">TAARIFA YA MAENDELEO YA MWANAFUNZI</h3>
     </div>
 
-    <div class="student-info">
-        <div><strong>JINA:</strong> <span id="studentName">Yukupakia...</span></div>
+    <div style="display: flex; justify-content: space-between; margin-bottom: 20px;">
+        <div><strong>JINA:</strong> <span id="studentName">...</span></div>
         <div><strong>KIDATO:</strong> <span id="studentClass">...</span></div>
     </div>
 
@@ -106,26 +106,16 @@
                 <th>MAONI</th>
             </tr>
         </thead>
-        <tbody id="reportTbody">
-            <tr><td colspan="7">Inatafuta matokeo...</td></tr>
-        </tbody>
+        <tbody id="reportTbody"></tbody>
     </table>
 
-    <div style="display: flex; gap: 20px;">
-        <div style="flex: 1.2;">
-            <table border="1" style="width: 100%; border-collapse: collapse;">
-                <thead><tr><th colspan="2" style="background: #eee; color: #000;">TATHMINI YA TABIA</th></tr></thead>
-                <tbody>
-                    <tr><td>UTII</td><td style="width: 60px;">B</td></tr>
-                    <tr><td>USAFI</td><td>B</td></tr>
-                    <tr><td>BIDII</td><td>B</td></tr>
-                </tbody>
-            </table>
-        </div>
-        <div class="stats-box" style="flex: 1;">
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+        <div class="stats-box">
             <strong>WASTANI WA JUMLA:</strong> <span id="overallAvg">-</span><br>
             <strong>POINTS:</strong> <span id="totalPoints">-</span><br>
-            <strong>DIVISION:</strong> <span id="division">-</span><br>
+            <strong>DIVISION:</strong> <span id="division">-</span>
+        </div>
+        <div class="stats-box">
             <strong>NAFASI:</strong> <span id="rank">...</span> <strong>KATI YA</strong> <span id="totalStuds">...</span>
         </div>
     </div>
@@ -142,104 +132,82 @@
         if(!studentId) return;
 
         try {
-            // 1. Fetch Student Info
             const sSnap = await getDoc(doc(db, "students", studentId));
-            if (!sSnap.exists()) {
-                document.getElementById("reportTbody").innerHTML = "<tr><td colspan='7'>Mwanafunzi hajapatikana!</td></tr>";
-                return;
-            }
             const student = sSnap.data();
             document.getElementById("studentName").innerText = student.name;
             const currentClass = student.cls;
             document.getElementById("studentClass").innerText = currentClass;
 
-            // 2. Fetch Results for THIS student
             const rSnap = await getDocs(query(collection(db, "results"), where("studentId", "==", studentId)));
-            const myResultsMap = {};
-            rSnap.forEach(d => {
-                const data = d.data();
-                myResultsMap[data.subjectCode] = data;
-            });
+            const myResults = {};
+            rSnap.forEach(d => myResults[d.data().subjectCode] = d.data());
 
-            // 3. Fetch All Class Results for Ranking
-            const allResultsSnap = await getDocs(collection(db, "results"));
-            const allStudentsSnap = await getDocs(query(collection(db, "students"), where("cls", "==", currentClass)));
-            document.getElementById("totalStuds").innerText = allStudentsSnap.size;
-
-            // 4. Populate Table
             const subjects = subjectLists[currentClass] || [];
             const tbody = document.getElementById("reportTbody");
-            tbody.innerHTML = ""; // Clear loading text
-            
-            let sumW = 0, countS = 0, ptsArr = [];
+            let sumTotalAvg = 0, countSubjects = 0, pointsArr = [];
 
             subjects.forEach(sub => {
-                const res = myResultsMap[sub.code];
+                const res = myResults[sub.code];
                 if(res) {
-                    const avg = parseFloat(res.average) || 0;
-                    const grade = res.grade || "F";
+                    // Logic: Jaribio = Average of T1, Mid, T2 (only filled ones)
+                    let jaribioSum = 0;
+                    let jaribioCount = 0;
                     
-                    sumW += avg;
-                    countS++;
-                    ptsArr.push({"A":1,"B":2,"C":3,"D":4,"F":5}[grade] || 5);
+                    if(res.test1 && res.test1 !== "") { jaribioSum += parseFloat(res.test1); jaribioCount++; }
+                    if(res.midTerm && res.midTerm !== "") { jaribioSum += parseFloat(res.midTerm); jaribioCount++; }
+                    if(res.test2 && res.test2 !== "") { jaribioSum += parseFloat(res.test2); jaribioCount++; }
+
+                    const jaribioAvg = jaribioCount > 0 ? (jaribioSum / jaribioCount) : 0;
+                    const mtihani = parseFloat(res.exam) || 0;
+                    const jumla = jaribioAvg + mtihani;
+                    const wastani = (jumla / 2).toFixed(1);
+
+                    let grade = "F";
+                    const w = parseFloat(wastani);
+                    if(w >= 75) grade = "A";
+                    else if(w >= 65) grade = "B";
+                    else if(w >= 45) grade = "C";
+                    else if(w >= 30) grade = "D";
+
+                    sumTotalAvg += w;
+                    countSubjects++;
+                    pointsArr.push({"A":1,"B":2,"C":3,"D":4,"F":5}[grade]);
 
                     tbody.innerHTML += `<tr>
-                        <td style="text-align:left; padding-left:10px; font-weight:bold;">${sub.name}</td>
-                        <td>${res.test1 || 0}</td>
-                        <td>${res.exam || 0}</td>
-                        <td>${(parseFloat(res.test1||0) + parseFloat(res.exam||0))}</td>
-                        <td>${avg}</td>
+                        <td class="subject-col">${sub.name}</td>
+                        <td>${jaribioAvg.toFixed(0)}</td>
+                        <td>${mtihani}</td>
+                        <td>${jumla.toFixed(0)}</td>
+                        <td>${wastani}</td>
                         <td>${grade}</td>
-                        <td>${avg >= 30 ? 'PASS' : 'FAIL'}</td>
+                        <td>${w >= 30 ? 'PASS' : 'FAIL'}</td>
                     </tr>`;
                 }
             });
 
-            // 5. Points & Division Logic (BEST 7)
-            if(countS >= 7) {
-                ptsArr.sort((a,b) => a-b);
-                const totalB7 = ptsArr.slice(0, 7).reduce((a,b) => a+b, 0);
-                document.getElementById("totalPoints").innerText = totalB7;
+            // Overall Summary
+            document.getElementById("overallAvg").innerText = countSubjects > 0 ? (sumTotalAvg / countSubjects).toFixed(1) : "0.0";
+
+            if(countSubjects >= 7) {
+                pointsArr.sort((a,b) => a-b);
+                const b7 = pointsArr.slice(0, 7).reduce((a,b) => a+b, 0);
+                document.getElementById("totalPoints").innerText = b7;
                 
                 let div = "IV";
-                if(totalB7 <= 17) div = "I";
-                else if(totalB7 <= 21) div = "II";
-                else if(totalB7 <= 25) div = "III";
+                if(b7 <= 17) div = "I";
+                else if(b7 <= 21) div = "II";
+                else if(b7 <= 25) div = "III";
                 document.getElementById("division").innerText = div;
             } else {
                 document.getElementById("totalPoints").innerText = "INC";
                 document.getElementById("division").innerText = "";
             }
 
-            document.getElementById("overallAvg").innerText = countS > 0 ? (sumW / countS).toFixed(1) : "0.0";
+            // Simple Ranking Fetch
+            const allStuds = await getDocs(query(collection(db, "students"), where("cls", "==", currentClass)));
+            document.getElementById("totalStuds").innerText = allStuds.size;
 
-            // 6. Ranking Logic
-            let rankingList = [];
-            allStudentsSnap.forEach(sDoc => {
-                let sSum = 0, sCount = 0, sPts = [];
-                allResultsSnap.forEach(rDoc => {
-                    const r = rDoc.data();
-                    if(r.studentId === sDoc.id) {
-                        sSum += parseFloat(r.average) || 0;
-                        sCount++;
-                        sPts.push({"A":1,"B":2,"C":3,"D":4,"F":5}[r.grade] || 5);
-                    }
-                });
-                if(sCount >= 7) {
-                    sPts.sort((a,b)=>a-b);
-                    rankingList.push({ id: sDoc.id, avg: sSum/sCount, pts: sPts.slice(0,7).reduce((a,b)=>a+b,0) });
-                } else {
-                    rankingList.push({ id: sDoc.id, avg: 0, pts: 99 });
-                }
-            });
-            rankingList.sort((a,b) => a.pts - b.pts || b.avg - a.avg);
-            const myRank = rankingList.findIndex(x => x.id === studentId) + 1;
-            document.getElementById("rank").innerText = myRank > 0 ? myRank : "-";
-
-        } catch (e) {
-            console.error("FIREBASE ERROR:", e);
-            alert("Error loading results. Check internet or Firebase Console.");
-        }
+        } catch (e) { console.error(e); }
     }
     generateReport();
 </script>
