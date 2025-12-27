@@ -1,55 +1,66 @@
-<link rel="stylesheet" href="style.css">
 <!DOCTYPE html>
-<html lang="en">
+<html lang="sw">
 <head>
     <meta charset="UTF-8">
-    <title>Olmoti Dashboard</title>
-    <link rel="stylesheet" href="style.css">
+    <title>Dashboard | Olmoti Secondary</title>
+    <style>
+        :root { --nav-blue: #1a237e; --gold: #c5a059; --bg: #f4f7f6; --sidebar-width: 250px; }
+        body { margin: 0; font-family: 'Segoe UI', sans-serif; display: flex; background: var(--bg); }
+        
+        /* SIDEBAR */
+        .sidebar { width: var(--sidebar-width); background: var(--nav-blue); color: white; height: 100vh; position: fixed; }
+        .sidebar-header { padding: 25px; text-align: center; border-bottom: 1px solid var(--gold); }
+        .nav-links { list-style: none; padding: 0; margin: 0; }
+        .nav-links li a { display: block; padding: 15px 20px; color: #ccc; text-decoration: none; border-bottom: 1px solid rgba(255,255,255,0.1); transition: 0.3s; }
+        .nav-links li a:hover, .nav-links li a.active { background: #283593; color: white; border-left: 5px solid var(--gold); }
+
+        /* CONTENT */
+        .main-content { margin-left: var(--sidebar-width); padding: 40px; flex-grow: 1; }
+        .welcome-banner { background: var(--nav-blue); color: white; padding: 30px; border-radius: 12px; margin-bottom: 30px; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; }
+        .card { background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); text-decoration: none; color: inherit; transition: 0.3s; border-top: 4px solid var(--gold); }
+        .card:hover { transform: translateY(-5px); box-shadow: 0 8px 15px rgba(0,0,0,0.1); }
+        .card h3 { margin: 0; color: var(--nav-blue); }
+        .card p { color: #666; font-size: 14px; }
+    </style>
 </head>
 <body>
-    <nav>
-        <a href="dashboard.html">Dashboard</a>
-        <a href="add-student.html">Registry</a>
-        <a href="reports.html">Marks</a>
-        <button id="logoutBtn" style="width: auto;">Logout</button>
-    </nav>
-
-    <h2>School Summary</h2>
-    <div class="cards">
-        <div class="card">
-            <h3>Total Students</h3>
-            <p id="sTotal">0</p>
-        </div>
-        <div class="card">
-            <h3>Males</h3>
-            <p id="sMale">0</p>
-        </div>
-        <div class="card">
-            <h3>Females</h3>
-            <p id="sFemale">0</p>
-        </div>
+    <div class="sidebar">
+        <div class="sidebar-header"><h2>OLMOTI SEC</h2><small>Admin Portal</small></div>
+        <ul class="nav-links">
+            <li><a href="dashboard.html" class="active">🏠 Dashboard</a></li>
+            <li><a href="students-list.html">👥 Wanafunzi</a></li>
+            <li><a href="mark-entry.html">📝 Ingiza Alama</a></li>
+            <li><a href="bulk-upload.html">📤 Bulk Upload</a></li>
+            <li><a href="broadsheet.html">📊 Broadsheet</a></li>
+            <li><a href="class-dashboard.html">📈 Uchambuzi</a></li>
+        </ul>
     </div>
 
-    <script type="module">
-        import { db, auth } from "./firebase.js";
-        import { collection, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-        import { signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+    <div class="main-content">
+        <div class="welcome-banner">
+            <h1>Habari, Karibu Olmoti Portal</h1>
+            <p>Tumia menyu ya kushoto kusimamia wanafunzi na matokeo ya mitihani.</p>
+        </div>
 
-        async function loadCounts() {
-            const snap = await getDocs(collection(db, "students"));
-            let t=0, m=0, f=0;
-            snap.forEach(doc => {
-                t++;
-                const s = (doc.data().sex || "").toUpperCase();
-                if(s.startsWith("M")) m++; else if(s.startsWith("F")) f++;
-            });
-            document.getElementById("sTotal").innerText = t;
-            document.getElementById("sMale").innerText = m;
-            document.getElementById("sFemale").innerText = f;
-        }
-        loadCounts();
-
-        document.getElementById("logoutBtn").onclick = () => signOut(auth).then(() => window.location = "index.html");
-    </script>
+        <div class="grid">
+            <a href="students-list.html" class="card">
+                <h3>👥 Wanafunzi</h3>
+                <p>Angalia, tafuta, na uhariri orodha ya wanafunzi.</p>
+            </a>
+            <a href="mark-entry.html" class="card">
+                <h3>📝 Ingiza Alama</h3>
+                <p>Weka alama za Test 1, Mid, Test 2, na Exam.</p>
+            </a>
+            <a href="broadsheet.html" class="card">
+                <h3>📊 Broadsheet</h3>
+                <p>Tengeneza master sheet ya darasa zima.</p>
+            </a>
+            <a href="bulk-upload.html" class="card">
+                <h3>📤 Bulk Upload</h3>
+                <p>Pakia wanafunzi wengi kwa mkupuo kutoka Excel.</p>
+            </a>
+        </div>
+    </div>
 </body>
 </html>
