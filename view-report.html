@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <title>Ripoti ya Maendeleo - Shule ya Sekondari Olmoti</title>
     <style>
-        /* Amazing Theme Variables */
         :root {
             --primary-blue: #1a237e;
             --accent-gold: #c5a059;
@@ -15,7 +14,6 @@
 
         body { font-family: 'Times New Roman', serif; background: var(--bg-light); padding: 10px; margin: 0; }
         
-        /* Navigation Buttons (No Print) */
         .no-print { 
             text-align: center; 
             margin-bottom: 20px; 
@@ -40,7 +38,6 @@
         .btn-back { background: #6c757d; color: white; }
         .btn:hover { opacity: 0.8; transform: translateY(-1px); }
 
-        /* Professional Report Page */
         .report-page { 
             background: var(--white); 
             width: 210mm; 
@@ -56,21 +53,18 @@
         .header h3 { margin: 2px 0; font-size: 14px; }
         
         .student-info { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin: 20px 0; padding: 15px; border: 1px solid #ddd; border-radius: 5px; }
-        .student-info div { font-size: 14px; }
         
         table { width: 100%; border-collapse: collapse; margin-bottom: 15px; }
         th, td { border: 1px solid black; padding: 6px; text-align: center; text-transform: uppercase; font-size: 12px; }
-        th { background: var(--primary-blue); color: white; border: 1px solid white; }
+        th { background: var(--primary-blue); color: white; }
         .subject-col { text-align: left; padding-left: 10px; font-weight: bold; }
 
         .summary-container { display: grid; grid-template-columns: 1.2fr 1fr; gap: 20px; margin-top: 15px; }
-        .conduct-table th { background: #f0f0f0; color: black; border: 1px solid black; }
-        
         .stats-box { 
             padding: 15px; 
             border: 2px solid var(--accent-gold); 
             background: #fffdf5;
-            line-height: 2;
+            line-height: 2.2;
             font-size: 14px;
         }
 
@@ -78,9 +72,6 @@
         
         .footer-sections { margin-top: 30px; display: grid; grid-template-columns: 1fr 1fr; gap: 40px; }
         .sig-box { border-top: 1px dotted black; text-align: center; padding-top: 5px; font-size: 12px; margin-top: 40px; }
-
-        .parent-section { margin-top: 30px; border: 1px solid #000; padding: 15px; }
-        .comment-box { height: 80px; border-bottom: 1px dotted #000; }
 
         @media print {
             .no-print { display: none; }
@@ -94,8 +85,8 @@
 
 <div class="no-print">
     <a href="dashboard.html" class="btn btn-dash">🏠 DASHBOARD</a>
-    <button onclick="window.print()" class="btn btn-print">🖨️ CHAPA (PRINT)</button>
-    <button onclick="window.history.back()" class="btn btn-back">⬅️ RUDI (BACK)</button>
+    <button onclick="window.print()" class="btn btn-print">🖨️ PRINT REPORT</button>
+    <button onclick="window.history.back()" class="btn btn-back">⬅️ BACK</button>
 </div>
 
 <div class="report-page">
@@ -131,20 +122,19 @@
     </table>
 
     <div class="summary-container">
-        <table class="conduct-table">
-            <thead><tr><th colspan="2">TATHMINI YA TABIA (CONDUCT)</th></tr></thead>
+        <table border="1" style="border-collapse: collapse; width: 100%;">
+            <thead><tr><th colspan="2" style="background: #f0f0f0; color: #000;">TATHMINI YA TABIA</th></tr></thead>
             <tbody>
-                <tr><td>Utii (Obedience)</td><td style="width:60px;">B</td></tr>
-                <tr><td>Usafi (Neatness)</td><td>B</td></tr>
-                <tr><td>Bidii (Diligent)</td><td>B</td></tr>
-                <tr><td>Ushirikiano (Cooperation)</td><td>B</td></tr>
-                <tr><td>Uongozi (Leadership)</td><td>B</td></tr>
+                <tr><td style="text-align: left; padding-left: 10px;">UTII</td><td style="width: 60px;">B</td></tr>
+                <tr><td style="text-align: left; padding-left: 10px;">USAFI</td><td>B</td></tr>
+                <tr><td style="text-align: left; padding-left: 10px;">BIDII</td><td>B</td></tr>
+                <tr><td style="text-align: left; padding-left: 10px;">USHIRIKIANO</td><td>B</td></tr>
             </tbody>
         </table>
 
         <div class="stats-box">
             <strong>WASTANI WA JUMLA:</strong> <span id="overallAvg">-</span><br>
-            <strong>POINTS (BEST 7):</strong> <span id="totalPoints">-</span><br>
+            <strong>POINTS:</strong> <span id="totalPoints">-</span><br>
             <strong>DIVISION:</strong> <span id="division">-</span><br>
             <strong>NAFASI:</strong> <span id="rank">...</span> <strong>KATI YA</strong> <span id="totalStuds">...</span>
         </div>
@@ -159,23 +149,8 @@
     </div>
 
     <div class="footer-sections">
-        <div>
-            <p>Maoni ya mwalimu wa darasa:</p>
-            <div class="sig-box">Sahihi ya Mwalimu wa Darasa</div>
-        </div>
-        <div>
-            <p>Maoni ya mkuu wa shule:</p>
-            <div class="sig-box">Sahihi ya Mkuu wa Shule</div>
-        </div>
-    </div>
-
-    <div class="parent-section">
-        <p><strong>MAONI YA MZAZI / MLEZI:</strong></p>
-        <div class="comment-box"></div>
-        <div style="display: flex; justify-content: space-between; margin-top: 10px;">
-            <span>Sahihi: ...........................</span>
-            <span>Tarehe: ...........................</span>
-        </div>
+        <div><p>Maoni ya mwalimu wa darasa:</p><div class="sig-box">Sahihi ya Mwalimu</div></div>
+        <div><p>Maoni ya mkuu wa shule:</p><div class="sig-box">Sahihi ya Mkuu wa Shule</div></div>
     </div>
 </div>
 
@@ -190,14 +165,13 @@
         if(!studentId) return;
 
         try {
-            // 1. Fetch Student Details
             const sSnap = await getDoc(doc(db, "students", studentId));
             const student = sSnap.data();
             document.getElementById("studentName").innerText = student.name;
             const currentClass = student.cls;
             document.getElementById("studentClass").innerText = currentClass;
 
-            // 2. Ranking Logic
+            // Global Data for Ranking
             const allResultsSnap = await getDocs(collection(db, "results"));
             const allStudentsSnap = await getDocs(query(collection(db, "students"), where("cls", "==", currentClass)));
             document.getElementById("totalStuds").innerText = allStudentsSnap.size;
@@ -213,69 +187,65 @@
                         sPoints.push({"A":1,"B":2,"C":3,"D":4,"F":5}[r.grade] || 5);
                     }
                 });
-                if(sCount > 0) {
+                
+                // Only qualify for rank if subjects >= 7
+                if(sCount >= 7) {
                     sPoints.sort((a,b) => a-b);
-                    const best7Sum = sPoints.slice(0, 7).reduce((a,b) => a+b, 0);
-                    rankingList.push({ id: sDoc.id, avg: sSum/sCount, pts: best7Sum });
+                    const b7 = sPoints.slice(0, 7).reduce((a,b) => a+b, 0);
+                    rankingList.push({ id: sDoc.id, avg: sSum/sCount, pts: b7, inc: false });
+                } else {
+                    rankingList.push({ id: sDoc.id, avg: 0, pts: 99, inc: true });
                 }
             });
 
-            // Sort by Best 7 Points (Lower is better), then Average (Higher is better)
             rankingList.sort((a,b) => a.pts - b.pts || b.avg - a.avg);
             const myRank = rankingList.findIndex(x => x.id === studentId) + 1;
-            document.getElementById("rank").innerText = myRank > 0 ? myRank : "-";
+            document.getElementById("rank").innerText = myRank;
 
-            // 3. Render Student Table
+            // Current Student Rendering
             const rSnap = await getDocs(query(collection(db, "results"), where("studentId", "==", studentId)));
-            const myResults = {};
-            rSnap.forEach(d => myResults[d.data().subjectCode] = d.data());
+            const myRes = {};
+            rSnap.forEach(d => myRes[d.data().subjectCode] = d.data());
 
             const subjects = subjectLists[currentClass] || [];
             const tbody = document.getElementById("reportTbody");
-            let totalAvgSum = 0, totalSubjects = 0, myPoints = [];
+            let sumW = 0, countS = 0, ptsArr = [];
 
             subjects.forEach(sub => {
-                const res = myResults[sub.code];
-                if(res) {
-                    const avg = parseFloat(res.average) || 0;
-                    const grade = res.grade || "F";
-                    let comment = "FELI";
-                    if(avg >= 75) comment = "VIZURI SANA";
-                    else if(avg >= 65) comment = "VIZURI";
-                    else if(avg >= 45) comment = "WASTANI";
-                    else if(avg >= 30) comment = "INARIDHISHA";
-
-                    totalAvgSum += avg;
-                    totalSubjects++;
-                    myPoints.push({"A":1,"B":2,"C":3,"D":4,"F":5}[grade] || 5);
+                const r = myRes[sub.code];
+                if(r) {
+                    const avg = parseFloat(r.average) || 0;
+                    sumW += avg; countS++;
+                    ptsArr.push({"A":1,"B":2,"C":3,"D":4,"F":5}[r.grade] || 5);
 
                     tbody.innerHTML += `<tr>
                         <td class="subject-col">${sub.name}</td>
-                        <td>${res.test1 || 0}</td>
-                        <td>${res.exam || 0}</td>
-                        <td>${(parseFloat(res.test1||0) + parseFloat(res.exam||0)).toFixed(0)}</td>
-                        <td>${avg}</td>
-                        <td>${grade}</td>
-                        <td>${comment}</td>
+                        <td>${r.test1 || 0}</td><td>${r.exam || 0}</td>
+                        <td>${(parseFloat(r.test1||0) + parseFloat(r.exam||0)).toFixed(0)}</td>
+                        <td>${avg}</td><td>${r.grade}</td>
+                        <td>${avg >= 30 ? 'PASS' : 'FAIL'}</td>
                     </tr>`;
                 }
             });
 
-            // 4. Summaries
-            if(totalSubjects > 0) {
-                document.getElementById("overallAvg").innerText = (totalAvgSum / totalSubjects).toFixed(1);
-                myPoints.sort((a,b) => a-b);
-                const best7Points = myPoints.slice(0, 7).reduce((a,b) => a+b, 0);
-                document.getElementById("totalPoints").innerText = best7Points;
+            document.getElementById("overallAvg").innerText = countS > 0 ? (sumW / countS).toFixed(1) : "0.0";
 
+            if(countS >= 7) {
+                ptsArr.sort((a,b) => a-b);
+                const totalB7 = ptsArr.slice(0, 7).reduce((a,b) => a+b, 0);
+                document.getElementById("totalPoints").innerText = totalB7;
+                
                 let div = "IV";
-                if(best7Points <= 17) div = "I";
-                else if(best7Points <= 21) div = "II";
-                else if(best7Points <= 25) div = "III";
+                if(totalB7 <= 17) div = "I";
+                else if(totalB7 <= 21) div = "II";
+                else if(totalB7 <= 25) div = "III";
                 document.getElementById("division").innerText = div;
+            } else {
+                document.getElementById("totalPoints").innerText = "INC";
+                document.getElementById("division").innerText = "";
             }
 
-        } catch (e) { console.error("Report Error:", e); }
+        } catch (e) { console.error(e); }
     }
     generateReport();
 </script>
