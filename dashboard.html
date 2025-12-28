@@ -1,85 +1,127 @@
-<script type="module">
-    import { db } from "./firebase.js";
-    import { collection, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard | Olmoti Secondary</title>
+    <style>
+        :root { --nav-blue: #1a237e; --nav-hover: #283593; --gold: #c5a059; --bg: #f4f7f6; --sidebar-width: 250px; }
+        body { margin: 0; font-family: 'Segoe UI', sans-serif; display: flex; background: var(--bg); color: #333; }
+        
+        /* SIDEBAR */
+        .sidebar { width: var(--sidebar-width); background: var(--nav-blue); color: white; height: 100vh; position: fixed; box-shadow: 2px 0 10px rgba(0,0,0,0.1); }
+        .sidebar-header { padding: 25px; text-align: center; border-bottom: 1px solid var(--gold); }
+        .nav-links { list-style: none; padding: 0; margin: 0; }
+        .nav-links li a { display: block; padding: 15px 20px; color: #ccc; text-decoration: none; border-bottom: 1px solid rgba(255,255,255,0.1); transition: 0.3s; }
+        .nav-links li a:hover, .nav-links li a.active { background: var(--nav-hover); color: white; border-left: 5px solid var(--gold); }
 
-    async function initializeDashboard() {
-        try {
-            // Parallel Fetch for Speed
-            const [studSnap, resSnap, userSnap] = await Promise.all([
-                getDocs(collection(db, "students")),
-                getDocs(collection(db, "results")),
-                getDocs(collection(db, "users"))
-            ]);
+        /* CONTENT */
+        .main-content { margin-left: var(--sidebar-width); padding: 40px; flex-grow: 1; width: calc(100% - var(--sidebar-width)); }
+        .welcome-banner { background: var(--nav-blue); color: white; padding: 30px; border-radius: 12px; margin-bottom: 30px; }
+        
+        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 20px; margin-bottom: 30px; }
+        .card { background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); text-decoration: none; color: inherit; transition: 0.3s; border-top: 4px solid var(--gold); }
+        .card:hover { transform: translateY(-5px); box-shadow: 0 8px 15px rgba(0,0,0,0.1); }
+        
+        /* ANALYSIS STYLES */
+        .pass-rate-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 30px; }
+        .pass-card { background: white; padding: 20px; border-radius: 10px; text-align: center; border-bottom: 4px solid #ddd; }
+        .pass-card h4 { margin: 0 0 10px; color: #666; font-size: 14px; }
+        .pass-card .val { font-size: 28px; font-weight: bold; color: var(--nav-blue); }
+    </style>
+</head>
+<body>
+    <div class="sidebar">
+        <div class="sidebar-header"><h2>OLMOTI SEC</h2><small>Admin Portal</small></div>
+        <ul class="nav-links">
+            <li><a href="dashboard.html" class="active">🏠 Dashboard</a></li>
+            <li><a href="students-list.html">👥 Students</a></li>
+            <li><a href="mark-entry.html">📝 Mark Entry</a></li>
+            <li><a href="users-list.html">👨‍🏫 Staff/Users</a></li>
+            <li><a href="broadsheet.html">📊 Broadsheet</a></li>
+            <li><a href="bulk-upload.html">📤 Bulk Upload</a></li>
+        </ul>
+        <div style="padding: 20px; position: absolute; bottom: 0; width: 100%; box-sizing: border-box;">
+            <a href="index.html" style="color: #ff8a80; text-decoration: none; font-weight: bold;">Logout 🚪</a>
+        </div>
+    </div>
 
-            // --- 1. POPULATION COUNTS (GENDER-SPECIFIC) ---
-            let sM = 0, sF = 0, tM = 0, tF = 0;
-            const studentData = {};
+    <div class="main-content">
+        <div class="welcome-banner">
+            <h1>Welcome, Olmoti Portal</h1>
+            <p>Monitor school performance and manage academic records efficiently.</p>
+        </div>
 
-            studSnap.forEach(doc => {
-                const data = doc.data();
-                if (data.gender === "M") sM++; else if (data.gender === "F") sF++;
-                studentData[doc.id] = { cls: data.cls, grades: [] };
-            });
+        <h3 style="color: var(--nav-blue);">School-wide Pass Rate (A-C)</h3>
+        <div class="pass-rate-grid" id="passGrid">
+            <div class="pass-card">Loading stats...</div>
+        </div>
 
-            userSnap.forEach(doc => {
-                const data = doc.data();
-                // Assumes users with role teacher/admin are counted as teachers
-                if (data.role === "teacher" || data.role === "admin") {
-                    if (data.gender === "M") tM++; else if (data.gender === "F") tF++;
-                }
-            });
+        <h3 style="color: var(--nav-blue);">Management Tools</h3>
+        <div class="grid">
+            <a href="students-list.html" class="card">
+                <h3>👥 Students</h3>
+                <p>View, search, and edit student profiles.</p>
+            </a>
+            <a href="mark-entry.html" class="card">
+                <h3>📝 Mark Entry</h3>
+                <p>Enter scores for Tests, Mid-Term, and Exams.</p>
+            </a>
+            <a href="users-list.html" class="card">
+                <h3>👨‍🏫 Staff Management</h3>
+                <p>Monitor logins and reset teacher passwords.</p>
+            </a>
+            <a href="broadsheet.html" class="card">
+                <h3>📊 Broadsheet</h3>
+                <p>Generate class master sheets and exports.</p>
+            </a>
+        </div>
+    </div>
 
-            // Update Header Stats
-            document.getElementById('studStats').innerHTML = `Total: ${sM + sF} (M: ${sM} | F: ${sF})`;
-            document.getElementById('teachStats').innerHTML = `Total: ${tM + tF} (M: ${tM} | F: ${tF})`;
+    <script type="module">
+        import { db } from "./firebase.js";
+        import { collection, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-            // --- 2. DIVISION ANALYSIS (NECTA BEST 7) ---
-            resSnap.forEach(doc => {
-                const r = doc.data();
-                if (studentData[r.studentId]) studentData[r.studentId].grades.push(r.grade);
-            });
-
-            const classSummary = {
-                "Form 1": {I:0, II:0, III:0, IV:0, 0:0}, "Form 2": {I:0, II:0, III:0, IV:0, 0:0},
-                "Form 3": {I:0, II:0, III:0, IV:0, 0:0}, "Form 4": {I:0, II:0, III:0, IV:0, 0:0}
-            };
-
-            Object.values(studentData).forEach(student => {
-                if (student.grades.length < 1) return;
-
-                // Map A=1, B=2, C=3, D=4, F=5 and sort ascending
-                const pts = student.grades.map(g => {
-                    const grade = g.toUpperCase();
-                    return grade==='A'?1 : grade==='B'?2 : grade==='C'?3 : grade==='D'?4 : 5;
-                }).sort((a,b) => a-b);
-
-                const totalPoints = pts.slice(0, 7).reduce((a, b) => a + b, 0);
-
-                let div = "0";
-                if (totalPoints >= 7 && totalPoints <= 17) div = "I";
-                else if (totalPoints <= 21) div = "II";
-                else if (totalPoints <= 25) div = "III";
-                else if (totalPoints <= 33) div = "IV";
-
-                if (classSummary[student.cls]) classSummary[student.cls][div]++;
-            });
-
-            // Render Division Cards
+        async function loadStats() {
             const grid = document.getElementById('passGrid');
-            grid.innerHTML = "";
-            Object.entries(classSummary).forEach(([form, d]) => {
-                grid.innerHTML += `
-                    <div class="card">
-                        <h3>${form}</h3>
-                        <div class="div-row"><span>I:</span> <b>${d.I}</b></div>
-                        <div class="div-row"><span>II:</span> <b>${d.II}</b></div>
-                        <div class="div-row"><span>III:</span> <b>${d.III}</b></div>
-                        <div class="div-row"><span>IV:</span> <b>${d.IV}</b></div>
-                        <div class="div-row"><span>0:</span> <b>${d['0']}</b></div>
-                    </div>`;
-            });
+            try {
+                const [studSnap, resSnap] = await Promise.all([
+                    getDocs(collection(db, "students")),
+                    getDocs(collection(db, "results"))
+                ]);
 
-        } catch (err) { console.error(err); }
-    }
-    initializeDashboard();
-</script>>
+                const studentMap = {};
+                studSnap.forEach(doc => studentMap[doc.id] = doc.data().cls);
+
+                let stats = {
+                    "Form 1": { total: 0, pass: 0 }, "Form 2": { total: 0, pass: 0 },
+                    "Form 3": { total: 0, pass: 0 }, "Form 4": { total: 0, pass: 0 }
+                };
+
+                resSnap.forEach(doc => {
+                    const data = doc.data();
+                    const cls = studentMap[data.studentId];
+                    if (cls && stats[cls]) {
+                        stats[cls].total++;
+                        if (['A', 'B', 'C'].includes(data.grade)) stats[cls].pass++;
+                    }
+                });
+
+                grid.innerHTML = "";
+                Object.entries(stats).forEach(([cls, data]) => {
+                    const rate = data.total > 0 ? Math.round((data.pass / data.total) * 100) : 0;
+                    grid.innerHTML += `
+                        <div class="pass-card" style="border-color: ${rate > 50 ? '#2e7d32' : '#d32f2f'}">
+                            <h4>${cls}</h4>
+                            <div class="val">${rate}%</div>
+                            <small>${data.pass} / ${data.total} Passed</small>
+                        </div>`;
+                });
+            } catch (e) {
+                grid.innerHTML = "Error loading statistics.";
+            }
+        }
+        loadStats();
+    </script>
+</body>
+</html>
