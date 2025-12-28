@@ -1,16 +1,24 @@
-<link rel="stylesheet" href="style.css">
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <title>School ERP Login</title>
-  <link rel="stylesheet" href="style.css">
+    <meta charset="UTF-8">
+    <title>School ERP Login</title>
+    <style>
+        body { font-family: 'Segoe UI', sans-serif; background: #1a237e; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+        .card { background: white; padding: 40px; border-radius: 12px; width: 320px; text-align: center; box-shadow: 0 10px 25px rgba(0,0,0,0.2); }
+        input { width: 100%; padding: 12px; margin: 10px 0; border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box; }
+        button { width: 100%; padding: 12px; background: #c5a059; color: white; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; }
+        button:disabled { background: #ccc; }
+    </style>
 </head>
-<body class="center">
-  <h2>🏫 School ERP Login</h2>
-  <input id="email" placeholder="Email">
-  <input id="password" type="password" placeholder="Password">
-  <button onclick="login()">Login</button>
-  <p>Admin & Teacher Login<br>(Secure Firebase Authentication)</p>
-  <script type="module" src="auth.js"></script>
+<body>
+    <div class="card">
+        <h2 style="color: #1a237e;">🏫 Olmoti Portal</h2>
+        <input id="email" type="email" placeholder="Email Address">
+        <input id="password" type="password" placeholder="Password">
+        <button onclick="login()">Login</button>
+    </div>
+
+    <script type="module" src="auth.js"></script>
 </body>
 </html>
