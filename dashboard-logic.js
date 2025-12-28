@@ -1,9 +1,9 @@
-import { db } from "./firebase.js";
+import { db, auth } from "./firebase.js";
 import { collection, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
-async function loadDashboard() {
+async function loadData() {
     try {
-        // Fetch all necessary data simultaneously
         const [studSnap, resSnap, userSnap] = await Promise.all([
             getDocs(collection(db, "students")),
             getDocs(collection(db, "results")),
@@ -27,13 +27,12 @@ async function loadDashboard() {
             }
         });
 
-        // Update UI Population
         document.getElementById('totalS').innerText = sM + sF;
-        document.getElementById('genderS').innerText = `Male: ${sM} | Female: ${sF}`;
+        document.getElementById('detailS').innerText = `Male: ${sM} | Female: ${sF}`;
         document.getElementById('totalT').innerText = tM + tF;
-        document.getElementById('genderT').innerText = `Male: ${tM} | Female: ${tF}`;
+        document.getElementById('detailT').innerText = `Male: ${tM} | Female: ${tF}`;
 
-        // 2. ACADEMIC ANALYSIS
+        // 2. DIVISION LOGIC (A=1, B=2, C=3, D=4, F=5)
         resSnap.forEach(doc => {
             const r = doc.data();
             if (studentMap[r.studentId]) studentMap[r.studentId].grades.push(r.grade);
@@ -49,48 +48,40 @@ async function loadDashboard() {
         Object.values(studentMap).forEach(student => {
             if (student.grades.length === 0) return;
 
-            // Map grades to points
-            let points = student.grades.map(g => {
-                const grade = g.toUpperCase();
-                if (grade === 'A') return 1;
-                if (grade === 'B') return 2;
-                if (grade === 'C') return 3;
-                if (grade === 'D') return 4;
-                return 5; // F
+            let pts = student.grades.map(g => {
+                let grade = g.toUpperCase();
+                return grade==='A'?1 : grade==='B'?2 : grade==='C'?3 : grade==='D'?4 : 5;
             }).sort((a, b) => a - b);
 
-            // NECTA Best 7 points
-            const totalPoints = points.slice(0, 7).reduce((a, b) => a + b, 0);
+            const best7Sum = pts.slice(0, 7).reduce((a, b) => a + b, 0);
 
             let div = "0";
-            if (totalPoints >= 7 && totalPoints <= 17) div = "I";
-            else if (totalPoints <= 21) div = "II";
-            else if (totalPoints <= 25) div = "III";
-            else if (totalPoints <= 33) div = "IV";
-            else div = "0";
+            if (best7Sum >= 7 && best7Sum <= 17) div = "I";
+            else if (best7Sum <= 21) div = "II";
+            else if (best7Sum <= 25) div = "III";
+            else if (best7Sum <= 33) div = "IV";
 
             if (classes[student.cls]) classes[student.cls][div]++;
         });
 
-        // 3. RENDER GRID
         const grid = document.getElementById('passGrid');
         grid.innerHTML = "";
-        Object.entries(classes).forEach(([className, d]) => {
+        Object.entries(classes).forEach(([clsName, d]) => {
             grid.innerHTML += `
                 <div class="class-card">
-                    <h3>${className}</h3>
-                    <div class="div-row"><span>Division I</span> <b>${d.I}</b></div>
-                    <div class="div-row"><span>Division II</span> <b>${d.II}</b></div>
-                    <div class="div-row"><span>Division III</span> <b>${d.III}</b></div>
-                    <div class="div-row"><span>Division IV</span> <b>${d.IV}</b></div>
-                    <div class="div-row"><span>Division 0</span> <b>${d['0']}</b></div>
+                    <h3>${clsName}</h3>
+                    <div class="div-row"><span>Division I</span><b>${d.I}</b></div>
+                    <div class="div-row"><span>Division II</span><b>${d.II}</b></div>
+                    <div class="div-row"><span>Division III</span><b>${d.III}</b></div>
+                    <div class="div-row"><span>Division IV</span><b>${d.IV}</b></div>
+                    <div class="div-row"><span>Division 0</span><b>${d['0']}</b></div>
                 </div>`;
         });
-
-    } catch (err) {
-        console.error("Error loading dashboard:", err);
-        document.getElementById('passGrid').innerHTML = "<p>Error loading data. Check console.</p>";
-    }
+    } catch (e) { console.error(e); }
 }
 
-loadDashboard();
+window.logout = () => {
+    signOut(auth).then(() => window.location.href = "index.html");
+};
+
+loadData();
