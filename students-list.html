@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="sw">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Student List | Olmoti Secondary</title>
+    <title>Orodha ya Wanafunzi | Olmoti Secondary</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     
     <style>
@@ -117,8 +117,6 @@
             color: white; 
             margin-right: 5px;
             transition: 0.2s;
-            display: inline-block;
-            border: none;
         }
         .btn-view { background: #1a237e; }
         .btn-edit { background: #ffa000; }
@@ -140,11 +138,11 @@
         </div>
         <ul class="nav-links">
             <li><a href="dashboard.html">🏠 Dashboard</a></li>
-            <li><a href="students-list.html" class="active">👥 Students</a></li>
-            <li><a href="mark-entry.html">📝 Enter Marks</a></li>
+            <li><a href="students-list.html" class="active">👥 Wanafunzi</a></li>
+            <li><a href="mark-entry.html">📝 Ingiza Alama</a></li>
             <li><a href="bulk-upload.html">📤 Bulk Upload</a></li>
             <li><a href="broadsheet.html">📊 Broadsheet</a></li>
-            <li><a href="class-dashboard.html">📈 Performance Analysis</a></li>
+            <li><a href="class-dashboard.html">📈 Uchambuzi</a></li>
         </ul>
         <div style="padding: 20px; border-top: 1px solid rgba(255,255,255,0.1);">
             <a href="index.html" style="color: #ff8a80; text-decoration: none; font-size: 14px;">🚪 Log Out</a>
@@ -153,14 +151,14 @@
 
     <div class="main-content">
         <div class="header-row">
-            <h1 style="color: var(--nav-blue); margin: 0;">Student Management</h1>
-            <a href="add-student.html" class="action-btn btn-add">+ REGISTER STUDENT</a>
+            <h1 style="color: var(--nav-blue); margin: 0;">Usimamizi wa Wanafunzi</h1>
+            <a href="add-student.html" class="action-btn btn-add">+ SAJILI MWANAFUNZI</a>
         </div>
 
         <div class="controls">
-            <input type="text" id="searchInput" placeholder="Search student by name...">
+            <input type="text" id="searchInput" placeholder="Tafuta mwanafunzi kwa jina...">
             <select id="filterClass">
-                <option value="">All Classes</option>
+                <option value="">Darasa Zote</option>
                 <option>Form 1</option><option>Form 2</option>
                 <option>Form 3</option><option>Form 4</option>
             </select>
@@ -172,13 +170,13 @@
                 <thead>
                     <tr>
                         <th style="width: 50px;">S/N</th>
-                        <th>STUDENT NAME</th>
-                        <th>CLASS</th>
-                        <th style="text-align: center;">ACTIONS</th>
+                        <th>JINA LA MWANAFUNZI</th>
+                        <th>DARASA</th>
+                        <th style="text-align: center;">VITENDO (ACTIONS)</th>
                     </tr>
                 </thead>
                 <tbody id="studentTbody">
-                    <tr><td colspan="4" style="text-align:center; padding: 30px;">Loading data... please wait.</td></tr>
+                    <tr><td colspan="4" style="text-align:center; padding: 30px;">Inapakia data... tafadhali subiri.</td></tr>
                 </tbody>
             </table>
         </div>
@@ -203,7 +201,7 @@
             renderTable(allStudents);
         } catch (error) {
             console.error("Error loading students:", error);
-            document.getElementById("studentTbody").innerHTML = '<tr><td colspan="4" style="text-align:center; color:red;">Failed to load data.</td></tr>';
+            document.getElementById("studentTbody").innerHTML = '<tr><td colspan="4" style="text-align:center; color:red;">Imeshindikana kupakia data.</td></tr>';
         }
     }
 
@@ -213,7 +211,7 @@
         tbody.innerHTML = "";
 
         if (data.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; padding:30px;">No students found.</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; padding:30px;">Hakuna mwanafunzi aliyepatikana.</td></tr>';
             return;
         }
 
@@ -224,8 +222,8 @@
                     <td style="font-weight:600;">${s.name}</td>
                     <td><span class="badge-cls">${s.cls}</span></td>
                     <td style="text-align: center;">
-                        <a href="view-report.html?id=${s.id}" class="action-btn btn-view">REPORT</a>
-                        <a href="edit-student.html?id=${s.id}" class="action-btn btn-edit">EDIT</a>
+                        <a href="view-report.html?id=${s.id}" class="action-btn btn-view">RIPOTI</a>
+                        <a href="edit-student.html?id=${s.id}" class="action-btn btn-edit">BADILI</a>
                     </td>
                 </tr>
             `;
