@@ -2,23 +2,21 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Login | Olmoti Secondary</title>
+    <title>School ERP Login</title>
     <style>
         body { font-family: 'Segoe UI', sans-serif; background: #1a237e; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
-        .login-card { background: white; padding: 40px; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.3); width: 340px; text-align: center; }
-        h2 { color: #1a237e; margin-bottom: 25px; }
+        .card { background: white; padding: 40px; border-radius: 12px; width: 320px; text-align: center; box-shadow: 0 10px 25px rgba(0,0,0,0.2); }
         input { width: 100%; padding: 12px; margin: 10px 0; border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box; }
-        button { width: 100%; padding: 12px; background: #c5a059; border: none; color: white; font-weight: bold; border-radius: 6px; cursor: pointer; font-size: 16px; }
-        button:disabled { background: #ccc; cursor: not-allowed; }
+        button { width: 100%; padding: 12px; background: #c5a059; color: white; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; }
+        button:disabled { background: #ccc; }
     </style>
 </head>
 <body>
-    <div class="login-card">
-        <h2>🏫 Olmoti Portal</h2>
+    <div class="card">
+        <h2 style="color: #1a237e;">🏫 Olmoti Portal</h2>
         <input id="email" type="email" placeholder="Email Address">
         <input id="password" type="password" placeholder="Password">
         <button onclick="login()">Login</button>
-        <p style="font-size: 12px; color: #777; margin-top: 20px;">Authorized Access Only</p>
     </div>
 
     <script type="module" src="auth.js"></script>
