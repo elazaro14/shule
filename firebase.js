@@ -4,7 +4,7 @@ import { getFirestore } from "https://www.gstatic.com/firebasejs/10.7.1/firebase
 import { getAuth } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
 const firebaseConfig = {
-  apiKey: "AIzaSyDFPLbIyIKVD03sXVsbh0lveLIW9fJNoOY,
+  apiKey: "AIzaSyB7JmN-RF0XT9_G027_9DOF8azZAmqRNfM,
   authDomain: "shule-project-2e214.firebaseapp.com",
   projectId: "shule-project-2e214",
   storageBucket: "shule-project-2e214.appspot.com",
