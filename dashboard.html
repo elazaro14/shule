@@ -2,48 +2,66 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Olmoti Dashboard</title>
-    <link rel="stylesheet" href="style.css"> <style>
-        .stats-container { display: flex; gap: 20px; margin-bottom: 30px; }
-        .summary-card { 
-            background: white; padding: 20px; border-radius: 12px; flex: 1;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1); border-left: 5px solid #c5a059;
-        }
-        .summary-card h4 { margin: 0 0 10px 0; color: #1a237e; text-transform: uppercase; font-size: 14px; }
-        .count-text { font-size: 24px; font-weight: bold; color: #333; }
-        .gender-detail { font-size: 14px; color: #666; }
+    <title>Dashboard | Olmoti Secondary Portal</title>
+    <style>
+        :root { --primary: #1a237e; --accent: #c5a059; --bg: #f4f7fe; }
+        body { font-family: 'Segoe UI', sans-serif; margin: 0; display: flex; background: var(--bg); }
+        
+        /* SIDEBAR */
+        .sidebar { width: 250px; height: 100vh; background: var(--primary); color: white; position: fixed; }
+        .sidebar-header { padding: 20px; text-align: center; border-bottom: 1px solid rgba(255,255,255,0.1); }
+        .nav-links { list-style: none; padding: 20px 0; margin: 0; }
+        .nav-links li a { color: #cfd8dc; text-decoration: none; padding: 15px 25px; display: block; transition: 0.3s; }
+        .nav-links li a:hover, .nav-links li.active a { background: rgba(255,255,255,0.1); color: white; border-left: 4px solid var(--accent); }
 
-        .performance-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; }
-        .class-card { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
-        .class-card h3 { color: #1a237e; border-bottom: 2px solid #f8f9fa; padding-bottom: 10px; margin-bottom: 15px; }
-        .div-row { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px dashed #eee; }
-        .div-row b { color: #c5a059; }
+        /* MAIN CONTENT */
+        .main-content { margin-left: 250px; padding: 40px; width: calc(100% - 250px); }
+        .stats-row { display: flex; gap: 20px; margin-bottom: 40px; }
+        .stat-card { background: white; padding: 25px; border-radius: 12px; flex: 1; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
+        .stat-card h4 { margin: 0; color: #777; font-size: 14px; text-transform: uppercase; }
+        .stat-card .count { font-size: 28px; font-weight: bold; color: var(--primary); margin: 10px 0; }
+        .stat-card .detail { font-size: 13px; color: #888; }
+
+        /* PERFORMANCE GRID */
+        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 20px; }
+        .class-card { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
+        .class-card h3 { color: var(--primary); border-bottom: 2px solid var(--bg); padding-bottom: 10px; margin-top: 0; }
+        .div-row { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #f9f9f9; font-size: 14px; }
+        .div-row b { color: var(--accent); }
     </style>
 </head>
 <body>
 
-    <div class="dashboard-wrapper">
-        <h2 style="color: #1a237e;">School Statistics Summary</h2>
-        
-        <div class="stats-container">
-            <div class="summary-card">
-                <h4>Students</h4>
-                <div class="count-text" id="totalS">0</div>
-                <div class="gender-detail" id="genderS">Male: 0 | Female: 0</div>
+    <div class="sidebar">
+        <div class="sidebar-header"><h3>OLMOTI SEC</h3></div>
+        <ul class="nav-links">
+            <li class="active"><a href="dashboard.html">🏠 Dashboard</a></li>
+            <li><a href="students.html">👨‍🎓 Students</a></li>
+            <li><a href="results.html">📝 Results</a></li>
+            <li><a href="teachers.html">👨‍🏫 Teachers</a></li>
+            <li><a href="#" onclick="logout()">🚪 Logout</a></li>
+        </ul>
+    </div>
+
+    <div class="main-content">
+        <h2 style="color: var(--primary);">Olmoti Academic Summary</h2>
+
+        <div class="stats-row">
+            <div class="stat-card">
+                <h4>Students Population</h4>
+                <div class="count" id="totalS">0</div>
+                <div class="detail" id="detailS">M: 0 | F: 0</div>
             </div>
-            <div class="summary-card">
-                <h4>Teachers</h4>
-                <div class="count-text" id="totalT">0</div>
-                <div class="gender-detail" id="genderT">Male: 0 | Female: 0</div>
+            <div class="stat-card">
+                <h4>Teacher Force</h4>
+                <div class="count" id="totalT">0</div>
+                <div class="detail" id="detailT">M: 0 | F: 0</div>
             </div>
         </div>
 
-        <h2 style="color: #1a237e; margin-top: 40px;">Academic Performance (Best 7 Subjects)</h2>
-        
-        <div class="performance-grid" id="passGrid">
-            <p>Loading analysis...</p>
-        </div>
+        <h3 style="color: var(--primary);">Performance by Division (Best 7)</h3>
+        <div class="grid" id="passGrid">
+            </div>
     </div>
 
     <script type="module" src="dashboard-logic.js"></script>
