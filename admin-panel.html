@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Admin Control | Olmoti Secondary</title>
+    <style>
+        :root { --primary: #1a237e; --gold: #c5a059; --bg: #f4f7f6; }
+        body { font-family: 'Segoe UI', sans-serif; margin: 0; display: flex; background: var(--bg); }
+        
+        /* Sidebar stays consistent */
+        .sidebar { width: 260px; background: var(--primary); color: white; height: 100vh; position: fixed; }
+        .main-content { margin-left: 260px; padding: 40px; width: 100%; }
+
+        .admin-table { width: 100%; background: white; border-radius: 12px; border-collapse: collapse; overflow: hidden; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
+        .admin-table th, .admin-table td { padding: 15px; text-align: left; border-bottom: 1px solid #eee; }
+        .admin-table th { background: #f8f9fa; color: var(--primary); font-size: 13px; text-transform: uppercase; }
+        
+        .select-box { padding: 8px; border-radius: 5px; border: 1px solid #ddd; font-size: 14px; }
+        .save-btn { background: var(--primary); color: white; border: none; padding: 8px 15px; border-radius: 5px; cursor: pointer; }
+        .save-btn:hover { background: #283593; }
+        .status-badge { padding: 4px 10px; border-radius: 20px; font-size: 11px; font-weight: bold; }
+        .role-admin { background: #ffebee; color: #c62828; }
+        .role-teacher { background: #e8f5e9; color: #2e7d32; }
+    </style>
+</head>
+<body>
+
+    <div class="sidebar">
+        <div style="padding:30px; text-align:center;"><h2>OLMOTI SEC</h2></div>
+        <ul style="list-style:none; padding:0;">
+            <li style="padding:15px 25px;"><a href="dashboard.html" style="color:white; text-decoration:none;">🏠 Dashboard</a></li>
+            <li style="padding:15px 25px; background:rgba(255,255,255,0.1); border-left:5px solid var(--gold);"><a href="admin-panel.html" style="color:white; text-decoration:none;">⚙️ Admin Control</a></li>
+            <li style="padding:15px 25px;"><a href="students-list.html" style="color:white; text-decoration:none;">👥 Students</a></li>
+        </ul>
+    </div>
+
+    <div class="main-content">
+        <h1>Staff Management & Access Control</h1>
+        <p>Assign classes to teachers to restrict their data access.</p>
+
+        <table class="admin-table">
+            <thead>
+                <tr>
+                    <th>Staff Name</th>
+                    <th>Email</th>
+                    <th>Role</th>
+                    <th>Assigned Class</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody id="userTableBody">
+                </tbody>
+        </table>
+    </div>
+
+    <script type="module">
+        import { db, auth } from "./firebase.js";
+        import { collection, getDocs, doc, updateDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+
+        // Security Check: Only allow Admins to see this page
+        onAuthStateChanged(auth, async (user) => {
+            if (!user) window.location.href = "index.html";
+            const adminSnap = await getDoc(doc(db, "users", user.uid));
+            if (adminSnap.data().role !== "admin") {
+                alert("Access Denied!");
+                window.location.href = "dashboard.html";
+            } else {
+                loadUsers();
+            }
+        });
+
+        async function loadUsers() {
+            const querySnapshot = await getDocs(collection(db, "users"));
+            const tbody = document.getElementById('userTableBody');
+            tbody.innerHTML = "";
+
+            querySnapshot.forEach((userDoc) => {
+                const u = userDoc.data();
+                const uid = userDoc.id;
+
+                tbody.innerHTML += `
+                    <tr>
+                        <td><b>${u.name || 'N/A'}</b></td>
+                        <td>${u.email || 'N/A'}</td>
+                        <td>
+                            <select class="select-box" id="role-${uid}">
+                                <option value="admin" ${u.role === 'admin' ? 'selected' : ''}>Admin</option>
+                                <option value="teacher" ${u.role === 'teacher' ? 'selected' : ''}>Teacher</option>
+                            </select>
+                        </td>
+                        <td>
+                            <select class="select-box" id="class-${uid}">
+                                <option value="None">None</option>
+                                <option value="Form 1" ${u.assignedClass === 'Form 1' ? 'selected' : ''}>Form 1</option>
+                                <option value="Form 2" ${u.assignedClass === 'Form 2' ? 'selected' : ''}>Form 2</option>
+                                <option value="Form 3" ${u.assignedClass === 'Form 3' ? 'selected' : ''}>Form 3</option>
+                                <option value="Form 4" ${u.assignedClass === 'Form 4' ? 'selected' : ''}>Form 4</option>
+                            </select>
+                        </td>
+                        <td>
+                            <button class="save-btn" onclick="updateUser('${uid}')">Save Changes</button>
+                        </td>
+                    </tr>
+                `;
+            });
+        }
+
+        window.updateUser = async (uid) => {
+            const newRole = document.getElementById(`role-${uid}`).value;
+            const newClass = document.getElementById(`class-${uid}`).value;
+
+            try {
+                await updateDoc(doc(db, "users", uid), {
+                    role: newRole,
+                    assignedClass: newClass
+                });
+                alert("Staff access updated successfully!");
+            } catch (err) {
+                alert("Error: " + err.message);
+            }
+        };
+    </script>
+</body>
+</html>
