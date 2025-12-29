@@ -2,110 +2,168 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Olmoti Dashboard | Admin Control</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Olmoti Dashboard | Admin Portal</title>
     <style>
         :root { --primary: #1a237e; --gold: #c5a059; --bg: #f4f7f6; --white: #ffffff; }
         body { margin: 0; font-family: 'Segoe UI', sans-serif; display: flex; background: var(--bg); }
         
         /* SIDEBAR */
-        .sidebar { width: 260px; background: var(--primary); color: white; height: 100vh; position: fixed; }
-        .sidebar-header { padding: 30px; text-align: center; border-bottom: 1px solid var(--gold); }
+        .sidebar { width: 260px; background: var(--primary); color: white; height: 100vh; position: fixed; box-shadow: 2px 0 10px rgba(0,0,0,0.1); }
+        .sidebar-header { padding: 30px 20px; text-align: center; border-bottom: 1px solid var(--gold); background: rgba(0,0,0,0.1); }
         .nav-links { list-style: none; padding: 20px 0; margin: 0; }
-        .nav-links li a { color: #cfd8dc; text-decoration: none; padding: 15px 25px; display: block; transition: 0.3s; }
-        .nav-links li.active a { background: rgba(255,255,255,0.1); border-left: 5px solid var(--gold); }
+        .nav-links li a { color: #cfd8dc; text-decoration: none; padding: 15px 25px; display: block; transition: 0.3s; font-size: 15px; }
+        .nav-links li.active a, .nav-links li a:hover { background: rgba(255,255,255,0.1); border-left: 5px solid var(--gold); color: white; }
 
         /* MAIN CONTENT */
         .main-content { margin-left: 260px; padding: 40px; width: calc(100% - 260px); }
-        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-bottom: 40px; }
-        .stat-card { background: var(--white); padding: 20px; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
-        .stat-card h4 { margin: 0; font-size: 12px; color: #777; text-transform: uppercase; }
-        .stat-card .val { font-size: 24px; font-weight: bold; color: var(--primary); margin: 10px 0; }
+        .header-row { margin-bottom: 30px; }
+        
+        /* STATS CARDS */
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 20px; margin-bottom: 40px; }
+        .stat-card { background: var(--white); padding: 25px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); border-top: 4px solid var(--gold); }
+        .stat-card h4 { margin: 0; font-size: 13px; color: #777; text-transform: uppercase; letter-spacing: 1px; }
+        .stat-card .val { font-size: 32px; font-weight: bold; color: var(--primary); margin: 10px 0; }
+        .stat-card .sub { font-size: 13px; color: #888; }
 
-        /* STAFF TABLE */
-        .section-title { color: var(--primary); border-left: 5px solid var(--gold); padding-left: 15px; margin: 40px 0 20px; }
-        .admin-box { background: var(--white); border-radius: 10px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
+        /* ADMIN TABLE */
+        .section-title { color: var(--primary); border-left: 5px solid var(--gold); padding-left: 15px; margin: 40px 0 20px; font-size: 20px; }
+        .admin-box { background: var(--white); border-radius: 12px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
         table { width: 100%; border-collapse: collapse; }
         th, td { padding: 15px; text-align: left; border-bottom: 1px solid #eee; }
-        th { background: #f8f9fa; font-size: 13px; color: var(--primary); }
+        th { background: #f8f9fa; font-size: 13px; color: var(--primary); text-transform: uppercase; }
         
-        select { padding: 8px; border-radius: 4px; border: 1px solid #ddd; }
-        .btn-save { background: var(--primary); color: white; border: none; padding: 8px 12px; border-radius: 4px; cursor: pointer; }
+        select { padding: 8px; border-radius: 4px; border: 1px solid #ddd; font-size: 14px; outline: none; }
+        .btn-save { background: var(--primary); color: white; border: none; padding: 10px 18px; border-radius: 6px; cursor: pointer; font-weight: bold; transition: 0.2s; }
+        .btn-save:hover { background: #283593; transform: translateY(-1px); }
+
+        @media (max-width: 1024px) {
+            .sidebar { width: 70px; }
+            .sidebar h2, .sidebar span { display: none; }
+            .main-content { margin-left: 70px; width: calc(100% - 70px); }
+        }
     </style>
 </head>
 <body>
 
     <div class="sidebar">
-        <div class="sidebar-header"><h2>OLMOTI SEC</h2></div>
+        <div class="sidebar-header">
+            <h2 style="margin:0;">OLMOTI SEC</h2>
+            <small style="color:var(--gold)">SCHOOL PORTAL</small>
+        </div>
         <ul class="nav-links">
-            <li class="active"><a href="#">🏠 Dashboard</a></li>
-            <li><a href="students-list.html">👥 Students</a></li>
-            <li><a href="attendance.html">📅 Attendance</a></li>
-            <li><a href="profile.html">👤 My Profile</a></li>
-            <li><a href="#" onclick="logout()">🚪 Logout</a></li>
+            <li class="active"><a href="dashboard.html">🏠 <span>Dashboard</span></a></li>
+            <li><a href="students-list.html">👥 <span>Students</span></a></li>
+            <li><a href="attendance.html">📅 <span>Attendance</span></a></li>
+            <li><a href="profile.html">👤 <span>My Profile</span></a></li>
+            <li><a href="#" onclick="logout()">🚪 <span>Logout</span></a></li>
         </ul>
     </div>
 
     <div class="main-content">
-        <h1 style="color: var(--primary);">School Overview</h1>
+        <div class="header-row">
+            <h1 style="color: var(--primary); margin:0;">School Management Center</h1>
+            <p id="welcomeMsg" style="color:#666;">Welcome back...</p>
+        </div>
 
         <div class="stats-grid">
             <div class="stat-card">
-                <h4>Total Students</h4>
+                <h4>Students Total</h4>
                 <div class="val" id="countS">0</div>
+                <div class="sub" id="genderS">Male: 0 | Female: 0</div>
             </div>
             <div class="stat-card">
-                <h4>Total Staff</h4>
+                <h4>Teacher Force</h4>
                 <div class="val" id="countT">0</div>
+                <div class="sub" id="genderT">Male: 0 | Female: 0</div>
             </div>
         </div>
 
         <div id="adminArea" style="display: none;">
-            <h3 class="section-title">Staff Access Control (Admin Only)</h3>
+            <h3 class="section-title">Staff Access Control</h3>
             <div class="admin-box">
                 <table>
                     <thead>
                         <tr>
-                            <th>Name</th>
+                            <th>Staff Name</th>
                             <th>Role</th>
+                            <th>Gender</th>
                             <th>Assigned Class</th>
                             <th>Action</th>
                         </tr>
                     </thead>
                     <tbody id="staffTable">
-                        <tr><td colspan="4">Checking permissions...</td></tr>
+                        <tr><td colspan="5" style="text-align:center; padding:30px;">Loading staff database...</td></tr>
                     </tbody>
                 </table>
             </div>
         </div>
     </div>
 
+
+
 <script type="module">
     import { db, auth } from "./firebase.js";
     import { collection, getDocs, doc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
     import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
+    // 1. Check Authentication and Permissions
     onAuthStateChanged(auth, async (user) => {
-        if (!user) window.location.href = "index.html";
+        if (!user) {
+            window.location.href = "index.html";
+            return;
+        }
         
-        // 1. Check if User is Admin
         const userRef = doc(db, "users", user.uid);
         const userSnap = await getDoc(userRef);
         
-        if (userSnap.exists() && userSnap.data().role === 'admin') {
-            document.getElementById('adminArea').style.display = 'block';
-            loadStaff();
+        if (userSnap.exists()) {
+            const userData = userSnap.data();
+            document.getElementById('welcomeMsg').innerText = `Welcome back, ${userData.name || 'Staff'}`;
+            
+            // Show Admin Section ONLY if role is admin
+            if (userData.role === 'admin') {
+                document.getElementById('adminArea').style.display = 'block';
+                loadStaffList();
+            }
         }
-        loadStats();
+        loadDashboardStats();
     });
 
-    async function loadStats() {
-        const sSnap = await getDocs(collection(db, "students"));
-        const uSnap = await getDocs(collection(db, "users"));
-        document.getElementById('countS').innerText = sSnap.size;
-        document.getElementById('countT').innerText = uSnap.size;
+    // 2. Load Stats for Students and Teachers
+    async function loadDashboardStats() {
+        try {
+            const [sSnap, uSnap] = await Promise.all([
+                getDocs(collection(db, "students")),
+                getDocs(collection(db, "users"))
+            ]);
+
+            // Student Gender Count
+            let sm = 0, sf = 0;
+            sSnap.forEach(doc => {
+                if (doc.data().gender === "M") sm++; else sf++;
+            });
+
+            // Teacher Gender Count
+            let tm = 0, tf = 0;
+            uSnap.forEach(doc => {
+                const data = doc.data();
+                if (data.role === 'teacher' || data.role === 'admin') {
+                    if (data.gender === "M") tm++; else tf++;
+                }
+            });
+
+            document.getElementById('countS').innerText = sSnap.size;
+            document.getElementById('genderS').innerText = `Boys: ${sm} | Girls: ${sf}`;
+            document.getElementById('countT').innerText = tm + tf;
+            document.getElementById('genderT').innerText = `Male: ${tm} | Female: ${tf}`;
+        } catch (err) {
+            console.error("Stats Error:", err);
+        }
     }
 
-    async function loadStaff() {
+    // 3. Load Staff Management Table
+    async function loadStaffList() {
         const snap = await getDocs(collection(db, "users"));
         const tbody = document.getElementById('staffTable');
         tbody.innerHTML = "";
@@ -115,35 +173,50 @@
             const id = userDoc.id;
             tbody.innerHTML += `
                 <tr>
-                    <td><b>${u.name || 'User'}</b></td>
+                    <td><b>${u.name || 'New User'}</b><br><small style="color:#888;">${u.email || ''}</small></td>
                     <td>
                         <select id="role-${id}">
-                            <option value="admin" ${u.role==='admin'?'selected':''}>Admin</option>
-                            <option value="teacher" ${u.role==='teacher'?'selected':''}>Teacher</option>
+                            <option value="admin" ${u.role === 'admin' ? 'selected' : ''}>Admin</option>
+                            <option value="teacher" ${u.role === 'teacher' ? 'selected' : ''}>Teacher</option>
+                        </select>
+                    </td>
+                    <td>
+                        <select id="gender-${id}">
+                            <option value="M" ${u.gender === 'M' ? 'selected' : ''}>Male</option>
+                            <option value="F" ${u.gender === 'F' ? 'selected' : ''}>Female</option>
                         </select>
                     </td>
                     <td>
                         <select id="class-${id}">
                             <option value="None">None</option>
-                            <option value="Form 1" ${u.assignedClass==='Form 1'?'selected':''}>Form 1</option>
-                            <option value="Form 2" ${u.assignedClass==='Form 2'?'selected':''}>Form 2</option>
-                            <option value="Form 3" ${u.assignedClass==='Form 3'?'selected':''}>Form 3</option>
-                            <option value="Form 4" ${u.assignedClass==='Form 4'?'selected':''}>Form 4</option>
+                            <option value="Form 1" ${u.assignedClass === 'Form 1' ? 'selected' : ''}>Form 1</option>
+                            <option value="Form 2" ${u.assignedClass === 'Form 2' ? 'selected' : ''}>Form 2</option>
+                            <option value="Form 3" ${u.assignedClass === 'Form 3' ? 'selected' : ''}>Form 3</option>
+                            <option value="Form 4" ${u.assignedClass === 'Form 4' ? 'selected' : ''}>Form 4</option>
                         </select>
                     </td>
-                    <td><button class="btn-save" onclick="updateStaff('${id}')">Update</button></td>
+                    <td><button class="btn-save" onclick="updateStaffData('${id}')">Update</button></td>
                 </tr>`;
         });
     }
 
-    window.updateStaff = async (id) => {
-        const r = document.getElementById(`role-${id}`).value;
-        const c = document.getElementById(`class-${id}`).value;
-        await updateDoc(doc(db, "users", id), { role: r, assignedClass: c });
-        alert("Permissions Updated!");
+    // 4. Update Staff Data Global Function
+    window.updateStaffData = async (id) => {
+        const role = document.getElementById(`role-${id}`).value;
+        const gender = document.getElementById(`gender-${id}`).value;
+        const assignedClass = document.getElementById(`class-${id}`).value;
+        
+        try {
+            const userRef = doc(db, "users", id);
+            await updateDoc(userRef, { role, gender, assignedClass });
+            alert("Staff permissions updated successfully!");
+            loadDashboardStats(); // Refresh stats at top
+        } catch (e) {
+            alert("Error updating: " + e.message);
+        }
     };
 
     window.logout = () => signOut(auth).then(() => window.location.href="index.html");
 </script>
 </body>
-</html>>
+</html>
