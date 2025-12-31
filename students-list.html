@@ -1,227 +1,73 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Registry | Olmoti ERP</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <style>
-        :root { 
-            --primary: #1a237e; 
-            --gold: #c5a059; 
-            --bg: #f4f7f6; 
-            --white: #ffffff; 
-            --sidebar-width: 250px;
-        }
+<div class="main-content">
+    <div class="registry-container">
+        <h2>Student Registry</h2>
         
-        body { margin: 0; font-family: 'Segoe UI', sans-serif; display: flex; background: var(--bg); }
-
-        /* --- SIDEBAR (Consistent with Admin Portal) --- */
-        .sidebar { width: var(--sidebar-width); background: #1a1c23; color: white; height: 100vh; position: fixed; padding: 20px; box-sizing: border-box; }
-        .sidebar h2 { font-size: 20px; border-bottom: 1px solid #333; padding-bottom: 15px; color: var(--gold); text-align: center; }
-        .nav-link { padding: 12px; color: #a4a6b3; text-decoration: none; display: flex; align-items: center; gap: 10px; border-radius: 8px; transition: 0.3s; margin-top: 5px; }
-        .nav-link:hover, .nav-link.active { background: #3a3b45; color: white; }
-
-        /* --- MAIN CONTENT --- */
-        .main-content { margin-left: var(--sidebar-width); padding: 40px; flex-grow: 1; }
-        
-        .registry-container { background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
-        h2 { color: var(--primary); margin-top: 0; }
-
-        /* Toolbars */
-        .toolbar { display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; }
-        .search-input { flex: 1; padding: 12px; border: 1px solid #ddd; border-radius: 8px; outline: none; transition: 0.3s; }
-        .search-input:focus { border-color: var(--primary); }
-
-        .add-box { background: #f8f9fc; padding: 20px; border-radius: 8px; border: 1px solid #e3e6f0; margin-bottom: 30px; display: flex; gap: 10px; align-items: center; }
-        .add-box input, .add-box select { padding: 10px; border: 1px solid #ddd; border-radius: 5px; }
-
-        /* Table Styling */
-        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-        th { text-align: left; background: #f8f9fc; padding: 15px; color: var(--primary); text-transform: uppercase; font-size: 12px; border-bottom: 2px solid #eee; }
-        td { padding: 15px; border-bottom: 1px solid #eee; font-size: 14px; }
-        tr:hover { background: #fafafa; }
-
-        /* Buttons */
-        .btn { padding: 10px 15px; border: none; border-radius: 6px; cursor: pointer; color: white; text-decoration: none; font-size: 13px; font-weight: 600; display: inline-flex; align-items: center; gap: 5px; transition: 0.2s; }
-        .btn:hover { opacity: 0.9; transform: translateY(-1px); }
-        .btn-sm { padding: 5px 10px; font-size: 11px; }
-    </style>
-</head>
-<body>
-
-    <div class="sidebar">
-        <h2>OLMOTI SEC</h2>
-        <a href="dashboard.html" class="nav-link"><i class="fas fa-th-large"></i> Dashboard</a>
-        <a href="students-list.html" class="nav-link active"><i class="fas fa-user-graduate"></i> Students</a>
-        <a href="mark-entry.html" class="nav-link"><i class="fas fa-edit"></i> Mark Entry</a>
-        <a href="attendance.html" class="nav-link"><i class="fas fa-calendar-check"></i> Attendance</a>
-    </div>
-
-    <div class="main-content">
-        <div class="registry-container">
-            <h2>Student Registry</h2>
-            
-            <div class="toolbar">
-                <input type="text" id="searchInput" class="search-input" placeholder="Tafuta jina la mwanafunzi au darasa...">
-                <button class="btn" style="background:#1cc88a;" onclick="downloadCSV()">
-                    <i class="fas fa-download"></i> Template
-                </button>
-                <label class="btn" style="background:#36b9cc;">
-                    <i class="fas fa-upload"></i> Upload CSV 
-                    <input type="file" id="csvIn" hidden onchange="handleCSV(this)">
-                </label>
-            </div>
-
-            <div class="add-box">
-                <strong style="color:#555">Ongeza Mwanafunzi:</strong>
-                <input id="newName" placeholder="Jina Kamili" style="flex:2">
-                <select id="newSex">
-                    <option value="M">Male</option>
-                    <option value="F">Female</option>
-                </select>
-                <select id="newClass">
-                    <option>Form 1</option>
-                    <option>Form 2</option>
-                    <option>Form 3</option>
-                    <option>Form 4</option>
-                </select>
-                <button class="btn" style="background:var(--primary);" id="addBtn">
-                    <i class="fas fa-plus"></i> ADD
-                </button>
-            </div>
-
-            <table>
-                <thead>
-                    <tr>
-                        <th>S/N</th>
-                        <th>Name</th>
-                        <th>Sex</th>
-                        <th>Class</th>
-                        <th style="text-align:right;">Actions</th>
-                    </tr>
-                </thead>
-                <tbody id="regBody">
-                    <tr><td colspan="5" style="text-align:center;">Loading database...</td></tr>
-                </tbody>
-            </table>
+        <div id="adminControls" style="display:none;" class="add-box">
+            <input id="newName" placeholder="Full Name">
+            <select id="newSex"><option value="M">Male</option><option value="F">Female</option></select>
+            <select id="newClass"><option>Form 1</option><option>Form 2</option><option>Form 3</option><option>Form 4</option></select>
+            <button class="btn-save" id="addBtn">Add Student</button>
         </div>
+
+        <table>
+            <thead>
+                <tr><th>S/N</th><th>Name</th><th>Sex</th><th>Class</th><th id="actionHead" style="display:none;">Actions</th></tr>
+            </thead>
+            <tbody id="regBody"></tbody>
+        </table>
     </div>
+</div>
 
 <script type="module">
-    import { db } from "./firebase.js";
-    import { collection, getDocs, addDoc, deleteDoc, doc, updateDoc, query, orderBy } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+    import { db, auth } from "./firebase.js";
+    import { collection, getDocs, addDoc, doc, getDoc, deleteDoc, query, orderBy } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+    import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
-    let students = [];
-    const regBody = document.getElementById("regBody");
+    let isAdmin = false;
 
-    // 1. Load Data
-    async function load() {
-        try {
-            const snap = await getDocs(query(collection(db, "students"), orderBy("name")));
-            students = snap.docs.map(d => ({id: d.id, ...d.data()}));
-            render();
-        } catch (e) { console.error(e); }
-    }
-
-    // 2. Display Data
-    function render() {
-        const term = searchInput.value.toLowerCase();
-        regBody.innerHTML = "";
+    onAuthStateChanged(auth, async (user) => {
+        if (!user) return window.location.href = "index.html";
+        const userSnap = await getDoc(doc(db, "users", user.uid));
+        isAdmin = userSnap.data().role === 'admin';
         
-        const filtered = students.filter(s => 
-            s.name.toLowerCase().includes(term) || 
-            (s.cls && s.cls.toLowerCase().includes(term))
-        );
-        
-        if(filtered.length === 0) {
-            regBody.innerHTML = `<tr><td colspan="5" style="text-align:center; padding:20px; color:#888;">No students found</td></tr>`;
-            return;
+        if (isAdmin) {
+            document.getElementById('adminControls').style.display = 'block';
+            document.getElementById('actionHead').style.display = 'table-cell';
         }
+        loadStudents();
+    });
 
-        filtered.forEach((s, i) => {
-            regBody.innerHTML += `<tr>
+    async function loadStudents() {
+        const snap = await getDocs(query(collection(db, "students"), orderBy("name")));
+        const tbody = document.getElementById('regBody');
+        tbody.innerHTML = "";
+        
+        snap.docs.forEach((d, i) => {
+            const s = d.data();
+            let actions = isAdmin ? `<td><button onclick="deleteS('${d.id}')" style="color:red; border:none; background:none; cursor:pointer;"><i class="fas fa-trash"></i></button></td>` : "";
+            
+            tbody.innerHTML += `<tr>
                 <td>${i+1}</td>
-                <td><strong>${s.name}</strong></td>
-                <td>${s.sex || s.gender || 'M'}</td>
+                <td>${s.name}</td>
+                <td>${s.sex}</td>
                 <td>${s.cls}</td>
-                <td style="text-align:right;">
-                    <button class="btn btn-sm" style="background:orange;" onclick="editStud('${s.id}','${s.name}')">
-                        <i class="fas fa-pen"></i>
-                    </button>
-                    <button class="btn btn-sm" style="background:red;" onclick="delStud('${s.id}')">
-                        <i class="fas fa-trash"></i>
-                    </button>
-                </td>
+                ${actions}
             </tr>`;
         });
     }
 
-    // --- ACTIONS ---
-
-    window.delStud = async (id) => { 
-        if(confirm("Je, una uhakika unataka kufuta mwanafunzi huyu?")) { 
-            await deleteDoc(doc(db, "students", id)); 
-            load(); 
-        } 
+    window.deleteS = async (id) => { if(confirm("Delete student?")) { await deleteDoc(doc(db, "students", id)); loadStudents(); } };
+    
+    addBtn.onclick = async () => {
+        const name = document.getElementById('newName').value;
+        if(!name) return;
+        await addDoc(collection(db, "students"), {
+            name: name,
+            sex: document.getElementById('newSex').value,
+            cls: document.getElementById('newClass').value,
+            stream: "A"
+        });
+        document.getElementById('newName').value = "";
+        loadStudents();
     };
-
-    window.editStud = async (id, old) => { 
-        const n = prompt("Badili Jina:", old); 
-        if(n) { 
-            await updateDoc(doc(db,"students",id), {name:n}); 
-            load(); 
-        } 
-    };
-
-    window.downloadCSV = () => { 
-        const content = "Name,Sex,Class\nJuma Hamisi,M,Form 1\nAneth John,F,Form 2";
-        const blob = new Blob([content], {type:'text/csv'}); 
-        const url = URL.createObjectURL(blob); 
-        const a = document.createElement('a'); 
-        a.href=url; a.download='Olmoti_Template.csv'; a.click(); 
-    };
-
-    window.handleCSV = (input) => {
-        const reader = new FileReader();
-        reader.onload = async (e) => {
-            const lines = e.target.result.split("\n");
-            // Start from 1 to skip header
-            for(let i=1; i < lines.length; i++) {
-                const [n, s, c] = lines[i].split(",");
-                if(n && n.trim()) {
-                    await addDoc(collection(db,"students"), {
-                        name: n.trim(),
-                        sex: (s || "M").trim(),
-                        cls: (c || "Form 1").trim(),
-                        stream: "A" // Default stream for new uploads
-                    });
-                }
-            }
-            alert("CSV Uploaded successfully!");
-            load();
-        };
-        reader.readAsText(input.files[0]);
-    };
-
-    addBtn.onclick = async () => { 
-        if(newName.value) { 
-            addBtn.disabled = true;
-            await addDoc(collection(db,"students"), {
-                name: newName.value, 
-                sex: newSex.value, 
-                cls: newClass.value,
-                stream: "A" 
-            }); 
-            newName.value=""; 
-            addBtn.disabled = false;
-            load(); 
-        } else {
-            alert("Tafadhali ingiza jina!");
-        }
-    };
-
-    searchInput.oninput = render;
-    load();
 </script>
-</body>
-</html>
