@@ -1,33 +1,150 @@
-<div class="main-content">
-    <div class="admin-box" style="max-width:500px; margin:auto;">
-        <h3>Register New Teacher</h3>
-        <input type="text" id="tName" placeholder="Teacher Full Name" style="width:100%; padding:10px; margin-bottom:10px;">
-        <button id="regBtn" class="btn-save" style="width:100%; padding:12px;">Create Account</button>
-        <div id="result" style="display:none; margin-top:20px; color:green; font-weight:bold;"></div>
+<!DOCTYPE html>
+<html lang="sw">
+<head>
+    <meta charset="UTF-8">
+    <title>Sajili Mwalimu | Olmoti Secondary</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        :root { 
+            --bg: #f4f7f6; --sidebar: #1a1c23; --primary: #1a237e; --gold: #c5a059; --sidebar-width: 250px; 
+        }
+        body { margin: 0; font-family: 'Segoe UI', sans-serif; display: flex; background: var(--bg); }
+
+        /* SIDEBAR */
+        .sidebar { width: var(--sidebar-width); background: var(--sidebar); color: white; height: 100vh; position: fixed; padding: 20px; box-sizing: border-box; }
+        .sidebar h2 { color: var(--gold); border-bottom: 1px solid #333; padding-bottom: 10px; text-align: center; }
+        .nav-link { padding: 12px; color: #ccc; text-decoration: none; display: flex; align-items: center; gap: 10px; border-radius: 8px; margin-bottom: 5px; }
+        .nav-link.active { background: #3a3b45; color: white; border-left: 4px solid var(--gold); }
+
+        /* MAIN CONTENT */
+        .main-content { margin-left: var(--sidebar-width); padding: 40px; flex-grow: 1; }
+        .card { background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); margin-bottom: 30px; }
+        
+        input { width: 100%; padding: 12px; margin: 10px 0; border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box; }
+        .btn-gen { background: var(--primary); color: white; border: none; padding: 15px; width: 100%; border-radius: 6px; cursor: pointer; font-weight: bold; }
+        
+        /* TABLE STYLING */
+        .table-container { background: white; border-radius: 12px; padding: 20px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+        th, td { padding: 12px; text-align: left; border-bottom: 1px solid #eee; }
+        th { background: #f8f9fa; color: var(--primary); font-size: 13px; text-transform: uppercase; }
+        .badge { background: #e8f5e9; color: #2e7d32; padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: bold; }
+    </style>
+</head>
+<body>
+    <div class="sidebar">
+        <h2>OLMOTI SEC</h2>
+        <a href="dashboard.html" class="nav-link"><i class="fas fa-chart-line"></i> Dashboard</a>
+        <a href="register-teacher.html" class="nav-link active"><i class="fas fa-user-plus"></i> Sajili Mwalimu</a>
+        <a href="students-list.html" class="nav-link"><i class="fas fa-users"></i> Registry</a>
     </div>
-</div>
 
-<script type="module">
-    import { auth, db } from "./firebase.js";
-    import { createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-    import { doc, setDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+    <div class="main-content">
+        <div class="card">
+            <h3>Sajili Akaunti Mpya ya Mwalimu</h3>
+            <p style="font-size: 14px; color: #666;">Ingiza jina kamili. Mfumo utatengeneza Email (j.juma@olmoti.sc.tz) na Password (Olmoti@2025).</p>
+            <input type="text" id="teacherFullName" placeholder="Mfano: Juma Hamisi">
+            <button id="generateBtn" class="btn-gen"><i class="fas fa-plus-circle"></i> TENGENEZA AKAUNTI</button>
+        </div>
 
-    regBtn.onclick = async () => {
-        const name = tName.value;
-        const email = name.toLowerCase().replace(/\s/g, '') + "@olmoti.sc.tz";
-        const pass = "Olmoti@2025";
+        <div class="table-container">
+            <h3>Orodha ya Walimu Waliosajiliwa</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Jina Kamili</th>
+                        <th>Email ya Kuingilia</th>
+                        <th>Jukumu (Role)</th>
+                        <th>Hali</th>
+                    </tr>
+                </thead>
+                <tbody id="teacherListBody">
+                    <tr><td colspan="4" style="text-align:center;">Inapakia orodha ya walimu...</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
 
-        try {
-            const res = await createUserWithEmailAndPassword(auth, email, pass);
-            await setDoc(doc(db, "users", res.user.uid), {
-                name: name,
-                email: email,
-                role: "teacher",
-                assignedClass: "Form 1",
-                assignedStream: "A"
-            });
-            document.getElementById('result').innerText = `Created: ${email} | Pass: ${pass}`;
-            document.getElementById('result').style.display = "block";
-        } catch (e) { alert(e.message); }
-    };
-</script>
+    <script type="module">
+        import { auth, db } from "./firebase.js";
+        import { createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+        import { collection, getDocs, doc, setDoc, query, where } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+        // --- 1. FUNCTION TO LOAD TEACHERS ---
+        async function loadTeachers() {
+            const tbody = document.getElementById('teacherListBody');
+            try {
+                // Fetch only users with role "teacher"
+                const q = query(collection(db, "users"), where("role", "==", "teacher"));
+                const snap = await getDocs(q);
+                
+                tbody.innerHTML = ""; // Clear loader
+
+                if (snap.empty) {
+                    tbody.innerHTML = "<tr><td colspan='4' style='text-align:center;'>Hakuna mwalimu aliyesajiliwa bado.</td></tr>";
+                    return;
+                }
+
+                snap.forEach(doc => {
+                    const data = doc.data();
+                    tbody.innerHTML += `
+                        <tr>
+                            <td><strong>${data.name}</strong></td>
+                            <td>${data.email}</td>
+                            <td><span class="badge">${data.role}</span></td>
+                            <td style="color: green;"><i class="fas fa-check-circle"></i> Active</td>
+                        </tr>
+                    `;
+                });
+            } catch (err) {
+                console.error(err);
+                tbody.innerHTML = "<tr><td colspan='4' style='color:red;'>Hitilafu ya kupakia orodha.</td></tr>";
+            }
+        }
+
+        // --- 2. REGISTRATION LOGIC ---
+        document.getElementById('generateBtn').onclick = async () => {
+            const fullName = document.getElementById('teacherFullName').value.trim();
+            if(!fullName) return alert("Tafadhali ingiza jina!");
+
+            const btn = document.getElementById('generateBtn');
+            btn.disabled = true;
+            btn.innerText = "Inatengeneza...";
+
+            const names = fullName.toLowerCase().split(" ");
+            const firstInitial = names[0].charAt(0);
+            const lastName = names[names.length - 1];
+            const autoEmail = `${firstInitial}.${lastName}@olmoti.sc.tz`;
+            const autoPass = "Olmoti@2025";
+
+            try {
+                // Register in Firebase Auth
+                const userCredential = await createUserWithEmailAndPassword(auth, autoEmail, autoPass);
+                const user = userCredential.user;
+
+                // Save details in Firestore
+                await setDoc(doc(db, "users", user.uid), {
+                    name: fullName,
+                    email: autoEmail,
+                    role: "teacher"
+                });
+
+                alert("Akaunti imetengenezwa! \nEmail: " + autoEmail);
+                document.getElementById('teacherFullName').value = "";
+                
+                // REFRESH THE LIST
+                loadTeachers();
+
+            } catch (error) {
+                alert("Hitilafu: " + error.message);
+            } finally {
+                btn.disabled = false;
+                btn.innerText = "TENGENEZA AKAUNTI";
+            }
+        };
+
+        // Initial Load
+        loadTeachers();
+    </script>
+</body>
+</html>
