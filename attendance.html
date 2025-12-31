@@ -2,55 +2,153 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Attendance | Olmoti</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Attendance | Olmoti Secondary</title>
     <style>
-        :root { --primary: #1a237e; --bg: #f4f7f6; }
-        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); margin: 0; display: flex; }
+        :root { --primary: #1a237e; --gold: #c5a059; --bg: #f4f7f6; }
+        body { margin: 0; font-family: 'Segoe UI', sans-serif; background: var(--bg); display: flex; }
+        
         .sidebar { width: 260px; background: var(--primary); color: white; height: 100vh; position: fixed; }
-        .main { margin-left: 260px; padding: 40px; width: 100%; }
-        .card { background: white; padding: 20px; border-radius: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
-        .student-row { display: flex; justify-content: space-between; padding: 10px; border-bottom: 1px solid #eee; }
-        .btn-p { background: green; color: white; border: none; padding: 5px 10px; cursor: pointer; border-radius: 4px; }
-        .btn-a { background: red; color: white; border: none; padding: 5px 10px; cursor: pointer; border-radius: 4px; }
+        .main-content { margin-left: 260px; padding: 40px; width: calc(100% - 260px); }
+        
+        .attendance-card { background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
+        .info-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; padding: 15px; background: #e8eaf6; border-radius: 8px; color: var(--primary); font-weight: bold; }
+        
+        table { width: 100%; border-collapse: collapse; }
+        th, td { padding: 15px; text-align: left; border-bottom: 1px solid #eee; }
+        th { background: #f8f9fa; color: var(--primary); text-transform: uppercase; font-size: 12px; }
+
+        .status-btn { padding: 8px 15px; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; transition: 0.2s; }
+        .present { background: #e8f5e9; color: #2e7d32; }
+        .absent { background: #ffebee; color: #c62828; }
+        .active-p { background: #2e7d32 !important; color: white !important; }
+        .active-a { background: #c62828 !important; color: white !important; }
+
+        .save-btn { background: var(--primary); color: white; padding: 15px 30px; border: none; border-radius: 8px; cursor: pointer; float: right; margin-top: 20px; font-size: 16px; }
     </style>
 </head>
 <body>
+
     <div class="sidebar">
-        <div style="padding:20px; text-align:center;"><h2>OLMOTI</h2></div>
-        <ul style="list-style:none; padding:0;">
-            <li style="padding:15px;"><a href="dashboard.html" style="color:white; text-decoration:none;">🏠 Dashboard</a></li>
+        <div style="padding:30px; text-align:center;"><h2>OLMOTI SEC</h2></div>
+        <ul style="list-style:none; padding:0; margin:0;">
+            <li style="padding:15px 25px;"><a href="dashboard.html" style="color:white; text-decoration:none;">🏠 Dashboard</a></li>
+            <li style="padding:15px 25px; background:rgba(255,255,255,0.1); border-left:5px solid var(--gold);"><a href="attendance.html" style="color:white; text-decoration:none;">📅 Attendance</a></li>
         </ul>
     </div>
-    <div class="main">
-        <h1>Daily Attendance</h1>
-        <div class="card" id="list">Loading students...</div>
+
+    <div class="main-content">
+        <h1 style="color: var(--primary);">Daily Attendance</h1>
+        
+        <div class="attendance-card">
+            <div class="info-bar">
+                <span id="displayClass">Loading Class...</span>
+                <span id="displayDate">Date: --/--/----</span>
+            </div>
+
+            <table>
+                <thead>
+                    <tr>
+                        <th>Student Name</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody id="attendanceTable">
+                    <tr><td colspan="2" style="text-align:center;">Identifying your assigned stream...</td></tr>
+                </tbody>
+            </table>
+
+            <button class="save-btn" onclick="saveAttendance()">Submit Attendance</button>
+        </div>
     </div>
 
-    <script type="module">
-        import { db, auth } from "./firebase.js";
-        import { collection, query, where, getDocs, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-        import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+<script type="module">
+    import { db, auth } from "./firebase.js";
+    import { collection, query, where, getDocs, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+    import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
-        onAuthStateChanged(auth, async (user) => {
-            if (!user) window.location.href = "index.html";
-            const uSnap = await getDoc(doc(db, "users", user.uid));
-            const cls = uSnap.data().assignedClass;
-            
-            const q = query(collection(db, "students"), where("cls", "==", cls));
-            const sSnap = await getDocs(q);
-            const listDiv = document.getElementById('list');
-            listDiv.innerHTML = "";
-            sSnap.forEach(sDoc => {
-                listDiv.innerHTML += `
-                    <div class="student-row">
-                        <span>${sDoc.data().name}</span>
-                        <div>
-                            <button class="btn-p">Present</button>
-                            <button class="btn-a">Absent</button>
-                        </div>
-                    </div>`;
+    let currentClass = "";
+    let currentStream = "";
+    let attendanceData = {}; // Stores {studentId: 'Present'/'Absent'}
+
+    // Set Today's Date
+    document.getElementById('displayDate').innerText = "Date: " + new Date().toLocaleDateString('en-GB');
+
+    onAuthStateChanged(auth, async (user) => {
+        if (!user) window.location.href = "index.html";
+
+        const userSnap = await getDoc(doc(db, "users", user.uid));
+        if (userSnap.exists()) {
+            const data = userSnap.data();
+            currentClass = data.assignedClass;
+            currentStream = data.assignedStream;
+
+            if (!currentClass || currentClass === "None") {
+                document.getElementById('attendanceTable').innerHTML = `<tr><td colspan="2" style="color:red; text-align:center;">Error: You have not been assigned a class yet.</td></tr>`;
+                return;
+            }
+
+            document.getElementById('displayClass').innerText = `${currentClass} - Stream ${currentStream || 'N/A'}`;
+            loadStudents();
+        }
+    });
+
+    async function loadStudents() {
+        // FILTER BY BOTH CLASS AND STREAM
+        const q = query(
+            collection(db, "students"), 
+            where("cls", "==", currentClass),
+            where("stream", "==", currentStream)
+        );
+
+        const snap = await getDocs(q);
+        const tbody = document.getElementById('attendanceTable');
+        tbody.innerHTML = "";
+
+        if (snap.empty) {
+            tbody.innerHTML = `<tr><td colspan="2" style="text-align:center;">No students found in ${currentClass} ${currentStream}</td></tr>`;
+            return;
+        }
+
+        snap.forEach(sDoc => {
+            const s = sDoc.data();
+            const sid = sDoc.id;
+            attendanceData[sid] = "Present"; // Default value
+
+            tbody.innerHTML += `
+                <tr>
+                    <td><b>${s.name}</b></td>
+                    <td>
+                        <button id="p-${sid}" class="status-btn present active-p" onclick="setStatus('${sid}', 'Present')">Present</button>
+                        <button id="a-${sid}" class="status-btn absent" onclick="setStatus('${sid}', 'Absent')">Absent</button>
+                    </td>
+                </tr>`;
+        });
+    }
+
+    window.setStatus = (sid, status) => {
+        attendanceData[sid] = status;
+        
+        // Update UI colors
+        document.getElementById(`p-${sid}`).classList.toggle('active-p', status === 'Present');
+        document.getElementById(`a-${sid}`).classList.toggle('active-a', status === 'Absent');
+    };
+
+    window.saveAttendance = async () => {
+        const dateKey = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
+        const promises = Object.keys(attendanceData).map(sid => {
+            return setDoc(doc(db, "attendance", `${sid}_${dateKey}`), {
+                studentId: sid,
+                status: attendanceData[sid],
+                date: dateKey,
+                cls: currentClass,
+                stream: currentStream
             });
         });
-    </script>
+
+        await Promise.all(promises);
+        alert("Attendance for today has been saved!");
+    };
+</script>
 </body>
 </html>
