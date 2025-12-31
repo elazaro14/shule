@@ -5,53 +5,43 @@
     <title>Ingiza Alama | Olmoti Secondary</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        :root { 
-            --nav-blue: #1a237e; --nav-hover: #283593; --gold: #c5a059; --bg: #f4f7f6; --sidebar-width: 250px; 
-        }
+        :root { --nav-blue: #1a237e; --gold: #c5a059; --bg: #f4f7f6; --sidebar-width: 250px; }
         body { margin: 0; font-family: 'Segoe UI', sans-serif; display: flex; background: var(--bg); }
-        .sidebar { width: var(--sidebar-width); background: var(--nav-blue); color: white; height: 100vh; position: fixed; z-index: 100; }
-        .sidebar-header { padding: 25px; text-align: center; border-bottom: 1px solid var(--gold); }
-        .nav-links { list-style: none; padding: 0; margin: 0; }
-        .nav-links li a { display: block; padding: 15px 20px; color: #ccc; text-decoration: none; border-bottom: 1px solid rgba(255,255,255,0.1); transition: 0.3s; }
-        .nav-links li a.active { background: var(--nav-hover); color: white; border-left: 5px solid var(--gold); }
+        .sidebar { width: var(--sidebar-width); background: var(--nav-blue); color: white; height: 100vh; position: fixed; padding: 20px; box-sizing: border-box; }
         .main-content { margin-left: var(--sidebar-width); padding: 40px; flex-grow: 1; width: calc(100% - var(--sidebar-width)); }
-        .entry-header { background: white; padding: 25px; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); margin-bottom: 20px; }
-        select, .btn-load { padding: 12px; border-radius: 6px; border: 1px solid #ccc; font-size: 14px; outline: none; }
-        .btn-load { background: var(--nav-blue); color: white; border: none; cursor: pointer; font-weight: bold; margin-left: 10px; }
-        .table-container { background: white; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); overflow: hidden; }
-        table { width: 100%; border-collapse: collapse; }
+        .card { background: white; padding: 25px; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); margin-bottom: 20px; }
+        select, .btn-load { padding: 12px; border-radius: 6px; border: 1px solid #ccc; font-size: 14px; }
+        .btn-load { background: var(--nav-blue); color: white; border: none; cursor: pointer; font-weight: bold; }
+        table { width: 100%; border-collapse: collapse; background: white; border-radius: 8px; overflow: hidden; }
         th, td { border-bottom: 1px solid #eee; padding: 12px; text-align: center; }
-        th { background: #f8f9fa; color: var(--nav-blue); font-size: 12px; text-transform: uppercase; }
-        .score-in { width: 60px; text-align: center; padding: 8px; border: 1px solid #ddd; border-radius: 4px; font-weight: bold; }
+        th { background: #f8f9fa; color: var(--nav-blue); font-size: 12px; }
+        .score-in { width: 50px; text-align: center; padding: 5px; border: 1px solid #ddd; border-radius: 4px; }
         .save-bar { position: sticky; bottom: 0; background: white; padding: 20px; border-top: 3px solid var(--nav-blue); text-align: center; display: none; }
-        .btn-save { background: #2e7d32; color: white; padding: 15px 60px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; }
+        .btn-save { background: #2e7d32; color: white; padding: 15px 60px; border: none; border-radius: 8px; cursor: pointer; font-size: 16px; }
     </style>
 </head>
 <body>
 
     <div class="sidebar">
-        <div class="sidebar-header"><h2>OLMOTI SEC</h2><small>Portal</small></div>
-        <ul class="nav-links">
-            <li><a href="dashboard.html">Dashboard</a></li>
-            <li><a href="students-list.html">Registry</a></li>
-            <li><a href="mark-entry.html" class="active">Mark Entry</a></li>
-        </ul>
+        <h2>OLMOTI SEC</h2>
+        <p><a href="dashboard.html" style="color:white; text-decoration:none;">🏠 Dashboard</a></p>
+        <p><a href="students-list.html" style="color:white; text-decoration:none;">👥 Wanafunzi</a></p>
     </div>
 
     <div class="main-content">
-        <div class="entry-header">
-            <h2 style="margin-top:0; color:var(--nav-blue);">Ingiza Alama (Mark Entry)</h2>
-            <div id="teacherInfo" style="margin-bottom:15px; font-weight:bold; color:var(--gold);">Checking Access...</div>
+        <div class="card">
+            <h2 style="color:var(--nav-blue);">Ingiza Alama</h2>
+            <div id="statusMsg" style="margin-bottom:10px; font-weight:bold; color:red;">Inakagua ruhusa...</div>
             <select id="subSel"><option value="">-- Chagua Somo --</option></select>
             <button id="loadBtn" class="btn-load">TAFUTA WANAFUNZI</button>
         </div>
 
-        <div class="table-container">
-            <table id="mTable" style="display:none;">
+        <div class="card" id="tableCard" style="display:none;">
+            <table>
                 <thead>
                     <tr>
-                        <th>S/N</th><th style="text-align: left;">Jina</th>
-                        <th>T1(10)</th><th>Mid(20)</th><th>T2(10)</th><th>Ex(60)</th>
+                        <th>S/N</th><th style="text-align:left;">Jina la Mwanafunzi</th>
+                        <th>T1</th><th>Mid</th><th>T2</th><th>Ex</th>
                         <th>Total</th><th>Avg</th><th>Grade</th>
                     </tr>
                 </thead>
@@ -73,81 +63,101 @@
     let tClass = "";
     let tStream = "";
 
-    // 1. Check Login and Teacher Assignment
     onAuthStateChanged(auth, async (user) => {
         if (!user) { window.location.href = "index.html"; return; }
+        
         const userSnap = await getDoc(doc(db, "users", user.uid));
         if (userSnap.exists()) {
             const u = userSnap.data();
-            tClass = u.assignedClass || "Form 1";
+            // Fallback to "Form 1" and "A" if fields are empty in Firestore
+            tClass = u.assignedClass || "Form 1"; 
             tStream = u.assignedStream || "A";
-            document.getElementById('teacherInfo').innerText = `Mwalimu: ${u.name} | Darasa: ${tClass} | Mkondo: ${tStream}`;
             
-            // Load correct subjects
+            document.getElementById('statusMsg').style.color = "green";
+            document.getElementById('statusMsg').innerText = `Mwalimu: ${u.name} | Darasa: ${tClass} | Mkondo: ${tStream}`;
+            
             const list = tClass.includes("1") || tClass.includes("2") ? subjectLists["Form 1"] : subjectLists["Form 3"];
             subSel.innerHTML = '<option value="">-- Chagua Somo --</option>';
             list.forEach(s => subSel.innerHTML += `<option value="${s.code}">${s.name}</option>`);
+        } else {
+            document.getElementById('statusMsg').innerText = "Hitilafu: Akaunti yako haina maelezo ya darasa.";
         }
     });
 
-    // 2. Load Students
     loadBtn.onclick = async () => {
-        if(!subSel.value) return alert("Chagua Somo!");
-        loadBtn.innerText = "Inapakia...";
+        if(!subSel.value) return alert("Tafadhali chagua somo.");
+        loadBtn.innerText = "Inatafuta...";
         
-        const qS = query(collection(db, "students"), where("cls", "==", tClass), where("stream", "==", tStream), orderBy("name"));
-        const qR = query(collection(db, "results"), where("subjectCode", "==", subSel.value), where("cls", "==", tClass));
-        
-        const [studSnap, resSnap] = await Promise.all([getDocs(qS), getDocs(qR)]);
-        const resMap = {};
-        resSnap.forEach(d => resMap[d.data().studentId] = d.data());
+        try {
+            // FIX: Ensure the fields "cls" and "stream" in your "students" collection match exactly
+            const qS = query(
+                collection(db, "students"), 
+                where("cls", "==", tClass), 
+                where("stream", "==", tStream),
+                orderBy("name")
+            );
+            
+            const qR = query(collection(db, "results"), where("subjectCode", "==", subSel.value), where("cls", "==", tClass));
+            
+            const [studSnap, resSnap] = await Promise.all([getDocs(qS), getDocs(qR)]);
+            const resMap = {};
+            resSnap.forEach(d => resMap[d.data().studentId] = d.data());
 
-        mTbody.innerHTML = "";
-        studSnap.forEach((d, i) => {
-            const r = resMap[d.id] || {};
-            mTbody.innerHTML += `
-                <tr class="row" data-id="${d.id}">
-                    <td>${i+1}</td><td style="text-align:left;">${d.data().name}</td>
-                    <td><input type="number" class="score-in t1" value="${r.test1||''}" max="10"></td>
-                    <td><input type="number" class="score-in mid" value="${r.midTerm||''}" max="20"></td>
-                    <td><input type="number" class="score-in t2" value="${r.test2||''}" max="10"></td>
-                    <td><input type="number" class="score-in ex" value="${r.exam||''}" max="60"></td>
-                    <td class="total">${r.total || 0}</td>
-                    <td class="avg">${r.average || '-'}</td>
-                    <td class="grade">${r.grade || '-'}</td>
-                </tr>`;
-        });
-        mTable.style.display = "table"; saveBar.style.display = "block"; loadBtn.innerText = "TAFUTA WANAFUNZI";
+            mTbody.innerHTML = "";
+            if (studSnap.empty) {
+                mTbody.innerHTML = `<tr><td colspan="9">Hakuna wanafunzi waliopatikana kwa ${tClass} - ${tStream}</td></tr>`;
+            }
+
+            studSnap.forEach((d, i) => {
+                const r = resMap[d.id] || {};
+                mTbody.innerHTML += `
+                    <tr class="row" data-id="${d.id}">
+                        <td>${i+1}</td><td style="text-align:left; font-weight:bold;">${d.data().name}</td>
+                        <td><input type="number" class="score-in t1" value="${r.test1||''}"></td>
+                        <td><input type="number" class="score-in mid" value="${r.midTerm||''}"></td>
+                        <td><input type="number" class="score-in t2" value="${r.test2||''}"></td>
+                        <td><input type="number" class="score-in ex" value="${r.exam||''}"></td>
+                        <td class="total">${r.total || 0}</td>
+                        <td class="avg">${r.average || '-'}</td>
+                        <td class="grade">${r.grade || '-'}</td>
+                    </tr>`;
+            });
+
+            document.getElementById('tableCard').style.display = "block";
+            saveBar.style.display = "block";
+        } catch (e) {
+            console.error(e);
+            alert("Hitilafu: Hakikisha Indexing imekamilika kwenye Firebase Console.");
+        }
+        loadBtn.innerText = "TAFUTA WANAFUNZI";
     };
 
-    // 3. Dynamic Calculation Logic
+    // Dynamic Logic for Average and Grades
     document.addEventListener('input', e => {
         if(e.target.classList.contains('score-in')) {
             const row = e.target.closest('tr');
-            const v = [row.querySelector('.t1').value, row.querySelector('.mid').value, row.querySelector('.t2').value, row.querySelector('.ex').value];
+            const inputs = [row.querySelector('.t1').value, row.querySelector('.mid').value, row.querySelector('.t2').value, row.querySelector('.ex').value];
+            const filled = inputs.filter(x => x !== "");
             
-            // Only calculate if at least one field is filled
-            const filled = v.filter(x => x !== "");
             if (filled.length === 0) {
                 row.querySelector('.avg').innerText = "-";
                 row.querySelector('.grade').innerText = "-";
                 return;
             }
 
-            const tot = v.reduce((a, b) => a + (parseFloat(b) || 0), 0);
+            const tot = inputs.reduce((a, b) => a + (parseFloat(b) || 0), 0);
             row.querySelector('.total').innerText = tot;
-            row.querySelector('.avg').innerText = tot; // O-Level Average is the Total/100
+            row.querySelector('.avg').innerText = tot; // Average based on 100% total
 
-            // Grades: F(0-29), D(30-44), C(45-64), B(65-74), A(75-100)
             let g = "F";
             if(tot >= 75) g="A"; else if(tot >= 65) g="B"; else if(tot >= 45) g="C"; else if(tot >= 30) g="D";
             row.querySelector('.grade').innerText = g;
+            row.querySelector('.grade').style.color = (g === "F") ? "red" : (g === "A" || g === "B") ? "green" : "orange";
         }
     });
 
-    // 4. Save
     saveBtn.onclick = async () => {
-        saveBtn.disabled = true;
+        saveBtn.innerText = "Inahifadhi...";
         const rows = document.querySelectorAll(".row");
         for(let r of rows) {
             const id = r.dataset.id;
@@ -158,7 +168,8 @@
                 total: r.querySelector('.total').innerText, average: r.querySelector('.avg').innerText, grade: r.querySelector('.grade').innerText
             });
         }
-        alert("Saved!"); saveBtn.disabled = false;
+        alert("Zimehifadhiwa!");
+        saveBtn.innerText = "HIFADHI ALAMA ZOTE";
     };
 </script>
 </body>
