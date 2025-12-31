@@ -4,40 +4,42 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Olmoti Dashboard | Admin Portal</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
         :root { --primary: #1a237e; --gold: #c5a059; --bg: #f4f7f6; --white: #ffffff; }
         body { margin: 0; font-family: 'Segoe UI', sans-serif; display: flex; background: var(--bg); }
         
         /* SIDEBAR */
-        .sidebar { width: 260px; background: var(--primary); color: white; height: 100vh; position: fixed; box-shadow: 2px 0 10px rgba(0,0,0,0.1); }
+        .sidebar { width: 260px; background: #1a1c23; color: white; height: 100vh; position: fixed; box-shadow: 2px 0 10px rgba(0,0,0,0.1); z-index: 1000; }
         .sidebar-header { padding: 30px 20px; text-align: center; border-bottom: 1px solid var(--gold); background: rgba(0,0,0,0.1); }
         .nav-links { list-style: none; padding: 20px 0; margin: 0; }
         .nav-links li a { color: #cfd8dc; text-decoration: none; padding: 15px 25px; display: block; transition: 0.3s; font-size: 15px; }
         .nav-links li.active a, .nav-links li a:hover { background: rgba(255,255,255,0.1); border-left: 5px solid var(--gold); color: white; }
 
         /* MAIN CONTENT */
-        .main-content { margin-left: 260px; padding: 40px; width: calc(100% - 260px); }
-        .header-row { margin-bottom: 30px; }
+        .main-content { margin-left: 260px; padding: 40px; width: calc(100% - 260px); box-sizing: border-box; }
+        .header-row { margin-bottom: 30px; display: flex; justify-content: space-between; align-items: center; }
         
         /* STATS CARDS */
-        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 20px; margin-bottom: 40px; }
-        .stat-card { background: var(--white); padding: 25px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); border-top: 4px solid var(--gold); }
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 25px; margin-bottom: 40px; }
+        .stat-card { background: var(--white); padding: 25px; border-radius: 15px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); border-left: 6px solid var(--primary); }
+        .stat-card.teachers { border-left-color: var(--gold); }
         .stat-card h4 { margin: 0; font-size: 13px; color: #777; text-transform: uppercase; letter-spacing: 1px; }
-        .stat-card .val { font-size: 32px; font-weight: bold; color: var(--primary); margin: 10px 0; }
-        .stat-card .sub { font-size: 13px; color: #888; }
+        .stat-card .val { font-size: 38px; font-weight: 800; color: #2d3436; margin: 10px 0; }
+        .stat-card .sub { font-size: 14px; color: #636e72; font-weight: 500; }
 
         /* ADMIN BOXES */
-        .section-title { color: var(--primary); border-left: 5px solid var(--gold); padding-left: 15px; margin: 40px 0 20px; font-size: 20px; }
-        .admin-box { background: var(--white); border-radius: 12px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.05); padding: 20px; margin-bottom: 30px;}
+        .section-title { color: var(--primary); border-left: 5px solid var(--gold); padding-left: 15px; margin: 40px 0 20px; font-size: 20px; font-weight: bold; }
+        .admin-box { background: var(--white); border-radius: 12px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.05); padding: 25px; margin-bottom: 30px;}
         
         table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-        th, td { padding: 12px 15px; text-align: left; border-bottom: 1px solid #eee; }
-        th { background: #f8f9fa; font-size: 12px; color: var(--primary); text-transform: uppercase; }
+        th, td { padding: 15px; text-align: left; border-bottom: 1px solid #eee; }
+        th { background: #f8f9fa; font-size: 11px; color: var(--primary); text-transform: uppercase; font-weight: 800; }
         
-        select { padding: 6px; border-radius: 4px; border: 1px solid #ddd; font-size: 14px; outline: none; }
-        .btn-save { background: var(--primary); color: white; border: none; padding: 10px 18px; border-radius: 6px; cursor: pointer; font-weight: bold; transition: 0.2s; }
-        .btn-save:hover { background: #283593; transform: translateY(-1px); }
-        .badge { background:#e3f2fd; color:#1565c0; padding:2px 8px; border-radius:10px; font-size:12px; font-weight: bold;}
+        select { padding: 8px; border-radius: 6px; border: 1px solid #ddd; font-size: 14px; background: #fff; outline: none; }
+        .btn-save { background: var(--primary); color: white; border: none; padding: 12px 20px; border-radius: 6px; cursor: pointer; font-weight: bold; transition: 0.2s; display: inline-flex; align-items: center; gap: 8px; }
+        .btn-save:hover { background: #283593; transform: translateY(-1px); box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
+        .badge { background:#e3f2fd; color:#1565c0; padding:4px 12px; border-radius:20px; font-size:11px; font-weight: 800; text-transform: uppercase;}
 
         @media (max-width: 1024px) {
             .sidebar { width: 70px; }
@@ -50,46 +52,48 @@
 
     <div class="sidebar">
         <div class="sidebar-header">
-            <h2 style="margin:0;">OLMOTI SEC</h2>
-            <small style="color:var(--gold)">SCHOOL PORTAL</small>
+            <h2 style="margin:0; color:var(--gold);">OLMOTI</h2>
+            <small>SCHOOL PORTAL</small>
         </div>
         <ul class="nav-links">
-            <li class="active"><a href="dashboard.html">🏠 <span>Dashboard</span></a></li>
-            <li><a href="students-list.html">👥 <span>Students</span></a></li>
-            <li><a href="attendance.html">📅 <span>Attendance</span></a></li>
-            <li><a href="profile.html">👤 <span>My Profile</span></a></li>
-            <li><a href="#" onclick="logout()">🚪 <span>Logout</span></a></li>
+            <li class="active"><a href="dashboard.html"><i class="fas fa-th-large"></i> <span>Dashboard</span></a></li>
+            <li><a href="students-list.html"><i class="fas fa-user-graduate"></i> <span>Students</span></a></li>
+            <li><a href="mark-entry.html"><i class="fas fa-edit"></i> <span>Mark Entry</span></a></li>
+            <li><a href="register-teacher.html"><i class="fas fa-user-plus"></i> <span>Register Teacher</span></a></li>
+            <li><a href="#" onclick="logout()"><i class="fas fa-sign-out-alt"></i> <span>Logout</span></a></li>
         </ul>
     </div>
 
     <div class="main-content">
         <div class="header-row">
-            <h1 style="color: var(--primary); margin:0;">School Management Center</h1>
-            <p id="welcomeMsg" style="color:#666;">Welcome back...</p>
+            <div>
+                <h1 style="color: var(--primary); margin:0;">Analytics & Management</h1>
+                <p id="welcomeMsg" style="color:#666; margin-top:5px;">Loading profile...</p>
+            </div>
+            <div id="roleIndicator"></div>
         </div>
 
         <div class="stats-grid">
             <div class="stat-card">
-                <h4>Students Total</h4>
+                <h4>Total Students</h4>
                 <div class="val" id="countS">0</div>
-                <div class="sub" id="genderS">Male: 0 | Female: 0</div>
+                <div class="sub" id="genderS"><i class="fas fa-venus-mars"></i> Male: 0 | Female: 0</div>
             </div>
-            <div class="stat-card">
-                <h4>Teacher Force</h4>
+            <div class="stat-card teachers">
+                <h4>Staff Population</h4>
                 <div class="val" id="countT">0</div>
-                <div class="sub" id="genderT">Male: 0 | Female: 0</div>
+                <div class="sub" id="genderT"><i class="fas fa-user-tie"></i> Male: 0 | Female: 0</div>
             </div>
         </div>
 
         <div id="adminArea" style="display: none;">
-            
-            <h3 class="section-title">Student Stream Mapping</h3>
+            <h3 class="section-title">Bulk Student Stream Mapping</h3>
             <div class="admin-box">
-                <div style="display: flex; gap: 15px; margin-bottom: 20px; align-items: flex-end; flex-wrap: wrap;">
+                <div style="display: flex; gap: 20px; margin-bottom: 25px; align-items: flex-end; flex-wrap: wrap; background: #f8f9fa; padding: 20px; border-radius: 10px;">
                     <div>
-                        <label style="display:block; font-size: 12px; font-weight: bold; margin-bottom: 5px;">Filter Class</label>
+                        <label style="display:block; font-size: 11px; font-weight: 800; margin-bottom: 8px; color: #555;">1. CHOOSE CLASS</label>
                         <select id="mapClass" onchange="loadStudentsForMapping()">
-                            <option value="">Select Class</option>
+                            <option value="">-- Select Class --</option>
                             <option value="Form 1">Form 1</option>
                             <option value="Form 2">Form 2</option>
                             <option value="Form 3">Form 3</option>
@@ -97,45 +101,47 @@
                         </select>
                     </div>
                     <div>
-                        <label style="display:block; font-size: 12px; font-weight: bold; margin-bottom: 5px;">Assign To Stream</label>
+                        <label style="display:block; font-size: 11px; font-weight: 800; margin-bottom: 8px; color: #555;">2. TARGET STREAM</label>
                         <select id="targetStream">
                             <option value="A">Stream A</option>
                             <option value="B">Stream B</option>
                             <option value="C">Stream C</option>
                         </select>
                     </div>
-                    <button class="btn-save" onclick="applyStreamMapping()">Map Selected Students</button>
+                    <button class="btn-save" onclick="applyStreamMapping()">
+                        <i class="fas fa-layer-group"></i> MAP SELECTED STUDENTS
+                    </button>
                 </div>
 
                 <table>
                     <thead>
                         <tr>
-                            <th style="width: 40px;"><input type="checkbox" onclick="toggleAllMapping(this)"></th>
+                            <th style="width: 40px;"><input type="checkbox" id="masterCheck" style="transform: scale(1.2);"></th>
                             <th>Student Name</th>
                             <th>Current Stream</th>
+                            <th>Gender</th>
                         </tr>
                     </thead>
                     <tbody id="mappingTable">
-                        <tr><td colspan="3" style="text-align:center;">Select a class to view students</td></tr>
+                        <tr><td colspan="4" style="text-align:center; padding:40px; color:#999;">Select a class above to manage streams</td></tr>
                     </tbody>
                 </table>
             </div>
 
-            <h3 class="section-title">Staff Access & Stream Assignment</h3>
+            <h3 class="section-title">Teacher Rights & Class Assignments</h3>
             <div class="admin-box">
                 <table>
                     <thead>
                         <tr>
-                            <th>Staff Name</th>
-                            <th>Role</th>
-                            <th>Gender</th>
-                            <th>Class</th>
-                            <th>Stream</th>
+                            <th>Staff Member</th>
+                            <th>System Role</th>
+                            <th>Assigned Class</th>
+                            <th>Assigned Stream</th>
                             <th>Action</th>
                         </tr>
                     </thead>
                     <tbody id="staffTable">
-                        <tr><td colspan="6" style="text-align:center;">Loading staff database...</td></tr>
+                        <tr><td colspan="5" style="text-align:center; padding:30px;">Loading Staff...</td></tr>
                     </tbody>
                 </table>
             </div>
@@ -148,19 +154,15 @@
     import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
     onAuthStateChanged(auth, async (user) => {
-        if (!user) {
-            window.location.href = "index.html";
-            return;
-        }
+        if (!user) { window.location.href = "index.html"; return; }
         
-        const userRef = doc(db, "users", user.uid);
-        const userSnap = await getDoc(userRef);
-        
+        const userSnap = await getDoc(doc(db, "users", user.uid));
         if (userSnap.exists()) {
-            const userData = userSnap.data();
-            document.getElementById('welcomeMsg').innerText = `Welcome back, ${userData.name || 'Staff'}`;
+            const u = userSnap.data();
+            document.getElementById('welcomeMsg').innerText = `Logged in as: ${u.name || user.email}`;
+            document.getElementById('roleIndicator').innerHTML = `<span class="badge" style="background:var(--gold); color:white">${u.role}</span>`;
             
-            if (userData.role === 'admin') {
+            if (u.role === 'admin') {
                 document.getElementById('adminArea').style.display = 'block';
                 loadStaffList();
             }
@@ -168,33 +170,33 @@
         loadDashboardStats();
     });
 
-    // LOAD SUMMARY STATS
+    // 1. DASHBOARD ANALYTICS
     async function loadDashboardStats() {
-        try {
-            const [sSnap, uSnap] = await Promise.all([
-                getDocs(collection(db, "students")),
-                getDocs(collection(db, "users"))
-            ]);
+        const [sSnap, uSnap] = await Promise.all([getDocs(collection(db, "students")), getDocs(collection(db, "users"))]);
+        
+        let sm = 0, sf = 0, tm = 0, tf = 0, tCount = 0;
+        
+        sSnap.forEach(d => {
+            const g = (d.data().gender || "").toUpperCase();
+            g.startsWith("M") ? sm++ : sf++;
+        });
 
-            let sm = 0, sf = 0;
-            sSnap.forEach(doc => { if (doc.data().gender === "M") sm++; else sf++; });
+        uSnap.forEach(d => {
+            const data = d.data();
+            if (data.role === 'teacher' || data.role === 'admin') {
+                tCount++;
+                const g = (data.gender || "").toUpperCase();
+                g.startsWith("M") ? tm++ : tf++;
+            }
+        });
 
-            let tm = 0, tf = 0;
-            uSnap.forEach(doc => {
-                const data = doc.data();
-                if (data.role === 'teacher' || data.role === 'admin') {
-                    if (data.gender === "M") tm++; else tf++;
-                }
-            });
-
-            document.getElementById('countS').innerText = sSnap.size;
-            document.getElementById('genderS').innerText = `Boys: ${sm} | Girls: ${sf}`;
-            document.getElementById('countT').innerText = tm + tf;
-            document.getElementById('genderT').innerText = `Male: ${tm} | Female: ${tf}`;
-        } catch (err) { console.error(err); }
+        document.getElementById('countS').innerText = sSnap.size;
+        document.getElementById('genderS').innerHTML = `<i class="fas fa-mars"></i> ${sm} | <i class="fas fa-venus"></i> ${sf}`;
+        document.getElementById('countT').innerText = tCount;
+        document.getElementById('genderT').innerHTML = `<i class="fas fa-mars"></i> ${tm} | <i class="fas fa-venus"></i> ${tf}`;
     }
 
-    // LOAD STAFF LIST
+    // 2. STAFF MANAGEMENT
     async function loadStaffList() {
         const snap = await getDocs(collection(db, "users"));
         const tbody = document.getElementById('staffTable');
@@ -205,62 +207,32 @@
             const id = userDoc.id;
             tbody.innerHTML += `
                 <tr>
-                    <td><b>${u.name || 'User'}</b><br><small style="color:#888;">${u.email || ''}</small></td>
-                    <td>
-                        <select id="role-${id}">
-                            <option value="admin" ${u.role === 'admin' ? 'selected' : ''}>Admin</option>
-                            <option value="teacher" ${u.role === 'teacher' ? 'selected' : ''}>Teacher</option>
-                        </select>
-                    </td>
-                    <td>
-                        <select id="gender-${id}">
-                            <option value="M" ${u.gender === 'M' ? 'selected' : ''}>Male</option>
-                            <option value="F" ${u.gender === 'F' ? 'selected' : ''}>Female</option>
-                        </select>
-                    </td>
-                    <td>
-                        <select id="class-${id}">
-                            <option value="None">None</option>
-                            <option value="Form 1" ${u.assignedClass === 'Form 1' ? 'selected' : ''}>Form 1</option>
-                            <option value="Form 2" ${u.assignedClass === 'Form 2' ? 'selected' : ''}>Form 2</option>
-                            <option value="Form 3" ${u.assignedClass === 'Form 3' ? 'selected' : ''}>Form 3</option>
-                            <option value="Form 4" ${u.assignedClass === 'Form 4' ? 'selected' : ''}>Form 4</option>
-                        </select>
-                    </td>
-                    <td>
-                        <select id="stream-${id}">
-                            <option value="None">None</option>
-                            <option value="A" ${u.assignedStream === 'A' ? 'selected' : ''}>Stream A</option>
-                            <option value="B" ${u.assignedStream === 'B' ? 'selected' : ''}>Stream B</option>
-                            <option value="C" ${u.assignedStream === 'C' ? 'selected' : ''}>Stream C</option>
-                        </select>
-                    </td>
-                    <td><button class="btn-save" onclick="updateStaffData('${id}')">Update</button></td>
+                    <td><b>${u.name || 'User'}</b><br><small style="color:#888;">${u.email}</small></td>
+                    <td><select id="role-${id}"><option value="teacher" ${u.role==='teacher'?'selected':''}>Teacher</option><option value="admin" ${u.role==='admin'?'selected':''}>Admin</option></select></td>
+                    <td><select id="cls-${id}"><option value="None">None</option><option value="Form 1" ${u.assignedClass==='Form 1'?'selected':''}>Form 1</option><option value="Form 2" ${u.assignedClass==='Form 2'?'selected':''}>Form 2</option><option value="Form 3" ${u.assignedClass==='Form 3'?'selected':''}>Form 3</option><option value="Form 4" ${u.assignedClass==='Form 4'?'selected':''}>Form 4</option></select></td>
+                    <td><select id="strm-${id}"><option value="None">None</option><option value="A" ${u.assignedStream==='A'?'selected':''}>A</option><option value="B" ${u.assignedStream==='B'?'selected':''}>B</option><option value="C" ${u.assignedStream==='C'?'selected':''}>C</option></select></td>
+                    <td><button class="btn-save" onclick="saveStaff('${id}')"><i class="fas fa-save"></i> Update</button></td>
                 </tr>`;
         });
     }
 
-    window.updateStaffData = async (id) => {
-        const role = document.getElementById(`role-${id}`).value;
-        const gender = document.getElementById(`gender-${id}`).value;
-        const assignedClass = document.getElementById(`class-${id}`).value;
-        const assignedStream = document.getElementById(`stream-${id}`).value;
-        
-        try {
-            await updateDoc(doc(db, "users", id), { role, gender, assignedClass, assignedStream });
-            alert("Staff details updated!");
-            loadDashboardStats();
-        } catch (e) { alert(e.message); }
+    window.saveStaff = async (id) => {
+        const updates = {
+            role: document.getElementById(`role-${id}`).value,
+            assignedClass: document.getElementById(`cls-${id}`).value,
+            assignedStream: document.getElementById(`strm-${id}`).value
+        };
+        await updateDoc(doc(db, "users", id), updates);
+        alert("Teacher assignment updated!");
     };
 
-    // STUDENT STREAM MAPPING LOGIC
+    // 3. STUDENT BULK MAPPING
     window.loadStudentsForMapping = async () => {
         const cls = document.getElementById('mapClass').value;
+        const tbody = document.getElementById('mappingTable');
         if (!cls) return;
 
-        const tbody = document.getElementById('mappingTable');
-        tbody.innerHTML = "<tr><td colspan='3' style='text-align:center;'>Loading...</td></tr>";
-
+        tbody.innerHTML = "<tr><td colspan='4' style='text-align:center;'>Fetching students...</td></tr>";
         const q = query(collection(db, "students"), where("cls", "==", cls));
         const snap = await getDocs(q);
         
@@ -271,33 +243,27 @@
                 <tr>
                     <td><input type="checkbox" class="map-check" value="${sDoc.id}"></td>
                     <td>${s.name}</td>
-                    <td><span class="badge">${s.stream || 'No Stream'}</span></td>
+                    <td><span class="badge">${s.stream || 'NOT ASSIGNED'}</span></td>
+                    <td>${s.gender || '-'}</td>
                 </tr>`;
         });
-    };
+    }
 
-    window.toggleAllMapping = (source) => {
-        const checkboxes = document.querySelectorAll('.map-check');
-        checkboxes.forEach(cb => cb.checked = source.checked);
+    document.getElementById('masterCheck').onclick = (e) => {
+        document.querySelectorAll('.map-check').forEach(cb => cb.checked = e.target.checked);
     };
 
     window.applyStreamMapping = async () => {
         const stream = document.getElementById('targetStream').value;
         const selected = document.querySelectorAll('.map-check:checked');
-
-        if (selected.length === 0) return alert("Select students first.");
+        if (selected.length === 0) return alert("Please select students first!");
 
         const batch = writeBatch(db);
-        selected.forEach(cb => {
-            const ref = doc(db, "students", cb.value);
-            batch.update(ref, { stream: stream });
-        });
-
-        try {
-            await batch.commit();
-            alert(`Assigned ${selected.length} students to Stream ${stream}`);
-            loadStudentsForMapping();
-        } catch (err) { alert(err.message); }
+        selected.forEach(cb => batch.update(doc(db, "students", cb.value), { stream: stream }));
+        
+        await batch.commit();
+        alert(`Successfully assigned ${selected.length} students to Stream ${stream}`);
+        loadStudentsForMapping();
     };
 
     window.logout = () => signOut(auth).then(() => window.location.href="index.html");
