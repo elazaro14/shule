@@ -1,43 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Student List | Olmoti ERP</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        :root { --primary: #1a237e; --bg: #f4f7f6; }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); margin: 0; display: flex; }
+        
+        /* The Wrapper must be visible or hidden correctly */
+        #wrapper { display: none; width: 100%; } 
+        #loader { width: 100%; height: 100vh; display: flex; justify-content: center; align-items: center; background: white; position: fixed; z-index: 999; }
+
+        .sidebar { width: 250px; background: #1a1c23; color: white; height: 100vh; position: fixed; padding: 20px; }
+        .main-content { margin-left: 250px; padding: 40px; width: calc(100% - 250px); }
+        .card { background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); margin-bottom: 20px; }
+        
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; background: white; }
+        th, td { padding: 12px; text-align: left; border-bottom: 1px solid #eee; }
+        th { background: #f8f9fa; color: var(--primary); font-size: 12px; text-transform: uppercase; }
+
+        /* Report Button Style */
+        .btn-report { 
+            background: #2e7d32; color: white; border: none; padding: 7px 14px; 
+            border-radius: 4px; cursor: pointer; text-decoration: none; font-size: 13px; 
+            font-weight: bold; display: inline-flex; align-items: center; gap: 5px;
+        }
+        .btn-del { color: #d32f2f; cursor: pointer; border: none; background: none; margin-left: 15px; }
+    </style>
+</head>
+<body>
+
+    <div id="loader">
+        <div><i class="fas fa-spinner fa-spin fa-2x"></i> Verifying Access...</div>
+    </div>
+
+    <div id="wrapper">
+        <div class="sidebar">
+            <h2>OLMOTI SEC</h2>
+            <hr>
+            <p><a href="dashboard.html" style="color:white; text-decoration:none;">🏠 Dashboard</a></p>
+        </div>
+
+        <div class="main-content">
+            <div class="card">
+                <h3><i class="fas fa-users"></i> Student Registry</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>S/N</th><th>Name</th><th>Sex</th><th>Class</th><th>Stream</th><th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="sTable"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
 <script type="module">
     import { db, auth } from "./firebase.js";
     import { collection, getDocs, doc, query, orderBy, getDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
     import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
-    // ... (Your existing Gatekeeper/Role logic here) ...
+    const wrapper = document.getElementById('wrapper');
+    const loader = document.getElementById('loader');
+
+    onAuthStateChanged(auth, async (user) => {
+        if (!user) {
+            window.location.href = "index.html";
+            return;
+        }
+
+        try {
+            const userSnap = await getDoc(doc(db, "users", user.uid));
+            if (userSnap.exists()) {
+                const role = userSnap.data().role;
+                
+                // GATEKEEPER: Check if Admin or Academic
+                if (role === "admin" || role === "academic") {
+                    loader.style.display = "none";
+                    wrapper.style.display = "block";
+                    loadStuds();
+                } else {
+                    alert("Unauthorized access!");
+                    window.location.href = "dashboard.html";
+                }
+            } else {
+                console.error("User record not found in Firestore.");
+                window.location.href = "index.html";
+            }
+        } catch (err) {
+            console.error("Auth Error:", err);
+        }
+    });
 
     async function loadStuds() {
         const tbody = document.getElementById('sTable');
-        try {
-            const snap = await getDocs(query(collection(db, "students"), orderBy("name")));
-            tbody.innerHTML = "";
-            let i = 1;
-            
-            snap.forEach(d => {
-                const s = d.data();
-                tbody.innerHTML += `
-                    <tr>
-                        <td>${i++}</td>
-                        <td><b>${s.name}</b></td>
-                        <td>${s.sex}</td>
-                        <td>${s.cls}</td>
-                        <td>${s.stream}</td>
-                        <td style="text-align:center;">
-                            <a href="view-report.html?id=${d.id}" target="_blank" style="text-decoration:none;">
-                                <button style="background:#2e7d32; color:white; border:none; padding:8px 15px; border-radius:5px; cursor:pointer; font-weight:bold; display:inline-flex; align-items:center; gap:5px;">
-                                    <i class="fas fa-eye"></i> View Report
-                                </button>
-                            </a>
+        const snap = await getDocs(query(collection(db, "students"), orderBy("name")));
+        tbody.innerHTML = "";
+        let i = 1;
+        
+        snap.forEach(d => {
+            const s = d.data();
+            tbody.innerHTML += `
+                <tr>
+                    <td>${i++}</td>
+                    <td><b>${s.name}</b></td>
+                    <td>${s.sex}</td>
+                    <td>${s.cls}</td>
+                    <td>${s.stream}</td>
+                    <td>
+                        <a href="view-report.html?id=${d.id}" target="_blank" class="btn-report">
+                            <i class="fas fa-file-pdf"></i> View Report
+                        </a>
 
-                            <button onclick="delStud('${d.id}')" style="color:#d32f2f; border:none; background:none; cursor:pointer; margin-left:15px; font-size:1.1rem;">
-                                <i class="fas fa-trash-alt"></i>
-                            </button>
-                        </td>
-                    </tr>`;
-            });
-        } catch (error) {
-            console.error("Error loading students:", error);
-        }
+                        <button onclick="delStud('${d.id}')" class="btn-del">
+                            <i class="fas fa-trash-alt"></i>
+                        </button>
+                    </td>
+                </tr>`;
+        });
     }
 
-    // ... (Your existing add/delete functions) ...
+    // Attach to window so onclick="" works in a module
+    window.delStud = async (id) => {
+        if(confirm("Delete this student?")) {
+            await deleteDoc(doc(db, "students", id));
+            loadStuds();
+        }
+    };
 </script>
+</body>
+</html>
