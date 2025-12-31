@@ -1,17 +1,15 @@
 <!DOCTYPE html>
-<html lang="sw">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Sajili Wanafunzi | Olmoti ERP</title>
+    <title>Student Management | Olmoti ERP</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
         :root { --primary: #1a237e; --gold: #c5a059; --bg: #f4f7f6; }
         body { font-family: 'Segoe UI', sans-serif; background: var(--bg); margin: 0; display: flex; }
         
-        /* Hidden by default for security */
+        /* Security Wrapper */
         #wrapper { display: none; width: 100%; }
-        
-        /* Loading Screen */
         #loader { 
             width: 100%; height: 100vh; display: flex; flex-direction: column;
             justify-content: center; align-items: center; background: white;
@@ -24,131 +22,4 @@
         .form-group { display: grid; grid-template-columns: 2fr 1fr 1fr 1fr auto; gap: 10px; align-items: end; }
         
         input, select { padding: 12px; border: 1px solid #ddd; border-radius: 6px; }
-        .btn-add { background: var(--primary); color: white; border: none; padding: 12px 25px; border-radius: 6px; cursor: pointer; font-weight: bold; }
-        
-        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-        th, td { padding: 12px; text-align: left; border-bottom: 1px solid #eee; }
-        th { color: var(--primary); background: #f8f9fa; font-size: 12px; }
-        
-        .btn-del { color: #d32f2f; cursor: pointer; border: none; background: none; }
-    </style>
-</head>
-<body>
-
-    <div id="loader">
-        <i class="fas fa-spinner fa-spin fa-3x" style="color: var(--primary); margin-bottom: 15px;"></i>
-        <p>Inahakiki Ruhusa ya Kuingia...</p>
-    </div>
-
-    <div id="wrapper">
-        <div class="sidebar">
-            <h2>OLMOTI SEC</h2>
-            <hr>
-            <p><a href="dashboard.html" style="color:white; text-decoration:none;">🏠 Dashboard</a></p>
-            <p><a href="mark-entry.html" style="color:white; text-decoration:none;">📝 Mark Entry</a></p>
-        </div>
-
-        <div class="main-content">
-            <div class="card">
-                <h3>Sajili Mwanafunzi Mpya (Admin/Academic)</h3>
-                <div class="form-group">
-                    <input type="text" id="nName" placeholder="Jina Kamili">
-                    <select id="nSex"><option>M</option><option>F</option></select>
-                    <select id="nCls">
-                        <option>Form 1</option><option>Form 2</option>
-                        <option>Form 3</option><option>Form 4</option>
-                    </select>
-                    <select id="nStr"><option>A</option><option>B</option><option>C</option></select>
-                    <button class="btn-add" id="addBtn">ONGEZA</button>
-                </div>
-            </div>
-
-            <div class="card">
-                <h3>Orodha ya Wanafunzi</h3>
-                <table>
-                    <thead>
-                        <tr>
-                            <th>S/N</th><th>Jina</th><th>Jinsia</th><th>Darasa</th><th>Mkondo</th><th>Kitendo</th>
-                        </tr>
-                    </thead>
-                    <tbody id="sTable"></tbody>
-                </table>
-            </div>
-        </div>
-    </div>
-
-<script type="module">
-    import { db, auth } from "./firebase.js";
-    import { collection, getDocs, addDoc, deleteDoc, doc, query, orderBy, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-    import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-
-    const wrapper = document.getElementById('wrapper');
-    const loader = document.getElementById('loader');
-
-    // --- GATEKEEPER LOGIC ---
-    onAuthStateChanged(auth, async (user) => {
-        if (!user) {
-            window.location.href = "index.html";
-            return;
-        }
-
-        const userSnap = await getDoc(doc(db, "users", user.uid));
-        
-        if (userSnap.exists()) {
-            const role = userSnap.data().role;
-
-            if (role === "admin" || role === "academic") {
-                // Access Granted
-                loader.style.display = "none";
-                wrapper.style.display = "flex";
-                loadStuds();
-            } else {
-                // Access Denied
-                alert("Ukurasa huu ni kwa ajili ya Admin au Academic pekee!");
-                window.location.href = "dashboard.html";
-            }
-        } else {
-            window.location.href = "index.html";
-        }
-    });
-
-    async function loadStuds() {
-        const tbody = document.getElementById('sTable');
-        const snap = await getDocs(query(collection(db, "students"), orderBy("name")));
-        tbody.innerHTML = "";
-        let i = 1;
-        snap.forEach(d => {
-            const s = d.data();
-            tbody.innerHTML += `
-                <tr>
-                    <td>${i++}</td>
-                    <td><b>${s.name}</b></td>
-                    <td>${s.sex}</td>
-                    <td>${s.cls}</td>
-                    <td>${s.stream}</td>
-                    <td><button class="btn-del" onclick="delStud('${d.id}')"><i class="fas fa-trash"></i> Futa</button></td>
-                </tr>`;
-        });
-    }
-
-    document.getElementById('addBtn').onclick = async () => {
-        const name = document.getElementById('nName').value;
-        const sex = document.getElementById('nSex').value;
-        const cls = document.getElementById('nCls').value;
-        const stream = document.getElementById('nStr').value;
-
-        if(!name) return alert("Weka jina!");
-        await addDoc(collection(db, "students"), { name, sex, cls, stream });
-        document.getElementById('nName').value = "";
-        loadStuds();
-    };
-
-    window.delStud = async (id) => {
-        if(confirm("Futa mwanafunzi?")) {
-            await deleteDoc(doc(db, "students", id));
-            loadStuds();
-        }
-    };
-</script>
-</body>
-</html>
+        .btn-add { background: var(--primary); color: white; border: none; padding: 12px 25px; border-radius: 6px; cursor:
