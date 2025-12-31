@@ -26,20 +26,22 @@
         .stat-card .val { font-size: 32px; font-weight: bold; color: var(--primary); margin: 10px 0; }
         .stat-card .sub { font-size: 13px; color: #888; }
 
-        /* ADMIN TABLE */
+        /* ADMIN BOXES */
         .section-title { color: var(--primary); border-left: 5px solid var(--gold); padding-left: 15px; margin: 40px 0 20px; font-size: 20px; }
-        .admin-box { background: var(--white); border-radius: 12px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
-        table { width: 100%; border-collapse: collapse; }
-        th, td { padding: 15px; text-align: left; border-bottom: 1px solid #eee; }
-        th { background: #f8f9fa; font-size: 13px; color: var(--primary); text-transform: uppercase; }
+        .admin-box { background: var(--white); border-radius: 12px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.05); padding: 20px; margin-bottom: 30px;}
         
-        select { padding: 8px; border-radius: 4px; border: 1px solid #ddd; font-size: 14px; outline: none; }
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        th, td { padding: 12px 15px; text-align: left; border-bottom: 1px solid #eee; }
+        th { background: #f8f9fa; font-size: 12px; color: var(--primary); text-transform: uppercase; }
+        
+        select { padding: 6px; border-radius: 4px; border: 1px solid #ddd; font-size: 14px; outline: none; }
         .btn-save { background: var(--primary); color: white; border: none; padding: 10px 18px; border-radius: 6px; cursor: pointer; font-weight: bold; transition: 0.2s; }
         .btn-save:hover { background: #283593; transform: translateY(-1px); }
+        .badge { background:#e3f2fd; color:#1565c0; padding:2px 8px; border-radius:10px; font-size:12px; font-weight: bold;}
 
         @media (max-width: 1024px) {
             .sidebar { width: 70px; }
-            .sidebar h2, .sidebar span { display: none; }
+            .sidebar h2, .sidebar small, .sidebar span { display: none; }
             .main-content { margin-left: 70px; width: calc(100% - 70px); }
         }
     </style>
@@ -80,7 +82,46 @@
         </div>
 
         <div id="adminArea" style="display: none;">
-            <h3 class="section-title">Staff Access Control</h3>
+            
+            <h3 class="section-title">Student Stream Mapping</h3>
+            <div class="admin-box">
+                <div style="display: flex; gap: 15px; margin-bottom: 20px; align-items: flex-end; flex-wrap: wrap;">
+                    <div>
+                        <label style="display:block; font-size: 12px; font-weight: bold; margin-bottom: 5px;">Filter Class</label>
+                        <select id="mapClass" onchange="loadStudentsForMapping()">
+                            <option value="">Select Class</option>
+                            <option value="Form 1">Form 1</option>
+                            <option value="Form 2">Form 2</option>
+                            <option value="Form 3">Form 3</option>
+                            <option value="Form 4">Form 4</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label style="display:block; font-size: 12px; font-weight: bold; margin-bottom: 5px;">Assign To Stream</label>
+                        <select id="targetStream">
+                            <option value="A">Stream A</option>
+                            <option value="B">Stream B</option>
+                            <option value="C">Stream C</option>
+                        </select>
+                    </div>
+                    <button class="btn-save" onclick="applyStreamMapping()">Map Selected Students</button>
+                </div>
+
+                <table>
+                    <thead>
+                        <tr>
+                            <th style="width: 40px;"><input type="checkbox" onclick="toggleAllMapping(this)"></th>
+                            <th>Student Name</th>
+                            <th>Current Stream</th>
+                        </tr>
+                    </thead>
+                    <tbody id="mappingTable">
+                        <tr><td colspan="3" style="text-align:center;">Select a class to view students</td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <h3 class="section-title">Staff Access & Stream Assignment</h3>
             <div class="admin-box">
                 <table>
                     <thead>
@@ -88,26 +129,24 @@
                             <th>Staff Name</th>
                             <th>Role</th>
                             <th>Gender</th>
-                            <th>Assigned Class</th>
+                            <th>Class</th>
+                            <th>Stream</th>
                             <th>Action</th>
                         </tr>
                     </thead>
                     <tbody id="staffTable">
-                        <tr><td colspan="5" style="text-align:center; padding:30px;">Loading staff database...</td></tr>
+                        <tr><td colspan="6" style="text-align:center;">Loading staff database...</td></tr>
                     </tbody>
                 </table>
             </div>
         </div>
     </div>
 
-
-
 <script type="module">
     import { db, auth } from "./firebase.js";
-    import { collection, getDocs, doc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+    import { collection, getDocs, doc, getDoc, updateDoc, query, where, writeBatch } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
     import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
-    // 1. Check Authentication and Permissions
     onAuthStateChanged(auth, async (user) => {
         if (!user) {
             window.location.href = "index.html";
@@ -121,7 +160,6 @@
             const userData = userSnap.data();
             document.getElementById('welcomeMsg').innerText = `Welcome back, ${userData.name || 'Staff'}`;
             
-            // Show Admin Section ONLY if role is admin
             if (userData.role === 'admin') {
                 document.getElementById('adminArea').style.display = 'block';
                 loadStaffList();
@@ -130,7 +168,7 @@
         loadDashboardStats();
     });
 
-    // 2. Load Stats for Students and Teachers
+    // LOAD SUMMARY STATS
     async function loadDashboardStats() {
         try {
             const [sSnap, uSnap] = await Promise.all([
@@ -138,13 +176,9 @@
                 getDocs(collection(db, "users"))
             ]);
 
-            // Student Gender Count
             let sm = 0, sf = 0;
-            sSnap.forEach(doc => {
-                if (doc.data().gender === "M") sm++; else sf++;
-            });
+            sSnap.forEach(doc => { if (doc.data().gender === "M") sm++; else sf++; });
 
-            // Teacher Gender Count
             let tm = 0, tf = 0;
             uSnap.forEach(doc => {
                 const data = doc.data();
@@ -157,12 +191,10 @@
             document.getElementById('genderS').innerText = `Boys: ${sm} | Girls: ${sf}`;
             document.getElementById('countT').innerText = tm + tf;
             document.getElementById('genderT').innerText = `Male: ${tm} | Female: ${tf}`;
-        } catch (err) {
-            console.error("Stats Error:", err);
-        }
+        } catch (err) { console.error(err); }
     }
 
-    // 3. Load Staff Management Table
+    // LOAD STAFF LIST
     async function loadStaffList() {
         const snap = await getDocs(collection(db, "users"));
         const tbody = document.getElementById('staffTable');
@@ -173,7 +205,7 @@
             const id = userDoc.id;
             tbody.innerHTML += `
                 <tr>
-                    <td><b>${u.name || 'New User'}</b><br><small style="color:#888;">${u.email || ''}</small></td>
+                    <td><b>${u.name || 'User'}</b><br><small style="color:#888;">${u.email || ''}</small></td>
                     <td>
                         <select id="role-${id}">
                             <option value="admin" ${u.role === 'admin' ? 'selected' : ''}>Admin</option>
@@ -195,25 +227,77 @@
                             <option value="Form 4" ${u.assignedClass === 'Form 4' ? 'selected' : ''}>Form 4</option>
                         </select>
                     </td>
+                    <td>
+                        <select id="stream-${id}">
+                            <option value="None">None</option>
+                            <option value="A" ${u.assignedStream === 'A' ? 'selected' : ''}>Stream A</option>
+                            <option value="B" ${u.assignedStream === 'B' ? 'selected' : ''}>Stream B</option>
+                            <option value="C" ${u.assignedStream === 'C' ? 'selected' : ''}>Stream C</option>
+                        </select>
+                    </td>
                     <td><button class="btn-save" onclick="updateStaffData('${id}')">Update</button></td>
                 </tr>`;
         });
     }
 
-    // 4. Update Staff Data Global Function
     window.updateStaffData = async (id) => {
         const role = document.getElementById(`role-${id}`).value;
         const gender = document.getElementById(`gender-${id}`).value;
         const assignedClass = document.getElementById(`class-${id}`).value;
+        const assignedStream = document.getElementById(`stream-${id}`).value;
         
         try {
-            const userRef = doc(db, "users", id);
-            await updateDoc(userRef, { role, gender, assignedClass });
-            alert("Staff permissions updated successfully!");
-            loadDashboardStats(); // Refresh stats at top
-        } catch (e) {
-            alert("Error updating: " + e.message);
-        }
+            await updateDoc(doc(db, "users", id), { role, gender, assignedClass, assignedStream });
+            alert("Staff details updated!");
+            loadDashboardStats();
+        } catch (e) { alert(e.message); }
+    };
+
+    // STUDENT STREAM MAPPING LOGIC
+    window.loadStudentsForMapping = async () => {
+        const cls = document.getElementById('mapClass').value;
+        if (!cls) return;
+
+        const tbody = document.getElementById('mappingTable');
+        tbody.innerHTML = "<tr><td colspan='3' style='text-align:center;'>Loading...</td></tr>";
+
+        const q = query(collection(db, "students"), where("cls", "==", cls));
+        const snap = await getDocs(q);
+        
+        tbody.innerHTML = "";
+        snap.forEach(sDoc => {
+            const s = sDoc.data();
+            tbody.innerHTML += `
+                <tr>
+                    <td><input type="checkbox" class="map-check" value="${sDoc.id}"></td>
+                    <td>${s.name}</td>
+                    <td><span class="badge">${s.stream || 'No Stream'}</span></td>
+                </tr>`;
+        });
+    };
+
+    window.toggleAllMapping = (source) => {
+        const checkboxes = document.querySelectorAll('.map-check');
+        checkboxes.forEach(cb => cb.checked = source.checked);
+    };
+
+    window.applyStreamMapping = async () => {
+        const stream = document.getElementById('targetStream').value;
+        const selected = document.querySelectorAll('.map-check:checked');
+
+        if (selected.length === 0) return alert("Select students first.");
+
+        const batch = writeBatch(db);
+        selected.forEach(cb => {
+            const ref = doc(db, "students", cb.value);
+            batch.update(ref, { stream: stream });
+        });
+
+        try {
+            await batch.commit();
+            alert(`Assigned ${selected.length} students to Stream ${stream}`);
+            loadStudentsForMapping();
+        } catch (err) { alert(err.message); }
     };
 
     window.logout = () => signOut(auth).then(() => window.location.href="index.html");
