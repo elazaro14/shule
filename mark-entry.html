@@ -3,25 +3,20 @@
 <head>
     <meta charset="UTF-8">
     <title>Ingiza Alama | Olmoti Secondary</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        :root { 
-            --nav-blue: #1a237e; 
-            --gold: #c5a059; 
-            --bg: #f4f7f6; 
-            --sidebar-width: 250px; 
-        }
+        :root { --nav-blue: #1a237e; --gold: #c5a059; --bg: #f4f7f6; --sidebar-width: 250px; }
         body { margin: 0; font-family: 'Segoe UI', sans-serif; display: flex; background: var(--bg); }
         .sidebar { width: var(--sidebar-width); background: var(--nav-blue); color: white; height: 100vh; position: fixed; }
         .main-content { margin-left: var(--sidebar-width); padding: 40px; flex-grow: 1; }
         .entry-header { background: white; padding: 25px; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); margin-bottom: 20px; border-left: 5px solid var(--gold); }
-        select, .btn-load { padding: 12px; border-radius: 6px; border: 1px solid #ccc; }
+        select, .btn-load { padding: 12px; border-radius: 6px; border: 1px solid #ccc; font-size: 14px; }
         .btn-load { background: var(--nav-blue); color: white; border: none; cursor: pointer; font-weight: bold; }
         .table-container { background: white; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); overflow: hidden; }
         table { width: 100%; border-collapse: collapse; }
         th, td { border-bottom: 1px solid #eee; padding: 12px; text-align: center; }
-        th { background: #f8f9fa; color: var(--nav-blue); font-size: 11px; }
+        th { background: #f8f9fa; color: var(--nav-blue); font-size: 11px; text-transform: uppercase; }
         .score-in { width: 60px; text-align: center; padding: 8px; border: 1px solid #ddd; border-radius: 4px; font-weight: bold; }
-        .grade { font-weight: bold; }
         .save-bar { position: sticky; bottom: 0; background: white; padding: 20px; border-top: 3px solid var(--nav-blue); text-align: center; display: none; }
         .btn-save { background: #2e7d32; color: white; padding: 15px 60px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; }
     </style>
@@ -29,18 +24,21 @@
 <body>
 
     <div class="sidebar">
-        <div style="padding:20px; text-align:center;"><h2>OLMOTI SEC</h2></div>
-        <div style="padding:20px;"><a href="dashboard.html" style="color:white; text-decoration:none;">🏠 Dashboard</a></div>
+        <div style="padding:25px; text-align:center; border-bottom:1px solid var(--gold);"><h2>OLMOTI SEC</h2></div>
+        <ul style="list-style:none; padding:0;">
+            <li><a href="dashboard.html" style="display:block; padding:15px; color:#ccc; text-decoration:none;">🏠 Dashboard</a></li>
+            <li><a href="mark-entry.html" style="display:block; padding:15px; color:white; background:rgba(255,255,255,0.1); border-left:5px solid var(--gold); text-decoration:none;">📝 Ingiza Alama</a></li>
+        </ul>
     </div>
 
     <div class="main-content">
         <div class="entry-header">
-            <h2 style="margin-top:0; color:var(--nav-blue);">Ingiza Alama (Dynamic Calculation)</h2>
-            <div style="display:flex; gap: 10px;">
+            <h2 style="margin-top:0; color:var(--nav-blue);">Ingiza Alama (Dynamic Average)</h2>
+            <div style="display:flex; gap: 10px; align-items: center;">
                 <select id="subSel"><option value="">-- Chagua Somo --</option></select>
                 <button id="loadBtn" class="btn-load">TAFUTA WANAFUNZI</button>
             </div>
-            <div id="assignmentInfo" style="margin-top:10px; font-weight:bold; color:var(--nav-blue);">Inapakia...</div>
+            <div id="assignmentInfo" style="margin-top:10px; font-size:14px; color:var(--nav-blue);">Inatambua mwalimu...</div>
         </div>
 
         <div class="table-container">
@@ -72,13 +70,12 @@
 
     onAuthStateChanged(auth, async (user) => {
         if (!user) { window.location.href = "index.html"; return; }
-        const userSnap = await getDoc(doc(db, "users", user.uid));
-        if (userSnap.exists()) {
-            const u = userSnap.data();
-            tClass = u.assignedClass || "Form 1";
-            tStream = u.assignedStream || "A";
+        const uSnap = await getDoc(doc(db, "users", user.uid));
+        if (uSnap.exists()) {
+            const u = uSnap.data();
+            tClass = u.assignedClass; tStream = u.assignedStream;
             document.getElementById('assignmentInfo').innerText = `Mwalimu: ${u.name} | Darasa: ${tClass} | Mkondo: ${tStream}`;
-            const list = tClass.includes("1") || tClass.includes("2") ? subjectLists["Form 1"] : subjectLists["Form 3"];
+            const list = (tClass.includes("1") || tClass.includes("2")) ? subjectLists["Form 1"] : subjectLists["Form 3"];
             subSel.innerHTML = '<option value="">-- Chagua Somo --</option>';
             list.forEach(s => subSel.innerHTML += `<option value="${s.code}">${s.name}</option>`);
         }
@@ -89,7 +86,7 @@
         loadBtn.innerText = "Inapakia...";
         
         const qS = query(collection(db, "students"), where("cls", "==", tClass), where("stream", "==", tStream));
-        const qR = query(collection(db, "results"), where("subjectCode", "==", subSel.value), where("cls", "==", tClass), where("stream", "==", tStream));
+        const qR = query(collection(db, "results"), where("subjectCode", "==", subSel.value), where("cls", "==", tClass));
         
         const [studSnap, resSnap] = await Promise.all([getDocs(qS), getDocs(qR)]);
         const resMap = {};
@@ -97,91 +94,81 @@
 
         mTbody.innerHTML = "";
         studSnap.forEach((d, i) => {
-            const res = resMap[d.id] || {};
+            const r = resMap[d.id] || {};
             mTbody.innerHTML += `
                 <tr class="row" data-id="${d.id}">
                     <td>${i+1}</td>
                     <td style="text-align:left; font-weight:bold;">${d.data().name}</td>
-                    <td><input type="number" class="score-in t1" value="${res.test1 || ''}"></td>
-                    <td><input type="number" class="score-in mid" value="${res.midTerm || ''}"></td>
-                    <td><input type="number" class="score-in t2" value="${res.test2 || ''}"></td>
-                    <td><input type="number" class="score-in ex" value="${res.exam || ''}"></td>
-                    <td class="total">${res.total || 0}</td>
-                    <td class="avg">${res.average || '-'}</td>
-                    <td class="grade" style="color:${getColor(res.grade)}">${res.grade || '-'}</td>
+                    <td><input type="number" class="score-in t1" value="${r.test1 || ''}"></td>
+                    <td><input type="number" class="score-in mid" value="${r.midTerm || ''}"></td>
+                    <td><input type="number" class="score-in t2" value="${r.test2 || ''}"></td>
+                    <td><input type="number" class="score-in ex" value="${r.exam || ''}"></td>
+                    <td class="total">${r.total || 0}</td>
+                    <td class="avg">${r.average || '-'}</td>
+                    <td class="grade">${r.grade || '-'}</td>
                 </tr>`;
         });
-        mTable.style.display = "table"; 
-        saveBar.style.display = "block";
-        loadBtn.innerText = "TAFUTA WANAFUNZI";
+        mTable.style.display = "table"; saveBar.style.display = "block"; loadBtn.innerText = "TAFUTA WANAFUNZI";
     };
 
-    // --- DYNAMIC CALCULATION LOGIC ---
+    // --- KEY DYNAMIC LOGIC ---
     document.addEventListener('input', e => {
         if(e.target.classList.contains('score-in')) {
             const row = e.target.closest('tr');
-            const t1 = row.querySelector('.t1').value;
-            const mid = row.querySelector('.mid').value;
-            const t2 = row.querySelector('.t2').value;
-            const ex = row.querySelector('.ex').value;
+            const inputs = [
+                row.querySelector('.t1').value,
+                row.querySelector('.mid').value,
+                row.querySelector('.t2').value,
+                row.querySelector('.ex').value
+            ];
 
-            const scores = [t1, mid, t2, ex].filter(s => s !== "");
+            // Filter out empty strings to count only filled boxes
+            const filled = inputs.filter(v => v.trim() !== "");
             
-            if (scores.length === 0) {
+            if (filled.length === 0) {
                 row.querySelector('.total').innerText = "0";
                 row.querySelector('.avg').innerText = "-";
                 row.querySelector('.grade').innerText = "-";
                 return;
             }
 
-            const total = scores.reduce((a, b) => a + (parseFloat(b) || 0), 0);
-            
-            // Dynamic Average based on Tanzanian Weighting (Total/100 * 100 = Total)
-            // But we display average relative to the components filled.
-            const avg = (total / scores.length) * (4 / scores.length); 
-            // Simplified: If you want Average to be out of 100 based on weight:
-            const weightedAvg = total; 
+            const total = filled.reduce((acc, curr) => acc + parseFloat(curr || 0), 0);
+            const average = (total / filled.length).toFixed(1); // Dynamic: sum / count of filled fields
 
             row.querySelector('.total').innerText = total;
-            row.querySelector('.avg').innerText = weightedAvg;
+            row.querySelector('.avg').innerText = average;
 
-            // Tanzanian O-Level Grade Scale
-            let g = "F"; 
-            if(weightedAvg >= 75) g="A"; 
-            else if(weightedAvg >= 65) g="B"; 
-            else if(weightedAvg >= 45) g="C"; 
-            else if(weightedAvg >= 30) g="D";
+            // Tanzanian Grading based on Average
+            let g = "F";
+            if(average >= 75) g = "A";
+            else if(average >= 65) g = "B";
+            else if(average >= 45) g = "C";
+            else if(average >= 30) g = "D";
             
-            const gEl = row.querySelector('.grade');
-            gEl.innerText = g;
-            gEl.style.color = getColor(g);
+            const gradeEl = row.querySelector('.grade');
+            gradeEl.innerText = g;
+            gradeEl.style.color = (g === "A" || g === "B") ? "green" : (g === "F" ? "red" : "orange");
         }
     });
-
-    function getColor(g) {
-        if (g === "A" || g === "B") return "green";
-        if (g === "C" || g === "D") return "orange";
-        if (g === "F") return "red";
-        return "inherit";
-    }
 
     saveBtn.onclick = async () => {
         saveBtn.innerText = "Inahifadhi...";
         const rows = document.querySelectorAll(".row");
         for(let r of rows) {
             const id = r.dataset.id;
-            const avgVal = r.querySelector('.avg').innerText;
-            if(avgVal !== "-") {
+            const avg = r.querySelector('.avg').innerText;
+            if(avg !== "-") {
                 await setDoc(doc(db, "results", `${id}_${subSel.value}`), {
                     studentId: id, subjectCode: subSel.value, cls: tClass, stream: tStream,
                     test1: r.querySelector('.t1').value, midTerm: r.querySelector('.mid').value,
                     test2: r.querySelector('.t2').value, exam: r.querySelector('.ex').value,
-                    total: r.querySelector('.total').innerText, average: avgVal, grade: r.querySelector('.grade').innerText
+                    total: r.querySelector('.total').innerText, 
+                    average: avg, 
+                    grade: r.querySelector('.grade').innerText
                 });
             }
         }
-        alert("Zimehifadhiwa!");
-        saveBtn.innerText = "HIFADHI ALAMA ZOTE";
+        alert("Zimehifadhiwa!"); saveBtn.innerText = "HIFADHI ALAMA ZOTE";
     };
 </script>
 </body>
