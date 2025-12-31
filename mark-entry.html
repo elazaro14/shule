@@ -1,151 +1,49 @@
-<!DOCTYPE html>
-<html lang="sw">
-<head>
-    <meta charset="UTF-8">
-    <title>Ingiza Alama | Olmoti Secondary</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <style>
-        :root { 
-            --nav-blue: #1a237e; 
-            --nav-hover: #283593;
-            --gold: #c5a059; 
-            --bg: #f4f7f6; 
-            --sidebar-width: 250px; 
-        }
-        
-        body { margin: 0; font-family: 'Segoe UI', sans-serif; display: flex; background: var(--bg); }
-
-        /* --- SIDEBAR --- */
-        .sidebar { width: var(--sidebar-width); background: var(--nav-blue); color: white; height: 100vh; position: fixed; z-index: 100; }
-        .sidebar-header { padding: 25px; text-align: center; border-bottom: 1px solid var(--gold); }
-        .nav-links { list-style: none; padding: 0; margin: 0; }
-        .nav-links li a { display: block; padding: 15px 20px; color: #ccc; text-decoration: none; border-bottom: 1px solid rgba(255,255,255,0.1); transition: 0.3s; }
-        .nav-links li a:hover, .nav-links li a.active { background: var(--nav-hover); color: white; border-left: 5px solid var(--gold); }
-
-        /* --- CONTENT --- */
-        .main-content { margin-left: var(--sidebar-width); padding: 40px; flex-grow: 1; width: calc(100% - var(--sidebar-width)); }
-        
-        .entry-header { background: white; padding: 25px; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); margin-bottom: 20px; border-left: 5px solid var(--gold); }
-        
-        select, .btn-load { padding: 12px; border-radius: 6px; border: 1px solid #ccc; font-size: 14px; outline: none; }
-        .btn-load { background: var(--nav-blue); color: white; border: none; cursor: pointer; font-weight: bold; margin-left: 10px; }
-
-        .assignment-info { margin-top: 10px; font-weight: bold; color: var(--nav-blue); font-size: 14px; }
-
-        /* --- TABLE --- */
-        .table-container { background: white; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); overflow-x: auto; }
-        table { width: 100%; border-collapse: collapse; }
-        th, td { border-bottom: 1px solid #eee; padding: 12px; text-align: center; }
-        th { background: #f8f9fa; color: var(--nav-blue); font-size: 11px; text-transform: uppercase; }
-        
-        .score-in { width: 60px; text-align: center; padding: 8px; border: 1px solid #ddd; border-radius: 4px; font-weight: bold; }
-        .grade { font-weight: bold; }
-
-        /* --- SAVE BAR --- */
-        .save-bar { position: sticky; bottom: 0; background: white; padding: 20px; border-top: 3px solid var(--nav-blue); text-align: center; display: none; box-shadow: 0 -5px 15px rgba(0,0,0,0.05); }
-        .btn-save { background: #2e7d32; color: white; padding: 15px 60px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 16px; }
-    </style>
-</head>
-<body>
-
-    <div class="sidebar">
-        <div class="sidebar-header"><h2>OLMOTI SEC</h2><small>Admin Portal</small></div>
-        <ul class="nav-links">
-            <li><a href="dashboard.html">🏠 Dashboard</a></li>
-            <li><a href="students-list.html">👥 Wanafunzi</a></li>
-            <li><a href="mark-entry.html" class="active">📝 Ingiza Alama</a></li>
-            <li><a href="attendance.html">📅 Attendance</a></li>
-        </ul>
-    </div>
-
-    <div class="main-content">
-        <div class="entry-header">
-            <h2 style="margin-top:0; color:var(--nav-blue);">Ingiza Alama (Mark Entry)</h2>
-            <div style="display:flex; align-items: center; gap: 10px; flex-wrap: wrap;">
-                <select id="subSel"><option value="">-- Chagua Somo --</option></select>
-                <button id="loadBtn" class="btn-load">TAFUTA WANAFUNZI</button>
-            </div>
-            <div id="assignmentInfo" class="assignment-info">Inapakia taarifa za mwalimu...</div>
-        </div>
-
-        <div class="table-container">
-            <table id="mTable" style="display:none;">
-                <thead>
-                    <tr>
-                        <th>S/N</th>
-                        <th style="text-align: left;">Jina la Mwanafunzi</th>
-                        <th>T1 (10)</th><th>Mid (20)</th><th>T2 (10)</th><th>Ex (60)</th>
-                        <th>Total</th><th>Avg</th><th>Grade</th>
-                    </tr>
-                </thead>
-                <tbody id="mTbody"></tbody>
-            </table>
-        </div>
-
-        <div id="saveBar" class="save-bar">
-            <button id="saveBtn" class="btn-save">HIFADHI ALAMA ZOTE (SAVE ALL)</button>
-        </div>
-    </div>
-
-<script type="module">
-    import { db, auth } from "./firebase.js";
-    import { collection, getDocs, query, where, setDoc, doc, getDoc, orderBy } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-    import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+import { db } from "./firebase.js";
+    import { collection, getDocs, query, where, setDoc, doc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
     import { subjectLists } from "./data.js";
 
-    let teacherClass = "";
-    let teacherStream = "";
-
-    onAuthStateChanged(auth, async (user) => {
-        if (!user) { window.location.href = "index.html"; return; }
-
-        const userSnap = await getDoc(doc(db, "users", user.uid));
-        if (userSnap.exists()) {
-            const userData = userSnap.data();
-            teacherClass = userData.assignedClass || "Form 1";
-            teacherStream = userData.assignedStream || "A";
-
-            document.getElementById('assignmentInfo').innerText = 
-                `Mwalimu: ${userData.name} | Darasa: ${teacherClass} | Mkondo: ${teacherStream}`;
-
-            const list = (teacherClass.includes("1") || teacherClass.includes("2")) ? subjectLists["Form 1"] : subjectLists["Form 3"];
-            if(list) {
-                subSel.innerHTML = '<option value="">-- Chagua Somo --</option>';
-                list.forEach(s => subSel.innerHTML += `<option value="${s.code}">${s.name}</option>`);
-            }
+    // Dynamic Subject Loading based on Class Selection
+    classSel.onchange = () => {
+        const val = classSel.value;
+        const list = (val.includes("1") || val.includes("2")) ? subjectLists["Form 1"] : subjectLists["Form 3"];
+        subSel.innerHTML = '<option value="">-- Chagua Somo --</option>';
+        if(list) {
+            list.forEach(s => subSel.innerHTML += `<option value="${s.code}">${s.name}</option>`);
         }
-    });
+    };
 
     loadBtn.onclick = async () => {
-        if(!subSel.value) return alert("Chagua Somo!");
+        if(!subSel.value) return alert("Chagua Somo kwanza!");
         loadBtn.innerText = "Inapakia...";
         
-        const qStuds = query(collection(db, "students"), where("cls", "==", teacherClass), where("stream", "==", teacherStream), orderBy("name"));
-        const qRes = query(collection(db, "results"), where("subjectCode", "==", subSel.value), where("cls", "==", teacherClass), where("stream", "==", teacherStream));
+        const qStuds = query(collection(db, "students"), where("cls", "==", classSel.value));
+        const qRes = query(collection(db, "results"), where("subjectCode", "==", subSel.value));
         
         const [studSnap, resSnap] = await Promise.all([getDocs(qStuds), getDocs(qRes)]);
+        
         const resultsMap = {};
         resSnap.forEach(d => resultsMap[d.data().studentId] = d.data());
 
         mTbody.innerHTML = "";
         let i = 1;
-
         studSnap.forEach(d => {
             const res = resultsMap[d.id] || {};
-            const avgVal = res.average || "-";
-            const gradeVal = res.grade || "-";
+            
+            // Set initial display to '-' if no data exists in database
+            const initialAvg = res.average !== undefined ? res.average : "-";
+            const initialGrade = res.grade !== undefined ? res.grade : "-";
 
             mTbody.innerHTML += `
                 <tr class="row" data-id="${d.id}">
                     <td>${i++}</td>
                     <td style="text-align:left; font-weight:bold;">${d.data().name}</td>
-                    <td><input type="number" class="score-in t1" value="${res.test1 || ''}" max="10"></td>
-                    <td><input type="number" class="score-in mid" value="${res.midTerm || ''}" max="20"></td>
-                    <td><input type="number" class="score-in t2" value="${res.test2 || ''}" max="10"></td>
-                    <td><input type="number" class="score-in ex" value="${res.exam || ''}" max="60"></td>
+                    <td><input type="number" class="score-in t1" value="${res.test1 || ''}"></td>
+                    <td><input type="number" class="score-in mid" value="${res.midTerm || ''}"></td>
+                    <td><input type="number" class="score-in t2" value="${res.test2 || ''}"></td>
+                    <td><input type="number" class="score-in ex" value="${res.exam || ''}"></td>
                     <td class="total">${res.total || 0}</td>
-                    <td class="avg">${avgVal}</td>
-                    <td class="grade" style="color:${getColor(gradeVal)}">${gradeVal}</td>
+                    <td class="avg">${initialAvg}</td>
+                    <td class="grade">${initialGrade}</td>
                 </tr>`;
         });
         
@@ -154,58 +52,75 @@
         loadBtn.innerText = "TAFUTA WANAFUNZI";
     };
 
+    // Auto-calculate on Input
     document.addEventListener('input', e => {
         if(e.target.classList.contains('score-in')) {
             const row = e.target.closest('tr');
-            const v = [row.querySelector('.t1').value, row.querySelector('.mid').value, row.querySelector('.t2').value, row.querySelector('.ex').value];
             
-            if (v.filter(x => x !== "").length === 0) {
+            // Get raw values to check if they are empty
+            const v1 = row.querySelector('.t1').value;
+            const vM = row.querySelector('.mid').value;
+            const v2 = row.querySelector('.t2').value;
+            const vE = row.querySelector('.ex').value;
+
+            // Filter out empty strings to count only filled fields
+            const filledScores = [v1, vM, v2, vE].filter(v => v !== "");
+            
+            if (filledScores.length === 0) {
+                row.querySelector('.total').innerText = "0";
                 row.querySelector('.avg').innerText = "-";
                 row.querySelector('.grade').innerText = "-";
                 return;
             }
 
-            const tot = v.reduce((a, b) => a + (parseFloat(b) || 0), 0);
-            row.querySelector('.total').innerText = tot;
-            row.querySelector('.avg').innerText = tot;
-
-            let g = "F"; 
-            if(tot >= 75) g="A"; else if(tot >= 65) g="B"; else if(tot >= 45) g="C"; else if(tot >= 30) g="D";
+            const t1 = parseFloat(v1) || 0;
+            const mid = parseFloat(vM) || 0;
+            const t2 = parseFloat(v2) || 0;
+            const ex = parseFloat(vE) || 0;
             
-            const gradeEl = row.querySelector('.grade');
-            gradeEl.innerText = g;
-            gradeEl.style.color = getColor(g);
+            const tot = t1 + mid + t2 + ex;
+            const avg = (tot / filledScores.length).toFixed(1);
+            
+            row.querySelector('.total').innerText = tot;
+            row.querySelector('.avg').innerText = avg;
+            
+            // Grades: A(75-100), B(65-74), C(45-64), D(30-44), F(0-29)
+            let g = "F"; 
+            if(avg >= 75) g = "A"; 
+            else if(avg >= 65) g = "B"; 
+            else if(avg >= 45) g = "C"; 
+            else if(avg >= 30) g = "D";
+            
+            row.querySelector('.grade').innerText = g;
         }
     });
 
-    function getColor(g) {
-        if (g === "A" || g === "B") return "green";
-        if (g === "C" || g === "D") return "orange";
-        if (g === "F") return "red";
-        return "inherit";
-    }
-
     saveBtn.onclick = async () => {
         saveBtn.disabled = true;
-        saveBtn.innerText = "Inahifadhi...";
+        saveBtn.innerText = "Inahifadhi... (Saving...)";
         const rows = document.querySelectorAll(".row");
         
         try {
             for(let r of rows) {
                 const id = r.dataset.id;
                 await setDoc(doc(db, "results", `${id}_${subSel.value}`), {
-                    studentId: id, subjectCode: subSel.value, cls: teacherClass, stream: teacherStream,
-                    test1: r.querySelector('.t1').value, midTerm: r.querySelector('.mid').value,
-                    test2: r.querySelector('.t2').value, exam: r.querySelector('.ex').value,
-                    total: r.querySelector('.total').innerText, average: r.querySelector('.avg').innerText, 
+                    studentId: id, 
+                    subjectCode: subSel.value,
+                    test1: r.querySelector('.t1').value, 
+                    midTerm: r.querySelector('.mid').value,
+                    test2: r.querySelector('.t2').value, 
+                    exam: r.querySelector('.ex').value,
+                    total: r.querySelector('.total').innerText,
+                    average: r.querySelector('.avg').innerText, 
                     grade: r.querySelector('.grade').innerText
                 });
             }
-            alert("Alama zimehifadhiwa!");
-        } catch (err) { alert("Hitilafu imetokea."); }
-        saveBtn.disabled = false;
-        saveBtn.innerText = "HIFADHI ALAMA ZOTE (SAVE ALL)";
+            alert("Alama zimehifadhiwa kikamilifu!");
+        } catch (err) {
+            alert("Hitilafu imetokea wakati wa kuhifadhi.");
+            console.error(err);
+        } finally {
+            saveBtn.disabled = false;
+            saveBtn.innerText = "HIFADHI ALAMA ZOTE (SAVE ALL)";
+        }
     };
-</script>
-</body>
-</html>
