@@ -1,168 +1,43 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Student Management | Olmoti ERP</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <style>
-        :root { --primary: #1a237e; --gold: #c5a059; --bg: #f4f7f6; --success: #2e7d32; }
-        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); margin: 0; display: flex; }
-        
-        /* Security Gatekeeper Styles */
-        #wrapper { display: none; width: 100%; }
-        #loader { 
-            width: 100%; height: 100vh; display: flex; flex-direction: column;
-            justify-content: center; align-items: center; background: white;
-        }
-
-        .sidebar { width: 250px; background: #1a1c23; color: white; height: 100vh; position: fixed; padding: 20px; }
-        .main-content { margin-left: 250px; padding: 40px; width: calc(100% - 250px); }
-        
-        .card { background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); margin-bottom: 20px; }
-        .form-group { display: grid; grid-template-columns: 2fr 1fr 1fr 1fr auto; gap: 10px; align-items: end; }
-        
-        input, select { padding: 10px; border: 1px solid #ddd; border-radius: 6px; }
-        .btn-add { background: var(--primary); color: white; border: none; padding: 12px 20px; border-radius: 6px; cursor: pointer; font-weight: bold; }
-        
-        table { width: 100%; border-collapse: collapse; margin-top: 20px; background: white; }
-        th, td { padding: 12px; text-align: left; border-bottom: 1px solid #eee; }
-        th { color: var(--primary); background: #f8f9fa; font-size: 11px; text-transform: uppercase; letter-spacing: 1px; }
-        
-        /* Action Buttons */
-        .btn-report { 
-            background: var(--success); color: white; border: none; padding: 6px 12px; 
-            border-radius: 4px; cursor: pointer; text-decoration: none; font-size: 12px; 
-            display: inline-flex; align-items: center; gap: 5px; font-weight: 600;
-        }
-        .btn-report:hover { background: #1b5e20; }
-        .btn-del { color: #d32f2f; cursor: pointer; border: none; background: none; margin-left: 15px; font-size: 16px; }
-    </style>
-</head>
-<body>
-
-    <div id="loader">
-        <i class="fas fa-circle-notch fa-spin fa-3x" style="color: var(--primary); margin-bottom: 15px;"></i>
-        <p>Verifying Credentials...</p>
-    </div>
-
-    <div id="wrapper">
-        <div class="sidebar">
-            <h2 style="color:var(--gold)">OLMOTI ERP</h2>
-            <hr style="border: 0.5px solid #333; margin: 20px 0;">
-            <nav>
-                <p><a href="dashboard.html" style="color:white; text-decoration:none;"><i class="fas fa-th-large"></i> Dashboard</a></p>
-                <p><a href="mark-entry.html" style="color:white; text-decoration:none;"><i class="fas fa-pen-nib"></i> Mark Entry</a></p>
-                <p><a href="students-list.html" style="color:var(--gold); text-decoration:none;"><i class="fas fa-user-graduate"></i> Student Registry</a></p>
-            </nav>
-        </div>
-
-        <div class="main-content">
-            <div class="card">
-                <h3 style="margin-top:0;"><i class="fas fa-plus-circle"></i> Quick Student Registration</h3>
-                <div class="form-group">
-                    <div><label>Full Name</label><br><input type="text" id="nName" style="width:100%"></div>
-                    <div><label>Sex</label><br><select id="nSex" style="width:100%"><option>M</option><option>F</option></select></div>
-                    <div><label>Class</label><br>
-                        <select id="nCls" style="width:100%">
-                            <option>Form 1</option><option>Form 2</option>
-                            <option>Form 3</option><option>Form 4</option>
-                        </select>
-                    </div>
-                    <div><label>Stream</label><br><select id="nStr" style="width:100%"><option>A</option><option>B</option><option>C</option></select></div>
-                    <button class="btn-add" id="addBtn">SAVE STUDENT</button>
-                </div>
-            </div>
-
-            <div class="card">
-                <h3 style="margin-top:0;"><i class="fas fa-list"></i> Student Directory</h3>
-                <table>
-                    <thead>
-                        <tr>
-                            <th>S/N</th><th>Name</th><th>Sex</th><th>Class</th><th>Stream</th><th style="text-align:center;">Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody id="sTable"></tbody>
-                </table>
-            </div>
-        </div>
-    </div>
-
 <script type="module">
     import { db, auth } from "./firebase.js";
-    import { collection, getDocs, addDoc, deleteDoc, doc, query, orderBy, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+    import { collection, getDocs, doc, query, orderBy, getDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
     import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
-    const wrapper = document.getElementById('wrapper');
-    const loader = document.getElementById('loader');
+    // ... (Your existing Gatekeeper/Role logic here) ...
 
-    // --- GATEKEEPER ---
-    onAuthStateChanged(auth, async (user) => {
-        if (!user) { window.location.href = "index.html"; return; }
-
-        const userSnap = await getDoc(doc(db, "users", user.uid));
-        if (userSnap.exists()) {
-            const role = userSnap.data().role;
-            // Only Admin or Academic can access this page
-            if (role === "admin" || role === "academic") {
-                loader.style.display = "none";
-                wrapper.style.display = "block";
-                loadStuds();
-            } else {
-                alert("Permission Denied! Returning to Dashboard.");
-                window.location.href = "dashboard.html";
-            }
-        }
-    });
-
-    // --- TABLE LOADING WITH REPORT BUTTON ---
     async function loadStuds() {
         const tbody = document.getElementById('sTable');
-        const snap = await getDocs(query(collection(db, "students"), orderBy("name")));
-        tbody.innerHTML = "";
-        let i = 1;
-        
-        snap.forEach(d => {
-            const s = d.data();
-            tbody.innerHTML += `
-                <tr>
-                    <td>${i++}</td>
-                    <td><b>${s.name}</b></td>
-                    <td>${s.sex}</td>
-                    <td>${s.cls}</td>
-                    <td>${s.stream}</td>
-                    <td style="text-align:center;">
-                        <a href="student-report.html?id=${d.id}" class="btn-report" target="_blank">
-                            <i class="fas fa-file-pdf"></i> View Report
-                        </a>
-                        <button class="btn-del" onclick="delStud('${d.id}')" title="Delete Student">
-                            <i class="fas fa-trash-alt"></i>
-                        </button>
-                    </td>
-                </tr>`;
-        });
+        try {
+            const snap = await getDocs(query(collection(db, "students"), orderBy("name")));
+            tbody.innerHTML = "";
+            let i = 1;
+            
+            snap.forEach(d => {
+                const s = d.data();
+                tbody.innerHTML += `
+                    <tr>
+                        <td>${i++}</td>
+                        <td><b>${s.name}</b></td>
+                        <td>${s.sex}</td>
+                        <td>${s.cls}</td>
+                        <td>${s.stream}</td>
+                        <td style="text-align:center;">
+                            <a href="view-report.html?id=${d.id}" target="_blank" style="text-decoration:none;">
+                                <button style="background:#2e7d32; color:white; border:none; padding:8px 15px; border-radius:5px; cursor:pointer; font-weight:bold; display:inline-flex; align-items:center; gap:5px;">
+                                    <i class="fas fa-eye"></i> View Report
+                                </button>
+                            </a>
+
+                            <button onclick="delStud('${d.id}')" style="color:#d32f2f; border:none; background:none; cursor:pointer; margin-left:15px; font-size:1.1rem;">
+                                <i class="fas fa-trash-alt"></i>
+                            </button>
+                        </td>
+                    </tr>`;
+            });
+        } catch (error) {
+            console.error("Error loading students:", error);
+        }
     }
 
-    document.getElementById('addBtn').onclick = async () => {
-        const name = document.getElementById('nName').value;
-        const sex = document.getElementById('nSex').value;
-        const cls = document.getElementById('nCls').value;
-        const stream = document.getElementById('nStr').value;
-
-        if(!name.trim()) return alert("Full name is required!");
-        
-        try {
-            await addDoc(collection(db, "students"), { name, sex, cls, stream });
-            document.getElementById('nName').value = "";
-            loadStuds();
-        } catch(e) { alert("Error: " + e.message); }
-    };
-
-    window.delStud = async (id) => {
-        if(confirm("Permanently delete this student record?")) {
-            await deleteDoc(doc(db, "students", id));
-            loadStuds();
-        }
-    };
+    // ... (Your existing add/delete functions) ...
 </script>
-</body>
-</html>
