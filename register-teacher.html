@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="sw">
+<head>
+    <meta charset="UTF-8">
+    <title>Sajili Mwalimu | Olmoti Secondary</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        :root { 
+            --bg: #f0f2f5;
+            --sidebar: #1a1c23;
+            --card-bg: #ffffff;
+            --primary: #4e73df;
+            --gold: #c5a059;
+            --text-dark: #2d3436;
+            --sidebar-width: 240px; 
+        }
+        
+        body { margin: 0; font-family: 'Inter', system-ui, sans-serif; display: flex; background: var(--bg); min-height: 100vh; }
+
+        /* --- SIDEBAR (Matched to Dashboard) --- */
+        .sidebar { width: var(--sidebar-width); background: var(--sidebar); color: white; height: 100vh; position: fixed; padding: 20px; display: flex; flex-direction: column; box-sizing: border-box; }
+        .sidebar h2 { font-size: 20px; border-bottom: 1px solid #333; padding-bottom: 15px; color: var(--gold); text-align: center; }
+        .nav-link { padding: 12px; color: #a4a6b3; text-decoration: none; display: flex; align-items: center; gap: 10px; border-radius: 8px; transition: 0.3s; margin-top: 5px; }
+        .nav-link:hover, .nav-link.active { background: #3a3b45; color: white; }
+
+        /* --- MAIN CONTENT --- */
+        .main-content { margin-left: var(--sidebar-width); padding: 40px; flex-grow: 1; display: flex; flex-direction: column; align-items: center; }
+        
+        .header { width: 100%; max-width: 500px; margin-bottom: 30px; }
+        .header h1 { margin: 0; color: var(--text-dark); font-size: 24px; }
+
+        .card { background: white; padding: 35px; border-radius: 15px; width: 100%; max-width: 500px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); border-top: 5px solid var(--primary); }
+        
+        label { display: block; margin-bottom: 8px; font-weight: 600; color: #555; font-size: 14px; }
+        input { width: 100%; padding: 12px; margin-bottom: 20px; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; font-size: 16px; outline: none; transition: 0.3s; }
+        input:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(78, 115, 223, 0.1); }
+        
+        .btn-gen { background: var(--primary); color: white; border: none; padding: 15px; width: 100%; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 16px; transition: 0.3s; display: flex; justify-content: center; align-items: center; gap: 10px; }
+        .btn-gen:hover { background: #2e59d9; transform: translateY(-1px); }
+        .btn-gen:disabled { background: #ccc; cursor: not-allowed; }
+
+        /* --- RESULT BOX --- */
+        .result-box { margin-top: 25px; padding: 20px; background: #f0fff4; border-radius: 10px; display: none; border: 1px solid #c6f6d5; animation: fadeIn 0.5s ease; }
+        .result-box p { margin: 5px 0; color: #2f855a; font-size: 14px; }
+        .credential-text { font-family: 'Courier New', Courier, monospace; font-weight: bold; font-size: 16px; color: #222; background: rgba(255,255,255,0.5); padding: 2px 5px; border-radius: 4px; }
+
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    </style>
+</head>
+<body>
+    <div class="sidebar">
+        <h2>Olmoti School</h2>
+        <a href="dashboard.html" class="nav-link"><i class="fas fa-chart-line"></i> Dashboard</a>
+        <a href="mark-entry.html" class="nav-link"><i class="fas fa-edit"></i> Mark Entry</a>
+        <a href="register-teacher.html" class="nav-link active"><i class="fas fa-user-plus"></i> Sajili Mwalimu</a>
+        <a href="attendance.html" class="nav-link"><i class="fas fa-calendar-check"></i> Attendance</a>
+    </div>
+
+    <div class="main-content">
+        <div class="header">
+            <h1>Sajili Akaunti ya Mwalimu</h1>
+        </div>
+
+        <div class="card">
+            <label for="teacherFullName">Jina Kamili la Mwalimu</label>
+            <input type="text" id="teacherFullName" placeholder="Mfano: Juma Hamisi">
+            
+            <button id="generateBtn" class="btn-gen">
+                <i class="fas fa-magic"></i> TENGENEZA AKAUNTI
+            </button>
+
+            <div id="result" class="result-box">
+                <p><i class="fas fa-check-circle"></i> <strong>Akaunti Imetengenezwa!</strong></p>
+                <p>Email: <span id="resEmail" class="credential-text"></span></p>
+                <p>Password: <span id="resPass" class="credential-text">Olmoti@2025</span></p>
+                <hr style="border: 0; border-top: 1px solid #c6f6d5; margin: 15px 0;">
+                <small style="color: #48bb78;">Nakili taarifa hizi na umpe mwalimu husika ili aweze kuingia kwenye mfumo.</small>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { auth, db } from "./firebase.js";
+        import { createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+        import { doc, setDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+        const genBtn = document.getElementById('generateBtn');
+
+        genBtn.onclick = async () => {
+            const fullName = document.getElementById('teacherFullName').value.trim();
+            if(!fullName) return alert("Tafadhali ingiza jina kamili la mwalimu!");
+
+            genBtn.disabled = true;
+            genBtn.innerHTML = `<i class="fas fa-spinner fa-spin"></i> Inatengeneza...`;
+
+            // 1. Logic for Auto-Email (e.g., j.hamisi@olmoti.sc.tz)
+            const names = fullName.toLowerCase().split(" ");
+            const firstInitial = names[0].charAt(0);
+            const lastName = names.length > 1 ? names[names.length - 1] : names[0];
+            const autoEmail = `${firstInitial}.${lastName}@olmoti.sc.tz`;
+            const autoPass = "Olmoti@2025";
+
+            try {
+                // 2. Create in Firebase Auth
+                const userCredential = await createUserWithEmailAndPassword(auth, autoEmail, autoPass);
+                const user = userCredential.user;
+
+                // 3. Set Role and Basic Info in Firestore 'users' collection
+                await setDoc(doc(db, "users", user.uid), {
+                    name: fullName,
+                    email: autoEmail,
+                    role: "teacher", // Teachers get the restricted role
+                    assignedClass: "None",
+                    assignedStream: "None",
+                    createdAt: new Date().toISOString()
+                });
+
+                // 4. Show result
+                document.getElementById('resEmail').innerText = autoEmail;
+                document.getElementById('result').style.display = "block";
+                document.getElementById('teacherFullName').value = "";
+                
+            } catch (error) {
+                console.error(error);
+                alert("Hitilafu: " + (error.code === 'auth/email-already-in-use' ? "Barua pepe hii tayari inatumika!" : error.message));
+            } finally {
+                genBtn.disabled = false;
+                genBtn.innerHTML = `<i class="fas fa-magic"></i> TENGENEZA AKAUNTI`;
+            }
+        };
+    </script>
+</body>
+</html>
