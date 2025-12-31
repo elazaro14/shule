@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Report Portal | Olmoti Secondary</title>
+    <style>
+        :root { --primary: #1a237e; --gold: #c5a059; --bg: #f4f7f6; }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); margin: 0; padding: 20px; }
+        
+        .search-container { max-width: 600px; margin: 50px auto; text-align: center; background: white; padding: 40px; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
+        .search-box { display: flex; gap: 10px; margin-top: 20px; }
+        input { flex: 1; padding: 15px; border: 2px solid #ddd; border-radius: 8px; font-size: 16px; outline: none; }
+        input:focus { border-color: var(--primary); }
+        .btn-search { background: var(--primary); color: white; border: none; padding: 0 25px; border-radius: 8px; cursor: pointer; font-weight: bold; }
+
+        .report-card { max-width: 800px; margin: 30px auto; background: white; padding: 40px; border-radius: 5px; box-shadow: 0 0 20px rgba(0,0,0,0.1); display: none; position: relative; }
+        .report-header { text-align: center; border-bottom: 3px double var(--primary); padding-bottom: 20px; margin-bottom: 30px; }
+        .student-info { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 30px; }
+        
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { padding: 12px; text-align: left; border: 1px solid #ddd; }
+        th { background: #f8f9fa; color: var(--primary); }
+        
+        .grade-a { color: green; font-weight: bold; }
+        .grade-f { color: red; font-weight: bold; }
+        
+        @media print {
+            .search-container, .btn-print { display: none; }
+            .report-card { box-shadow: none; margin: 0; border: none; display: block !important; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="search-container">
+        <h2 style="color: var(--primary);">OLMOTI SECONDARY SCHOOL</h2>
+        <p>Enter Student ID to view Terminal Results</p>
+        <div class="search-box">
+            <input type="text" id="studentIdInput" placeholder="Enter Student Registration ID">
+            <button class="btn-search" onclick="fetchReport()">VIEW REPORT</button>
+        </div>
+    </div>
+
+    <div id="reportSection" class="report-card">
+        <div class="report-header">
+            <h1 style="margin:0;">OFFICIAL PROGRESS REPORT</h1>
+            <p style="color:var(--gold); font-weight:bold; letter-spacing:2px;">Olmoti Secondary School Portal</p>
+        </div>
+
+        <div class="student-info">
+            <div><strong>NAME:</strong> <span id="resName">-</span></div>
+            <div><strong>CLASS:</strong> <span id="resClass">-</span></div>
+            <div><strong>STREAM:</strong> <span id="resStream">-</span></div>
+            <div><strong>ID:</strong> <span id="resId">-</span></div>
+        </div>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>SUBJECT</th>
+                    <th>SCORE (%)</th>
+                    <th>GRADE</th>
+                    <th>REMARKS</th>
+                </tr>
+            </thead>
+            <tbody id="resultsBody">
+                </tbody>
+        </table>
+
+        <div style="margin-top: 40px; display: flex; justify-content: space-between; align-items: flex-end;">
+            <div style="text-align:center; border-top: 1px solid #000; width: 200px; padding-top: 5px;">Class Teacher</div>
+            <button class="btn-print" onclick="window.print()" style="background:var(--gold); color:white; border:none; padding:10px 20px; border-radius:5px; cursor:pointer;">Print Report Card</button>
+            <div style="text-align:center; border-top: 1px solid #000; width: 200px; padding-top: 5px;">Headmaster</div>
+        </div>
+    </div>
+
+<script type="module">
+    import { db } from "./firebase.js";
+    import { collection, query, where, getDocs, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+    window.fetchReport = async () => {
+        const sid = document.getElementById('studentIdInput').value.trim();
+        if (!sid) return alert("Please enter a valid ID");
+
+        // 1. Fetch Student Details
+        const sSnap = await getDoc(doc(db, "students", sid));
+        if (!sSnap.exists()) {
+            alert("No student found with this ID.");
+            return;
+        }
+
+        const student = sSnap.data();
+        document.getElementById('resName').innerText = student.name;
+        document.getElementById('resClass').innerText = student.cls;
+        document.getElementById('resStream').innerText = student.stream || "N/A";
+        document.getElementById('resId').innerText = sid;
+
+        // 2. Fetch Results for this Student
+        const q = query(collection(db, "results"), where("studentId", "==", sid));
+        const rSnap = await getDocs(q);
+        
+        const tbody = document.getElementById('resultsBody');
+        tbody.innerHTML = "";
+
+        if (rSnap.empty) {
+            tbody.innerHTML = `<tr><td colspan="4" style="text-align:center;">No examination results found for this student.</td></tr>`;
+        } else {
+            rSnap.forEach(rDoc => {
+                const res = rDoc.data();
+                const remark = getRemark(res.grade);
+                tbody.innerHTML += `
+                    <tr>
+                        <td>${res.subject}</td>
+                        <td>${res.score}</td>
+                        <td class="grade-${res.grade.toLowerCase()}">${res.grade}</td>
+                        <td>${remark}</td>
+                    </tr>
+                `;
+            });
+        }
+
+        document.getElementById('reportSection').style.display = 'block';
+    };
+
+    function getRemark(grade) {
+        switch(grade) {
+            case 'A': return "Excellent";
+            case 'B': return "Very Good";
+            case 'C': return "Good Performance";
+            case 'D': return "Satisfactory";
+            default: return "Needs Improvement";
+        }
+    }
+</script>
+</body>
+</html>
