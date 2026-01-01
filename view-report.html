@@ -183,19 +183,16 @@
         if(!studentId) return;
 
         try {
-            // 1. Fetch Student Header Data
             const sSnap = await getDoc(doc(db, "students", studentId));
             if(!sSnap.exists()) return;
             const student = sSnap.data();
             document.getElementById("studentName").innerText = student.name;
             document.getElementById("studentClass").innerText = student.cls;
 
-            // 2. Fetch Results for this student
             const rSnap = await getDocs(query(collection(db, "results"), where("studentId", "==", studentId)));
             const myResMap = {};
             rSnap.forEach(d => myResMap[d.data().subjectCode] = d.data());
 
-            // 3. Fetch All Students/Results for Ranking
             const allResSnap = await getDocs(collection(db, "results"));
             const allStudSnap = await getDocs(query(collection(db, "students"), where("cls", "==", student.cls)));
             document.getElementById("totalStuds").innerText = allStudSnap.size;
@@ -206,50 +203,55 @@
             
             let sumW = 0, countS = 0, ptsArr = [];
 
-            // 4. Calculate Individual Subject Rows
             subjects.forEach(sub => {
                 const res = myResMap[sub.code];
+                let jaribioStr = "-", mtihaniStr = "-", jumlaStr = "-", wastaniStr = "-", grade = "-", maoni = "-";
+
                 if(res) {
-                    // Logic: Jaribio = Average of T1, Mid, T2 (filled only)
                     let jScores = [];
                     if(res.test1 && res.test1 !== "") jScores.push(parseFloat(res.test1));
                     if(res.midTerm && res.midTerm !== "") jScores.push(parseFloat(res.midTerm));
                     if(res.test2 && res.test2 !== "") jScores.push(parseFloat(res.test2));
                     
-                    const jaribio = jScores.length > 0 ? (jScores.reduce((a,b)=>a+b,0)/jScores.length) : 0;
-                    const mtihani = parseFloat(res.exam) || 0;
-                    
-                    // Total = Jaribio Average + Mtihani
-                    const jumla = jaribio + mtihani;
-                    
-                    // Wastani = Jumla / 2
-                    const wastani = (jumla / 2).toFixed(1);
+                    const hasJaribio = jScores.length > 0;
+                    const jaribio = hasJaribio ? (jScores.reduce((a,b)=>a+b,0)/jScores.length) : 0;
+                    const hasMtihani = res.exam && res.exam !== "";
+                    const mtihani = hasMtihani ? parseFloat(res.exam) : 0;
 
-                    let grade = "F", maoni = "FELI";
-                    const w = parseFloat(wastani);
-                    if(w >= 75) { grade="A"; maoni="VIZURI SANA"; }
-                    else if(w >= 65) { grade="B"; maoni="VIZURI"; }
-                    else if(w >= 45) { grade="C"; maoni="WASTANI"; }
-                    else if(w >= 30) { grade="D"; maoni="INARIDHISHA"; }
+                    if (hasJaribio || hasMtihani) {
+                        const jumla = jaribio + mtihani;
+                        const wastani = (jumla / 2).toFixed(1);
+                        const w = parseFloat(wastani);
 
-                    sumW += w;
-                    countS++;
-                    ptsArr.push({"A":1,"B":2,"C":3,"D":4,"F":5}[grade]);
+                        jaribioStr = hasJaribio ? jaribio.toFixed(0) : "-";
+                        mtihaniStr = hasMtihani ? mtihani : "-";
+                        jumlaStr = jumla.toFixed(0);
+                        wastaniStr = wastani;
 
-                    tbody.innerHTML += `<tr>
-                        <td class="subject-col">${sub.name}</td>
-                        <td>${jaribio.toFixed(0)}</td>
-                        <td>${mtihani}</td>
-                        <td>${jumla.toFixed(0)}</td>
-                        <td>${wastani}</td>
-                        <td>${grade}</td>
-                        <td>${maoni}</td>
-                    </tr>`;
+                        grade = "F"; maoni = "FELI";
+                        if(w >= 75) { grade="A"; maoni="VIZURI SANA"; }
+                        else if(w >= 65) { grade="B"; maoni="VIZURI"; }
+                        else if(w >= 45) { grade="C"; maoni="WASTANI"; }
+                        else if(w >= 30) { grade="D"; maoni="INARIDHISHA"; }
+
+                        sumW += w;
+                        countS++;
+                        ptsArr.push({"A":1,"B":2,"C":3,"D":4,"F":5}[grade]);
+                    }
                 }
+
+                tbody.innerHTML += `<tr>
+                    <td class="subject-col">${sub.name}</td>
+                    <td>${jaribioStr}</td>
+                    <td>${mtihaniStr}</td>
+                    <td>${jumlaStr}</td>
+                    <td>${wastaniStr}</td>
+                    <td>${grade}</td>
+                    <td>${maoni}</td>
+                </tr>`;
             });
 
-            // 5. Final Stats Calculation (Overall Average, Best 7 Points, Division)
-            document.getElementById("overallAvg").innerText = countS > 0 ? (sumW / countS).toFixed(1) : "0.0";
+            document.getElementById("overallAvg").innerText = countS > 0 ? (sumW / countS).toFixed(1) : "-";
             
             if(countS >= 7) {
                 ptsArr.sort((a,b)=>a-b);
@@ -260,29 +262,29 @@
                 document.getElementById("division").innerText = d;
             } else {
                 document.getElementById("totalPoints").innerText = "INC";
-                document.getElementById("division").innerText = "";
+                document.getElementById("division").innerText = "-";
             }
 
-            // 6. Ranking Logic
+            // Ranking Logic
             let rankingData = [];
             allStudSnap.forEach(sDoc => {
                 let sSum = 0, sCount = 0, sPts = [];
                 allResSnap.forEach(rDoc => {
                     const r = rDoc.data();
                     if(r.studentId === sDoc.id) {
-                        // Reproduce average logic for each student to rank correctly
                         let sjScores = [];
                         if(r.test1) sjScores.push(parseFloat(r.test1));
                         if(r.midTerm) sjScores.push(parseFloat(r.midTerm));
                         if(r.test2) sjScores.push(parseFloat(r.test2));
                         const sj = sjScores.length > 0 ? (sjScores.reduce((a,b)=>a+b,0)/sjScores.length) : 0;
                         const sm = parseFloat(r.exam) || 0;
-                        const sw = (sj + sm) / 2;
-                        
-                        sSum += sw; sCount++;
-                        let sg = "F";
-                        if(sw >= 75) sg="A"; else if(sw >= 65) sg="B"; else if(sw >= 45) sg="C"; else if(sw >= 30) sg="D";
-                        sPts.push({"A":1,"B":2,"C":3,"D":4,"F":5}[sg]);
+                        if(sj > 0 || sm > 0) {
+                            const sw = (sj + sm) / 2;
+                            sSum += sw; sCount++;
+                            let sg = "F";
+                            if(sw >= 75) sg="A"; else if(sw >= 65) sg="B"; else if(sw >= 45) sg="C"; else if(sw >= 30) sg="D";
+                            sPts.push({"A":1,"B":2,"C":3,"D":4,"F":5}[sg]);
+                        }
                     }
                 });
                 if(sCount >= 7) {
@@ -298,10 +300,10 @@
 
         } catch (e) { 
             console.error(e); 
-            document.getElementById("reportTbody").innerHTML = "<tr><td colspan='7'>Matatizo ya kiufundi yamejitokeza.</td></tr>";
+            document.getElementById("reportTbody").innerHTML = "<tr><td colspan='7'>Tatizo limetokea wakati wa kupakia matokeo.</td></tr>";
         }
     }
     generateReport();
 </script>
 </body>
-</html>
+</html>>
