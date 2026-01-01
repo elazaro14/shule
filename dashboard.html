@@ -99,8 +99,7 @@
                     </tbody>
                 </table>
             </div>
-            
-            </div>
+        </div>
     </div>
 
 <script type="module">
@@ -109,8 +108,10 @@
     import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
     // --- Subject Definitions ---
-    const subjectsF1_F2 = ["Biology", "Book-keeping", "Chemistry", "Historia ya Tanzania na maadili", "Business study", "English", "Geography", "History", "Kiswahili", "Mathematics", "Physics"];
-    const subjectsF3_F4 = ["Mathematics", "Biology", "Book-keeping", "Chemistry", "Civics", "Commerce", "English", "Geography", "History", "Kiswahili", "Literature", "Physics"];
+    const subjectsF1_F2 = ["Biology", "Book-keeping", "Chemistry", "Civics", "Historia ya Tz na maadili", "English", "Geography", "History", "Kiswahili", "Mathematics", "Physics"];
+    const subjectsF3_F4 = ["Biology", "Book-keeping", "Chemistry", "Civics", "Commerce", "English", "Geography", "History", "Kiswahili", "Literature", "Mathematics", "Physics"];
+    const allStreams = ["A", "B", "C", "D", "E", "F", "G", "ALL"];
+    const allForms = ["Form 1", "Form 2", "Form 3", "Form 4", "ALL"];
 
     onAuthStateChanged(auth, async (user) => {
         if (!user) { window.location.href = "index.html"; return; }
@@ -154,13 +155,27 @@
             const id = userDoc.id;
             const currentClass = u.assignedClass || "None";
 
-            // Determine initial list
-            let list = (currentClass.includes("1") || currentClass.includes("2")) ? subjectsF1_F2 : subjectsF3_F4;
-            if (currentClass === "None") list = [...new Set([...subjectsF1_F2, ...subjectsF3_F4])].sort();
+            // Determine initial subject list
+            let list = [];
+            if (currentClass.includes("1") || currentClass.includes("2")) list = subjectsF1_F2;
+            else if (currentClass.includes("3") || currentClass.includes("4")) list = subjectsF3_F4;
+            else list = [...new Set([...subjectsF1_F2, ...subjectsF3_F4])].sort();
 
-            let subjOptions = `<option value="None">None</option>`;
+            let subjOptions = `<option value="None">None</option><option value="ALL" ${u.assignedSubject === 'ALL' ? 'selected' : ''}>ALL SUBJECTS</option>`;
             list.forEach(s => {
                 subjOptions += `<option value="${s}" ${u.assignedSubject === s ? 'selected' : ''}>${s}</option>`;
+            });
+
+            // Stream Options (A-G + ALL)
+            let streamOptions = `<option value="None">None</option>`;
+            allStreams.forEach(st => {
+                streamOptions += `<option value="${st}" ${u.assignedStream === st ? 'selected' : ''}>${st}</option>`;
+            });
+
+            // Form Options (1-4 + ALL)
+            let formOptions = `<option value="None">None</option>`;
+            allForms.forEach(f => {
+                formOptions += `<option value="${f}" ${u.assignedClass === f ? 'selected' : ''}>${f}</option>`;
             });
 
             tbody.innerHTML += `
@@ -174,19 +189,12 @@
                     </td>
                     <td>
                         <select id="cls-${id}" onchange="refreshSubjectDropdown('${id}')">
-                            <option value="None">None</option>
-                            <option value="Form 1" ${currentClass==='Form 1'?'selected':''}>Form 1</option>
-                            <option value="Form 2" ${currentClass==='Form 2'?'selected':''}>Form 2</option>
-                            <option value="Form 3" ${currentClass==='Form 3'?'selected':''}>Form 3</option>
-                            <option value="Form 4" ${currentClass==='Form 4'?'selected':''}>Form 4</option>
+                            ${formOptions}
                         </select>
                     </td>
                     <td>
                         <select id="strm-${id}">
-                            <option value="None">None</option>
-                            <option value="A" ${u.assignedStream==='A'?'selected':''}>A</option>
-                            <option value="B" ${u.assignedStream==='B'?'selected':''}>B</option>
-                            <option value="C" ${u.assignedStream==='C'?'selected':''}>C</option>
+                            ${streamOptions}
                         </select>
                     </td>
                     <td>
@@ -197,15 +205,16 @@
         });
     }
 
-    // This handles the instant update of the subject dropdown when the class is changed
     window.refreshSubjectDropdown = (id) => {
         const selectedClass = document.getElementById(`cls-${id}`).value;
         const subjSelect = document.getElementById(`subj-${id}`);
-        let list = (selectedClass.includes("1") || selectedClass.includes("2")) ? subjectsF1_F2 : subjectsF3_F4;
-        
-        if (selectedClass === "None") list = [...new Set([...subjectsF1_F2, ...subjectsF3_F4])].sort();
+        let list = [];
 
-        let html = `<option value="None">None</option>`;
+        if (selectedClass.includes("1") || selectedClass.includes("2")) list = subjectsF1_F2;
+        else if (selectedClass.includes("3") || selectedClass.includes("4")) list = subjectsF3_F4;
+        else list = [...new Set([...subjectsF1_F2, ...subjectsF3_F4])].sort();
+
+        let html = `<option value="None">None</option><option value="ALL">ALL SUBJECTS</option>`;
         list.forEach(s => { html += `<option value="${s}">${s}</option>`; });
         subjSelect.innerHTML = html;
     };
@@ -218,7 +227,7 @@
             assignedSubject: document.getElementById(`subj-${id}`).value
         };
         await updateDoc(doc(db, "users", id), updates);
-        alert("Assignment updated for " + updates.assignedSubject);
+        alert("Assignment updated successfully!");
     };
 
     window.logout = () => signOut(auth).then(() => window.location.href="index.html");
