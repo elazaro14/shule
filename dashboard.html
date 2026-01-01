@@ -2,128 +2,235 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Dashboard | Olmoti ERP</title>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Olmoti Dashboard | Admin Portal</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        :root { --primary: #1a237e; --gold: #c5a059; --bg: #f4f7f6; }
-        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); margin: 0; display: flex; }
+        :root { --primary: #1a237e; --gold: #c5a059; --bg: #f4f7f6; --white: #ffffff; }
+        body { margin: 0; font-family: 'Segoe UI', sans-serif; display: flex; background: var(--bg); }
         
-        .sidebar { width: 250px; background: #1a1c23; color: white; height: 100vh; position: fixed; padding: 20px; }
-        .main-content { margin-left: 250px; padding: 40px; width: calc(100% - 250px); }
+        .sidebar { width: 260px; background: #1a1c23; color: white; height: 100vh; position: fixed; box-shadow: 2px 0 10px rgba(0,0,0,0.1); z-index: 1000; }
+        .sidebar-header { padding: 30px 20px; text-align: center; border-bottom: 1px solid var(--gold); background: rgba(0,0,0,0.1); }
+        .nav-links { list-style: none; padding: 20px 0; margin: 0; }
+        .nav-links li a { color: #cfd8dc; text-decoration: none; padding: 15px 25px; display: block; transition: 0.3s; font-size: 15px; }
+        .nav-links li.active a, .nav-links li a:hover { background: rgba(255,255,255,0.1); border-left: 5px solid var(--gold); color: white; }
+
+        .main-content { margin-left: 260px; padding: 40px; width: calc(100% - 260px); box-sizing: border-box; }
+        .header-row { margin-bottom: 30px; display: flex; justify-content: space-between; align-items: center; }
         
-        .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; margin-bottom: 30px; }
-        .stat-card { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); text-align: center; }
-        .stat-card i { font-size: 2rem; color: var(--gold); margin-bottom: 10px; }
-        .stat-card h3 { margin: 5px 0; font-size: 1.5rem; }
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 25px; margin-bottom: 40px; }
+        .stat-card { background: var(--white); padding: 25px; border-radius: 15px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); border-left: 6px solid var(--primary); }
+        .stat-card.teachers { border-left-color: var(--gold); }
+        .stat-card h4 { margin: 0; font-size: 13px; color: #777; text-transform: uppercase; letter-spacing: 1px; }
+        .stat-card .val { font-size: 38px; font-weight: 800; color: #2d3436; margin: 10px 0; }
         
-        .chart-container { display: grid; grid-template-columns: 1fr 1fr; gap: 25px; }
-        .chart-box { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
+        .section-title { color: var(--primary); border-left: 5px solid var(--gold); padding-left: 15px; margin: 40px 0 20px; font-size: 20px; font-weight: bold; }
+        .admin-box { background: var(--white); border-radius: 12px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.05); padding: 25px; margin-bottom: 30px;}
+        
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        th, td { padding: 12px 15px; text-align: left; border-bottom: 1px solid #eee; font-size: 13px; }
+        th { background: #f8f9fa; font-size: 11px; color: var(--primary); text-transform: uppercase; font-weight: 800; }
+        
+        select { padding: 6px; border-radius: 6px; border: 1px solid #ddd; font-size: 13px; background: #fff; outline: none; width: 100%; }
+        .btn-save { background: var(--primary); color: white; border: none; padding: 10px 15px; border-radius: 6px; cursor: pointer; font-weight: bold; transition: 0.2s; display: inline-flex; align-items: center; gap: 8px; }
+        .badge { background:#e3f2fd; color:#1565c0; padding:4px 12px; border-radius:20px; font-size:11px; font-weight: 800; text-transform: uppercase;}
+
+        @media (max-width: 1024px) {
+            .sidebar { width: 70px; }
+            .sidebar h2, .sidebar small, .sidebar span { display: none; }
+            .main-content { margin-left: 70px; width: calc(100% - 70px); }
+        }
     </style>
 </head>
 <body>
 
     <div class="sidebar">
-        <h2 style="color:var(--gold);">OLMOTI SEC</h2>
-        <hr style="opacity:0.2;">
-        <p><a href="students-list.html" style="color:white; text-decoration:none;"><i class="fas fa-users"></i> Student List</a></p>
-        <p><a href="teachers-reg.html" style="color:white; text-decoration:none;"><i class="fas fa-chalkboard-teacher"></i> Teachers</a></p>
-        <p><a href="mark-entry.html" style="color:white; text-decoration:none;"><i class="fas fa-pen"></i> Enter Marks</a></p>
+        <div class="sidebar-header">
+            <h2 style="margin:0; color:var(--gold);">OLMOTI</h2>
+            <small>SCHOOL PORTAL</small>
+        </div>
+        <ul class="nav-links">
+            <li class="active"><a href="dashboard.html"><i class="fas fa-th-large"></i> <span>Dashboard</span></a></li>
+            <li><a href="students-list.html"><i class="fas fa-user-graduate"></i> <span>Students</span></a></li>
+            <li><a href="mark-entry.html"><i class="fas fa-edit"></i> <span>Mark Entry</span></a></li>
+            <li><a href="register-teacher.html"><i class="fas fa-user-plus"></i> <span>Register Teacher</span></a></li>
+            <li><a href="#" onclick="logout()"><i class="fas fa-sign-out-alt"></i> <span>Logout</span></a></li>
+        </ul>
     </div>
 
     <div class="main-content">
-        <h1>Overview Dashboard</h1>
+        <div class="header-row">
+            <div>
+                <h1 style="color: var(--primary); margin:0;">Dashboard & Management</h1>
+                <p id="welcomeMsg" style="color:#666; margin-top:5px;">Loading profile...</p>
+            </div>
+            <div id="roleIndicator"></div>
+        </div>
 
         <div class="stats-grid">
             <div class="stat-card">
-                <i class="fas fa-user-graduate"></i>
-                <p>Total Students</p>
-                <h3 id="totalStudents">0</h3>
+                <h4>Total Students</h4>
+                <div class="val" id="countS">0</div>
+                <div class="sub" id="genderS">Loading...</div>
             </div>
-            <div class="stat-card">
-                <i class="fas fa-user-tie"></i>
-                <p>Total Teachers</p>
-                <h3 id="totalTeachers">0</h3>
-            </div>
-            <div class="stat-card">
-                <i class="fas fa-male"></i>
-                <p>Boys</p>
-                <h3 id="totalBoys" style="color: #2196f3;">0</h3>
-            </div>
-            <div class="stat-card">
-                <i class="fas fa-female"></i>
-                <p>Girls</p>
-                <h3 id="totalGirls" style="color: #e91e63;">0</h3>
+            <div class="stat-card teachers">
+                <h4>Staff Population</h4>
+                <div class="val" id="countT">0</div>
+                <div class="sub" id="genderT">Loading...</div>
             </div>
         </div>
 
-        <div class="chart-container">
-            <div class="chart-box">
-                <h4>Population by Gender</h4>
-                <canvas id="genderChart"></canvas>
-            </div>
-            <div class="chart-box">
-                <h4>Grade Performance Distribution</h4>
-                <canvas id="gradeChart"></canvas>
+        <div id="adminArea" style="display: none;">
+            <h3 class="section-title">Teacher Rights & Assignments</h3>
+            <div class="admin-box">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Staff Member</th>
+                            <th>Role</th>
+                            <th>Class Level</th>
+                            <th>Stream</th>
+                            <th>Assigned Subject</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="staffTable">
+                        <tr><td colspan="6" style="text-align:center; padding:30px;">Loading Staff...</td></tr>
+                    </tbody>
+                </table>
             </div>
         </div>
     </div>
 
 <script type="module">
-    import { db } from "./firebase.js";
-    import { collection, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+    import { db, auth } from "./firebase.js";
+    import { collection, getDocs, doc, getDoc, updateDoc, query, where } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+    import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
-    async function initDashboard() {
-        // 1. Fetch Students
-        const sSnap = await getDocs(collection(db, "students"));
-        const students = sSnap.docs.map(d => d.data());
-        
-        const boys = students.filter(s => s.sex === 'Male').length;
-        const girls = students.filter(s => s.sex === 'Female').length;
-        
-        document.getElementById('totalStudents').innerText = students.length;
-        document.getElementById('totalBoys').innerText = boys;
-        document.getElementById('totalGirls').innerText = girls;
+    // --- Subject Definitions ---
+    const subjectsF1_F2 = ["Biology", "Book-keeping", "Chemistry", "Civics", "Historia ya Tz na maadili", "English", "Geography", "History", "Kiswahili", "Mathematics", "Physics"];
+    const subjectsF3_F4 = ["Biology", "Book-keeping", "Chemistry", "Civics", "Commerce", "English", "Geography", "History", "Kiswahili", "Literature", "Mathematics", "Physics"];
+    const allStreams = ["A", "B", "C", "D", "E", "F", "G", "ALL"];
+    const allForms = ["Form 1", "Form 2", "Form 3", "Form 4", "ALL"];
 
-        // 2. Fetch Teachers
-        const tSnap = await getDocs(collection(db, "users"));
-        document.getElementById('totalTeachers').innerText = tSnap.size;
+    onAuthStateChanged(auth, async (user) => {
+        if (!user) { window.location.href = "index.html"; return; }
+        const userSnap = await getDoc(doc(db, "users", user.uid));
+        if (userSnap.exists()) {
+            const u = userSnap.data();
+            document.getElementById('welcomeMsg').innerText = `Logged in as: ${u.name || user.email}`;
+            document.getElementById('roleIndicator').innerHTML = `<span class="badge" style="background:var(--gold); color:white">${u.role}</span>`;
+            if (u.role === 'admin') {
+                document.getElementById('adminArea').style.display = 'block';
+                loadStaffList();
+            }
+        }
+        loadDashboardStats();
+    });
 
-        // 3. Render Gender Chart
-        new Chart(document.getElementById('genderChart'), {
-            type: 'doughnut',
-            data: {
-                labels: ['Boys', 'Girls'],
-                datasets: [{
-                    data: [boys, girls],
-                    backgroundColor: ['#2196f3', '#e91e63']
-                }]
+    async function loadDashboardStats() {
+        const [sSnap, uSnap] = await Promise.all([getDocs(collection(db, "students")), getDocs(collection(db, "users"))]);
+        let sm = 0, sf = 0, tm = 0, tf = 0, tCount = 0;
+        sSnap.forEach(d => { (d.data().gender || "").toUpperCase().startsWith("M") ? sm++ : sf++; });
+        uSnap.forEach(d => {
+            const data = d.data();
+            if (data.role === 'teacher' || data.role === 'admin') {
+                tCount++;
+                (data.gender || "").toUpperCase().startsWith("M") ? tm++ : tf++;
             }
         });
+        document.getElementById('countS').innerText = sSnap.size;
+        document.getElementById('genderS').innerHTML = `<i class="fas fa-mars"></i> ${sm} | <i class="fas fa-venus"></i> ${sf}`;
+        document.getElementById('countT').innerText = tCount;
+        document.getElementById('genderT').innerHTML = `<i class="fas fa-mars"></i> ${tm} | <i class="fas fa-venus"></i> ${tf}`;
+    }
 
-        // 4. Fetch Results for Grade Chart
-        const rSnap = await getDocs(collection(db, "results"));
-        const results = rSnap.docs.map(d => d.data());
-        const grades = { A: 0, B: 0, C: 0, D: 0, F: 0 };
-        
-        results.forEach(r => {
-            if(grades[r.grade] !== undefined) grades[r.grade]++;
-        });
+    async function loadStaffList() {
+        const snap = await getDocs(collection(db, "users"));
+        const tbody = document.getElementById('staffTable');
+        tbody.innerHTML = "";
 
-        new Chart(document.getElementById('gradeChart'), {
-            type: 'bar',
-            data: {
-                labels: ['A', 'B', 'C', 'D', 'F'],
-                datasets: [{
-                    label: 'Number of Students',
-                    data: [grades.A, grades.B, grades.C, grades.D, grades.F],
-                    backgroundColor: '#1a237e'
-                }]
-            }
+        snap.forEach(userDoc => {
+            const u = userDoc.data();
+            const id = userDoc.id;
+            const currentClass = u.assignedClass || "None";
+
+            // Determine initial subject list
+            let list = [];
+            if (currentClass.includes("1") || currentClass.includes("2")) list = subjectsF1_F2;
+            else if (currentClass.includes("3") || currentClass.includes("4")) list = subjectsF3_F4;
+            else list = [...new Set([...subjectsF1_F2, ...subjectsF3_F4])].sort();
+
+            let subjOptions = `<option value="None">None</option><option value="ALL" ${u.assignedSubject === 'ALL' ? 'selected' : ''}>ALL SUBJECTS</option>`;
+            list.forEach(s => {
+                subjOptions += `<option value="${s}" ${u.assignedSubject === s ? 'selected' : ''}>${s}</option>`;
+            });
+
+            // Stream Options (A-G + ALL)
+            let streamOptions = `<option value="None">None</option>`;
+            allStreams.forEach(st => {
+                streamOptions += `<option value="${st}" ${u.assignedStream === st ? 'selected' : ''}>${st}</option>`;
+            });
+
+            // Form Options (1-4 + ALL)
+            let formOptions = `<option value="None">None</option>`;
+            allForms.forEach(f => {
+                formOptions += `<option value="${f}" ${u.assignedClass === f ? 'selected' : ''}>${f}</option>`;
+            });
+
+            tbody.innerHTML += `
+                <tr>
+                    <td><b>${u.name || 'User'}</b><br><small style="color:#888;">${u.email}</small></td>
+                    <td>
+                        <select id="role-${id}">
+                            <option value="teacher" ${u.role==='teacher'?'selected':''}>Teacher</option>
+                            <option value="admin" ${u.role==='admin'?'selected':''}>Admin</option>
+                        </select>
+                    </td>
+                    <td>
+                        <select id="cls-${id}" onchange="refreshSubjectDropdown('${id}')">
+                            ${formOptions}
+                        </select>
+                    </td>
+                    <td>
+                        <select id="strm-${id}">
+                            ${streamOptions}
+                        </select>
+                    </td>
+                    <td>
+                        <select id="subj-${id}">${subjOptions}</select>
+                    </td>
+                    <td><button class="btn-save" onclick="saveStaff('${id}')"><i class="fas fa-save"></i> Update</button></td>
+                </tr>`;
         });
     }
 
-    initDashboard();
+    window.refreshSubjectDropdown = (id) => {
+        const selectedClass = document.getElementById(`cls-${id}`).value;
+        const subjSelect = document.getElementById(`subj-${id}`);
+        let list = [];
+
+        if (selectedClass.includes("1") || selectedClass.includes("2")) list = subjectsF1_F2;
+        else if (selectedClass.includes("3") || selectedClass.includes("4")) list = subjectsF3_F4;
+        else list = [...new Set([...subjectsF1_F2, ...subjectsF3_F4])].sort();
+
+        let html = `<option value="None">None</option><option value="ALL">ALL SUBJECTS</option>`;
+        list.forEach(s => { html += `<option value="${s}">${s}</option>`; });
+        subjSelect.innerHTML = html;
+    };
+
+    window.saveStaff = async (id) => {
+        const updates = {
+            role: document.getElementById(`role-${id}`).value,
+            assignedClass: document.getElementById(`cls-${id}`).value,
+            assignedStream: document.getElementById(`strm-${id}`).value,
+            assignedSubject: document.getElementById(`subj-${id}`).value
+        };
+        await updateDoc(doc(db, "users", id), updates);
+        alert("Assignment updated successfully!");
+    };
+
+    window.logout = () => signOut(auth).then(() => window.location.href="index.html");
 </script>
 </body>
 </html>
