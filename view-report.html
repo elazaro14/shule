@@ -6,33 +6,46 @@
     async function generateReport() {
         const urlParams = new URLSearchParams(window.location.search);
         const studentId = urlParams.get('id');
-        if(!studentId) return;
+        
+        // 1. Basic check to prevent crash if ID is missing
+        if(!studentId) {
+            console.error("No Student ID found in URL");
+            return;
+        }
 
         try {
-            // 1. Fetch Student Header Data
+            // 2. Fetch Student Info
             const sSnap = await getDoc(doc(db, "students", studentId));
-            if(!sSnap.exists()) return;
+            if(!sSnap.exists()) {
+                console.error("Student not found");
+                return;
+            }
             const student = sSnap.data();
-            document.getElementById("studentName").innerText = student.name;
-            document.getElementById("studentClass").innerText = student.cls;
 
-            // 2. Fetch Results for this student
+            // Safely fill headers
+            const nameEl = document.getElementById("studentName");
+            const classEl = document.getElementById("studentClass");
+            if(nameEl) nameEl.innerText = student.name;
+            if(classEl) classEl.innerText = student.cls;
+
+            // 3. Fetch Results
             const rSnap = await getDocs(query(collection(db, "results"), where("studentId", "==", studentId)));
             const myResMap = {};
-            rSnap.forEach(d => myResMap[d.data().subjectCode] = d.data());
+            rSnap.forEach(d => {
+                myResMap[d.data().subjectCode] = d.data();
+            });
 
-            // 3. Setup for Classes and Subjects
+            // 4. Get Subjects (Handle case where class name doesn't match data.js)
             const subjects = subjectLists[student.cls] || [];
             const tbody = document.getElementById("reportTbody");
+            if(!tbody) return; 
             tbody.innerHTML = "";
             
             let sumW = 0, countS = 0, ptsArr = [];
 
-            // 4. Loop through ALL subjects for this class (ensures table looks complete)
+            // 5. Generate Table Rows (Looping through ALL class subjects)
             subjects.forEach(sub => {
                 const res = myResMap[sub.code];
-                
-                // Helper to check if value is actually a number
                 const isValid = (val) => val !== "" && val !== null && val !== undefined;
 
                 let jaribioStr = "-", mtihaniStr = "-", jumlaStr = "-", wastaniStr = "-", grade = "-", maoni = "-";
@@ -47,11 +60,10 @@
                     const jaribio = hasJaribio ? (jScores.reduce((a,b)=>a+b,0)/jScores.length) : 0;
                     const mtihani = isValid(res.exam) ? parseFloat(res.exam) : null;
                     
-                    // Display strings
                     if(hasJaribio) jaribioStr = jaribio.toFixed(0);
                     if(mtihani !== null) mtihaniStr = mtihani;
 
-                    // Only calculate Average/Grade if there is at least ONE mark
+                    // Only calculate Math/Grades for subjects that have at least one mark
                     if (hasJaribio || mtihani !== null) {
                         const jumla = (hasJaribio ? jaribio : 0) + (mtihani || 0);
                         const wastani = (jumla / 2).toFixed(1);
@@ -66,14 +78,14 @@
                         else if(w >= 30) { grade="D"; maoni="INARIDHISHA"; }
                         else { grade="F"; maoni="FELI"; }
 
-                        // Update global stats ONLY for filled subjects
+                        // Stats used for Overall Average and Best 7
                         sumW += w;
                         countS++;
                         ptsArr.push({"A":1,"B":2,"C":3,"D":4,"F":5}[grade]);
                     }
                 }
 
-                // Append the row (either with data or with hyphens)
+                // Row appears even if no marks exist
                 tbody.innerHTML += `<tr>
                     <td class="subject-col">${sub.name}</td>
                     <td>${jaribioStr}</td>
@@ -85,28 +97,35 @@
                 </tr>`;
             });
 
-            // 5. Final Statistics
-            document.getElementById("overallAvg").innerText = countS > 0 ? (sumW / countS).toFixed(1) : "-";
+            // 6. Statistics Calculations
+            const avgEl = document.getElementById("overallAvg");
+            if(avgEl) avgEl.innerText = countS > 0 ? (sumW / countS).toFixed(1) : "-";
             
+            const ptsEl = document.getElementById("totalPoints");
+            const divEl = document.getElementById("division");
+
             if(countS >= 7) {
                 ptsArr.sort((a,b)=>a-b);
                 const b7 = ptsArr.slice(0, 7).reduce((a,b)=>a+b, 0);
-                document.getElementById("totalPoints").innerText = b7;
+                if(ptsEl) ptsEl.innerText = b7;
                 let d = "IV";
                 if(b7 <= 17) d="I"; else if(b7 <= 21) d="II"; else if(b7 <= 25) d="III";
-                document.getElementById("division").innerText = d;
+                if(divEl) divEl.innerText = d;
             } else {
-                document.getElementById("totalPoints").innerText = "INC";
-                document.getElementById("division").innerText = "-";
+                if(ptsEl) ptsEl.innerText = "INC";
+                if(divEl) divEl.innerText = "-";
             }
 
-            // 6. Basic Ranking Setup
+            // Total Students Count
             const allStudSnap = await getDocs(query(collection(db, "students"), where("cls", "==", student.cls)));
-            document.getElementById("totalStuds").innerText = allStudSnap.size;
-            // (Rank logic stays as your previous indexed version)
+            const totalStudsEl = document.getElementById("totalStuds");
+            if(totalStudsEl) totalStudsEl.innerText = allStudSnap.size;
 
         } catch (e) { 
-            console.error("Report Generation Error: ", e);
+            console.error("Report System Error: ", e);
+            // This prevents a total white screen by showing an error message
+            const tbody = document.getElementById("reportTbody");
+            if(tbody) tbody.innerHTML = `<tr><td colspan="7" style="color:red">Error: ${e.message}</td></tr>`;
         }
     }
     generateReport();
