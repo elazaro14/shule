@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Bulk Student Mapping | Olmoti ERP</title>
+    <title>Registry & Bulk Upload | Olmoti ERP</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
         :root { --primary: #1a237e; --gold: #c5a059; --bg: #f4f7f6; }
@@ -23,14 +23,13 @@
             border-radius: 8px; margin-bottom: 20px; animation: slideDown 0.3s ease;
         }
 
-        @keyframes slideDown { from { transform: translateY(-20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
-
         .grid-container { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; }
         input, select { padding: 10px; border: 1px solid #ddd; border-radius: 6px; outline: none; font-size: 14px; }
         
         .btn { padding: 10px 15px; border-radius: 6px; border: none; font-weight: bold; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; }
         .btn-add { background: var(--primary); color: white; }
         .btn-bulk { background: #f57c00; color: white; }
+        .btn-csv { background: #455a64; color: white; }
         .btn-del { color: #d32f2f; background: none; }
 
         .search-bar { background: #e8eaf6; padding: 20px; border-radius: 10px; display: flex; gap: 15px; align-items: center; margin-bottom: 25px; border-left: 5px solid var(--primary); }
@@ -42,6 +41,8 @@
         .badge { padding: 4px 8px; border-radius: 4px; font-size: 11px; font-weight: bold; }
         .badge-m { background: #e3f2fd; color: #1565c0; }
         .badge-f { background: #fce4ec; color: #c2185b; }
+
+        @keyframes slideDown { from { transform: translateY(-20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
     </style>
 </head>
 <body>
@@ -78,13 +79,20 @@
             </div>
 
             <div class="card">
-                <h3><i class="fas fa-user-plus"></i> Quick Register</h3>
+                <h3><i class="fas fa-user-plus"></i> Register / Bulk Upload</h3>
                 <div class="grid-container">
                     <input type="text" id="newName" placeholder="Student Full Name">
                     <select id="newSex"><option value="Male">Male</option><option value="Female">Female</option></select>
                     <select id="newCls"><option>Form 1</option><option>Form 2</option><option>Form 3</option><option>Form 4</option></select>
                     <select id="newStrm"><option>A</option><option>B</option><option>C</option><option>D</option><option>E</option><option>F</option><option>G</option></select>
                     <button onclick="addStudent()" class="btn btn-add">REGISTER</button>
+                </div>
+                <hr style="margin: 20px 0; opacity: 0.1;">
+                <div style="display: flex; gap: 10px; align-items: center;">
+                    <label style="font-weight:bold; font-size: 13px;">CSV Import:</label>
+                    <input type="file" id="csvFile" accept=".csv">
+                    <button onclick="uploadCSV()" class="btn btn-csv"><i class="fas fa-file-upload"></i> UPLOAD CSV</button>
+                    <button onclick="downloadCSVTemplate()" class="btn" style="font-size:12px;"><i class="fas fa-download"></i> Template</button>
                 </div>
             </div>
 
@@ -96,7 +104,7 @@
 
             <div class="card">
                 <div style="display:flex; justify-content: space-between; align-items:center;">
-                    <h3><i class="fas fa-list"></i> Student List</h3>
+                    <h3><i class="fas fa-list"></i> Student Registry</h3>
                     <span id="rowCount">Total: 0</span>
                 </div>
                 <table>
@@ -168,6 +176,7 @@
         renderTable(filtered);
     };
 
+    // --- Bulk Mapping Functions ---
     window.toggleSelectAll = () => {
         const master = document.getElementById('selectAll');
         document.querySelectorAll('.stud-check').forEach(c => c.checked = master.checked);
@@ -204,8 +213,48 @@
 
         await batch.commit();
         alert("Bulk Mapping Successful!");
-        clearSelection();
-        loadStuds();
+        clearSelection(); loadStuds();
+    };
+
+    // --- Upload & CSV Functions ---
+    window.uploadCSV = function() {
+        const fileInput = document.getElementById('csvFile');
+        if (!fileInput.files[0]) return alert("Please select a CSV file first!");
+        
+        const reader = new FileReader();
+        reader.onload = async function(e) {
+            const rows = e.target.result.split('\n').slice(1); // Skip Header
+            const batch = writeBatch(db);
+            let count = 0;
+
+            for (let row of rows) {
+                const cols = row.split(',');
+                if (cols.length >= 4) {
+                    const newRef = doc(collection(db, "students"));
+                    batch.set(newRef, {
+                        name: cols[0].trim(),
+                        sex: cols[1].trim(),
+                        cls: cols[2].trim(),
+                        stream: cols[3].trim()
+                    });
+                    count++;
+                }
+            }
+            await batch.commit();
+            alert(`Uploaded ${count} students successfully!`);
+            loadStuds();
+        };
+        reader.readAsText(fileInput.files[0]);
+    };
+
+    window.downloadCSVTemplate = () => {
+        const csvContent = "data:text/csv;charset=utf-8,Name,Sex,Class,Stream\nJohn Doe,Male,Form 1,A\nJane Smith,Female,Form 2,B";
+        const encodedUri = encodeURI(csvContent);
+        const link = document.createElement("a");
+        link.setAttribute("href", encodedUri);
+        link.setAttribute("download", "student_template.csv");
+        document.body.appendChild(link);
+        link.click();
     };
 
     window.addStudent = async () => {
