@@ -10,35 +10,61 @@
         .sidebar { width: var(--sidebar-width); background: var(--nav-blue); color: white; height: 100vh; position: fixed; }
         .main-content { margin-left: var(--sidebar-width); padding: 40px; flex-grow: 1; }
         .entry-header { background: white; padding: 25px; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); margin-bottom: 20px; border-left: 5px solid var(--gold); }
-        select, .btn-load { padding: 12px; border-radius: 6px; border: 1px solid #ccc; font-size: 14px; }
-        .btn-load { background: var(--nav-blue); color: white; border: none; cursor: pointer; font-weight: bold; }
-        .table-container { background: white; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); overflow: hidden; }
+        
+        .filter-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; align-items: flex-end; }
+        label { display: block; font-size: 11px; font-weight: 800; margin-bottom: 5px; color: var(--nav-blue); }
+        select, .btn-load { width: 100%; padding: 12px; border-radius: 6px; border: 1px solid #ccc; font-size: 14px; outline: none; }
+        
+        .btn-load { background: var(--nav-blue); color: white; border: none; cursor: pointer; font-weight: bold; transition: 0.3s; }
+        .btn-load:hover { background: #283593; }
+
+        .table-container { background: white; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); overflow-x: auto; }
         table { width: 100%; border-collapse: collapse; }
-        th, td { border-bottom: 1px solid #eee; padding: 12px; text-align: center; }
-        th { background: #f8f9fa; color: var(--nav-blue); font-size: 11px; text-transform: uppercase; }
+        th, td { border-bottom: 1px solid #eee; padding: 15px; text-align: center; }
+        th { background: #f8f9fa; color: var(--nav-blue); font-size: 11px; text-transform: uppercase; letter-spacing: 1px; }
+        
         .score-in { width: 60px; text-align: center; padding: 8px; border: 1px solid #ddd; border-radius: 4px; font-weight: bold; }
-        .save-bar { position: sticky; bottom: 0; background: white; padding: 20px; border-top: 3px solid var(--nav-blue); text-align: center; display: none; }
-        .btn-save { background: #2e7d32; color: white; padding: 15px 60px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; }
+        .score-in:focus { border-color: var(--gold); outline: none; background: #fffde7; }
+        
+        .save-bar { position: sticky; bottom: 0; background: white; padding: 20px; border-top: 3px solid var(--nav-blue); text-align: center; display: none; z-index: 100; }
+        .btn-save { background: #2e7d32; color: white; padding: 15px 80px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 16px; box-shadow: 0 4px 10px rgba(0,0,0,0.2); }
     </style>
 </head>
 <body>
 
     <div class="sidebar">
-        <div style="padding:25px; text-align:center; border-bottom:1px solid var(--gold);"><h2>OLMOTI SEC</h2></div>
+        <div style="padding:25px; text-align:center; border-bottom:1px solid var(--gold);">
+            <h2 style="color:var(--gold); margin:0;">OLMOTI SEC</h2>
+            <small>MARK ENTRY PORTAL</small>
+        </div>
         <ul style="list-style:none; padding:0;">
-            <li><a href="dashboard.html" style="display:block; padding:15px; color:#ccc; text-decoration:none;">🏠 Dashboard</a></li>
-            <li><a href="mark-entry.html" style="display:block; padding:15px; color:white; background:rgba(255,255,255,0.1); border-left:5px solid var(--gold); text-decoration:none;">📝 Ingiza Alama</a></li>
+            <li><a href="dashboard.html" style="display:block; padding:15px; color:#ccc; text-decoration:none;"><i class="fas fa-th-large"></i> Dashboard</a></li>
+            <li><a href="mark-entry.html" style="display:block; padding:15px; color:white; background:rgba(255,255,255,0.1); border-left:5px solid var(--gold); text-decoration:none;"><i class="fas fa-edit"></i> Ingiza Alama</a></li>
         </ul>
     </div>
 
     <div class="main-content">
         <div class="entry-header">
-            <h2 style="margin-top:0; color:var(--nav-blue);">Ingiza Alama (Dynamic Average)</h2>
-            <div style="display:flex; gap: 10px; align-items: center;">
-                <select id="subSel"><option value="">-- Chagua Somo --</option></select>
-                <button id="loadBtn" class="btn-load">TAFUTA WANAFUNZI</button>
+            <h2 style="margin-top:0; color:var(--nav-blue);"><i class="fas fa-pen-nib"></i> Mark Entry Sheet</h2>
+            
+            <div class="filter-grid">
+                <div>
+                    <label>1. DARASA</label>
+                    <select id="clsSel"></select>
+                </div>
+                <div>
+                    <label>2. MKONDO</label>
+                    <select id="strmSel"></select>
+                </div>
+                <div>
+                    <label>3. SOMO</label>
+                    <select id="subSel"></select>
+                </div>
+                <div>
+                    <button id="loadBtn" class="btn-load">TAFUTA WANAFUNZI</button>
+                </div>
             </div>
-            <div id="assignmentInfo" style="margin-top:10px; font-size:14px; color:var(--nav-blue);">Inatambua mwalimu...</div>
+            <div id="statusMsg" style="margin-top:15px; font-size:13px; font-weight:600; color:#666;"></div>
         </div>
 
         <div class="table-container">
@@ -56,7 +82,7 @@
         </div>
 
         <div id="saveBar" class="save-bar">
-            <button id="saveBtn" class="btn-save">HIFADHI ALAMA ZOTE</button>
+            <button id="saveBtn" class="btn-save"><i class="fas fa-cloud-upload-alt"></i> HIFADHI ALAMA ZOTE</button>
         </div>
     </div>
 
@@ -64,111 +90,178 @@
     import { db, auth } from "./firebase.js";
     import { collection, getDocs, query, where, setDoc, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
     import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-    import { subjectLists } from "./data.js";
 
-    let tClass = "", tStream = "";
+    let currentUserData = null;
+    const streams = ["A", "B", "C", "D", "E", "F", "G"];
+    const forms = ["Form 1", "Form 2", "Form 3", "Form 4"];
+    
+    // Subject Lists
+    const subF1_2 = ["Biology", "Book-keeping", "Chemistry", "Historia ya Tz na maadili", "English", "Geography", "History", "Kiswahili", "Mathematics", "Physics"];
+    const subF3_4 = ["Biology", "Book-keeping", "Chemistry", "Civics", "Historia ya Tz na maadili", "English", "Geography", "History", "Kiswahili", "Mathematics", "Physics", "Literature"];
 
     onAuthStateChanged(auth, async (user) => {
         if (!user) { window.location.href = "index.html"; return; }
+        
         const uSnap = await getDoc(doc(db, "users", user.uid));
         if (uSnap.exists()) {
-            const u = uSnap.data();
-            tClass = u.assignedClass; tStream = u.assignedStream;
-            document.getElementById('assignmentInfo').innerText = `Mwalimu: ${u.name} | Darasa: ${tClass} | Mkondo: ${tStream}`;
-            const list = (tClass.includes("1") || tClass.includes("2")) ? subjectLists["Form 1"] : subjectLists["Form 3"];
-            subSel.innerHTML = '<option value="">-- Chagua Somo --</option>';
-            list.forEach(s => subSel.innerHTML += `<option value="${s.code}">${s.name}</option>`);
+            currentUserData = uSnap.data();
+            setupFilters(currentUserData);
         }
     });
 
-    loadBtn.onclick = async () => {
-        if(!subSel.value) return alert("Chagua Somo!");
+    function setupFilters(u) {
+        // 1. Setup Class Dropdown
+        let clsHtml = '';
+        if (u.assignedClass === "ALL") {
+            clsHtml = forms.map(f => `<option value="${f}">${f}</option>`).join('');
+        } else {
+            clsHtml = `<option value="${u.assignedClass}">${u.assignedClass}</option>`;
+        }
+        document.getElementById('clsSel').innerHTML = clsHtml;
+
+        // 2. Setup Stream Dropdown
+        let strmHtml = '';
+        if (u.assignedStream === "ALL") {
+            strmHtml = streams.map(s => `<option value="${s}">${s}</option>`).join('');
+        } else {
+            strmHtml = `<option value="${u.assignedStream}">${u.assignedStream}</option>`;
+        }
+        document.getElementById('strmSel').innerHTML = strmHtml;
+
+        // 3. Setup Subject Dropdown
+        let subHtml = '';
+        if (u.assignedSubject === "ALL") {
+            const list = (u.assignedClass.includes("3") || u.assignedClass.includes("4")) ? subF3_4 : subF1_2;
+            subHtml = list.map(s => `<option value="${s}">${s}</option>`).join('');
+        } else {
+            subHtml = `<option value="${u.assignedSubject}">${u.assignedSubject}</option>`;
+        }
+        document.getElementById('subSel').innerHTML = subHtml;
+
+        document.getElementById('statusMsg').innerText = `Umeruhusiwa: ${u.assignedSubject} | ${u.assignedClass} | Mkondo ${u.assignedStream}`;
+    }
+
+    document.getElementById('loadBtn').onclick = async () => {
+        const selCls = document.getElementById('clsSel').value;
+        const selStrm = document.getElementById('strmSel').value;
+        const selSub = document.getElementById('subSel').value;
+
         loadBtn.innerText = "Inapakia...";
         
-        const qS = query(collection(db, "students"), where("cls", "==", tClass), where("stream", "==", tStream));
-        const qR = query(collection(db, "results"), where("subjectCode", "==", subSel.value), where("cls", "==", tClass));
-        
-        const [studSnap, resSnap] = await Promise.all([getDocs(qS), getDocs(qR)]);
+        // Fetch Students
+        const qS = query(collection(db, "students"), where("cls", "==", selCls), where("stream", "==", selStrm));
+        const studSnap = await getDocs(qS);
+
+        // Fetch Existing Results for this Subject/Class/Stream
+        const qR = query(collection(db, "results"), 
+            where("subject", "==", selSub), 
+            where("cls", "==", selCls), 
+            where("stream", "==", selStrm)
+        );
+        const resSnap = await getDocs(qR);
         const resMap = {};
         resSnap.forEach(d => resMap[d.data().studentId] = d.data());
 
-        mTbody.innerHTML = "";
+        const tbody = document.getElementById('mTbody');
+        tbody.innerHTML = "";
+        
+        if(studSnap.empty) {
+            tbody.innerHTML = "<tr><td colspan='9'>Hakuna wanafunzi waliopatikana.</td></tr>";
+        }
+
         studSnap.forEach((d, i) => {
             const r = resMap[d.id] || {};
-            mTbody.innerHTML += `
+            tbody.innerHTML += `
                 <tr class="row" data-id="${d.id}">
                     <td>${i+1}</td>
                     <td style="text-align:left; font-weight:bold;">${d.data().name}</td>
-                    <td><input type="number" class="score-in t1" value="${r.test1 || ''}"></td>
-                    <td><input type="number" class="score-in mid" value="${r.midTerm || ''}"></td>
-                    <td><input type="number" class="score-in t2" value="${r.test2 || ''}"></td>
-                    <td><input type="number" class="score-in ex" value="${r.exam || ''}"></td>
-                    <td class="total">${r.total || 0}</td>
-                    <td class="avg">${r.average || '-'}</td>
-                    <td class="grade">${r.grade || '-'}</td>
+                    <td><input type="number" class="score-in t1" value="${r.test1 || ''}" max="10"></td>
+                    <td><input type="number" class="score-in mid" value="${r.midTerm || ''}" max="20"></td>
+                    <td><input type="number" class="score-in t2" value="${r.test2 || ''}" max="10"></td>
+                    <td><input type="number" class="score-in ex" value="${r.exam || ''}" max="60"></td>
+                    <td class="total" style="font-weight:800;">${r.total || 0}</td>
+                    <td class="avg" style="color:var(--nav-blue); font-weight:bold;">${r.average || '-'}</td>
+                    <td class="grade" style="font-weight:900;">${r.grade || '-'}</td>
                 </tr>`;
         });
-        mTable.style.display = "table"; saveBar.style.display = "block"; loadBtn.innerText = "TAFUTA WANAFUNZI";
+
+        document.getElementById('mTable').style.display = "table"; 
+        document.getElementById('saveBar').style.display = "block"; 
+        loadBtn.innerText = "TAFUTA WANAFUNZI";
     };
 
-    // --- KEY DYNAMIC LOGIC ---
+    // Calculation Logic
     document.addEventListener('input', e => {
         if(e.target.classList.contains('score-in')) {
             const row = e.target.closest('tr');
-            const inputs = [
-                row.querySelector('.t1').value,
-                row.querySelector('.mid').value,
-                row.querySelector('.t2').value,
-                row.querySelector('.ex').value
-            ];
+            const t1 = parseFloat(row.querySelector('.t1').value) || 0;
+            const mid = parseFloat(row.querySelector('.mid').value) || 0;
+            const t2 = parseFloat(row.querySelector('.t2').value) || 0;
+            const ex = parseFloat(row.querySelector('.ex').value) || 0;
 
-            // Filter out empty strings to count only filled boxes
-            const filled = inputs.filter(v => v.trim() !== "");
+            const total = t1 + mid + t2 + ex;
             
-            if (filled.length === 0) {
-                row.querySelector('.total').innerText = "0";
-                row.querySelector('.avg').innerText = "-";
-                row.querySelector('.grade').innerText = "-";
-                return;
-            }
-
-            const total = filled.reduce((acc, curr) => acc + parseFloat(curr || 0), 0);
-            const average = (total / filled.length).toFixed(1); // Dynamic: sum / count of filled fields
+            // Dynamic Average based on filled fields
+            const inputs = [row.querySelector('.t1').value, row.querySelector('.mid').value, row.querySelector('.t2').value, row.querySelector('.ex').value];
+            const filledCount = inputs.filter(v => v !== "").length;
+            
+            let average = 0;
+            if(filledCount > 0) average = (total / filledCount).toFixed(1);
 
             row.querySelector('.total').innerText = total;
-            row.querySelector('.avg').innerText = average;
+            row.querySelector('.avg').innerText = filledCount > 0 ? average : "-";
 
-            // Tanzanian Grading based on Average
-            let g = "F";
-            if(average >= 75) g = "A";
-            else if(average >= 65) g = "B";
-            else if(average >= 45) g = "C";
-            else if(average >= 30) g = "D";
+            // Grading (TZ Standards)
+            let g = "-";
+            if(filledCount > 0) {
+                if(average >= 75) g = "A";
+                else if(average >= 65) g = "B";
+                else if(average >= 45) g = "C";
+                else if(average >= 30) g = "D";
+                else g = "F";
+            }
             
-            const gradeEl = row.querySelector('.grade');
-            gradeEl.innerText = g;
-            gradeEl.style.color = (g === "A" || g === "B") ? "green" : (g === "F" ? "red" : "orange");
+            const gEl = row.querySelector('.grade');
+            gEl.innerText = g;
+            gEl.style.color = (g==="A"||g==="B") ? "green" : (g==="F" ? "red" : "orange");
         }
     });
 
-    saveBtn.onclick = async () => {
+    document.getElementById('saveBtn').onclick = async () => {
         saveBtn.innerText = "Inahifadhi...";
         const rows = document.querySelectorAll(".row");
-        for(let r of rows) {
-            const id = r.dataset.id;
-            const avg = r.querySelector('.avg').innerText;
-            if(avg !== "-") {
-                await setDoc(doc(db, "results", `${id}_${subSel.value}`), {
-                    studentId: id, subjectCode: subSel.value, cls: tClass, stream: tStream,
-                    test1: r.querySelector('.t1').value, midTerm: r.querySelector('.mid').value,
-                    test2: r.querySelector('.t2').value, exam: r.querySelector('.ex').value,
-                    total: r.querySelector('.total').innerText, 
-                    average: avg, 
-                    grade: r.querySelector('.grade').innerText
-                });
+        const selCls = document.getElementById('clsSel').value;
+        const selStrm = document.getElementById('strmSel').value;
+        const selSub = document.getElementById('subSel').value;
+
+        try {
+            for(let r of rows) {
+                const id = r.dataset.id;
+                const avg = r.querySelector('.avg').innerText;
+                
+                if(avg !== "-") {
+                    // Unique ID: studentId + subject + class
+                    await setDoc(doc(db, "results", `${id}_${selSub}`), {
+                        studentId: id,
+                        subject: selSub,
+                        cls: selCls,
+                        stream: selStrm,
+                        test1: r.querySelector('.t1').value,
+                        midTerm: r.querySelector('.mid').value,
+                        test2: r.querySelector('.t2').value,
+                        exam: r.querySelector('.ex').value,
+                        total: r.querySelector('.total').innerText,
+                        average: avg,
+                        grade: r.querySelector('.grade').innerText,
+                        timestamp: new Date()
+                    });
+                }
             }
+            alert("Alama zote zimehifadhiwa kikamilifu!");
+        } catch (e) {
+            alert("Hitilafu imetokea wakati wa kuhifadhi.");
         }
-        alert("Zimehifadhiwa!"); saveBtn.innerText = "HIFADHI ALAMA ZOTE";
+        saveBtn.innerText = "HIFADHI ALAMA ZOTE";
     };
 </script>
 </body>
