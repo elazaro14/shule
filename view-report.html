@@ -72,7 +72,8 @@
         .grading-key { display: flex; justify-content: space-between; font-size: 9px; border: 1px solid #000; padding: 5px; font-weight: bold; margin-top: 10px; background: #f9f9f9; }
         
         .footer-sections { margin-top: 20px; display: grid; grid-template-columns: 1fr 1fr; gap: 30px; }
-        .sig-box { border-top: 1px dotted black; text-align: center; padding-top: 5px; font-size: 11px; margin-top: 35px; }
+        .sig-box { border-top: 1px dotted black; text-align: center; padding-top: 5px; font-size: 11px; margin-top: 15px; }
+        .comment-display { font-size: 12px; font-weight: bold; min-height: 18px; margin-bottom: 5px; }
 
         .parent-section { margin-top: 20px; border: 1px solid #000; padding: 10px; }
         .comment-box { height: 50px; border-bottom: 1px dotted #000; }
@@ -104,7 +105,7 @@
 
     <div class="student-info">
         <div><strong>JINA:</strong> <span id="studentName">...</span></div>
-        <div><strong>MWAKA:</strong> <span id="yearVal">...</span></div>
+        <div><strong>MWAKA:</strong> <span id="yearVal">2026</span></div>
         <div><strong>KIDATO:</strong> <span id="studentClass">...</span></div>
         <div><strong>MUHULA:</strong> <span id="termVal">...</span></div>
     </div>
@@ -154,10 +155,12 @@
     <div class="footer-sections">
         <div>
             <p>Maoni ya mwalimu wa darasa:</p>
+            <div id="classTeacherComment" class="comment-display"></div>
             <div class="sig-box">Sahihi ya Mwalimu wa Darasa</div>
         </div>
         <div>
             <p>Maoni ya mkuu wa shule:</p>
+            <div id="headmasterComment" class="comment-display"></div>
             <div class="sig-box">Sahihi ya Mkuu wa Shule</div>
         </div>
     </div>
@@ -177,8 +180,8 @@
     import { subjectLists } from "./data.js";
     import { doc, getDoc, getDocs, collection, query, where } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-    // BACK BUTTON LOGIC
-    window.goBack = function() {
+    // GLOBAL BACK FUNCTION
+    window.goBack = () => {
         if (document.referrer === "" || document.referrer.indexOf(window.location.host) === -1) {
             window.location.href = "dashboard.html";
         } else {
@@ -195,15 +198,12 @@
             const sSnap = await getDoc(doc(db, "students", studentId));
             if(!sSnap.exists()) return;
             const student = sSnap.data();
-            
-            // Set basic info
             document.getElementById("studentName").innerText = student.name;
             document.getElementById("studentClass").innerText = student.cls;
-
-            // DYNAMIC YEAR AND TERM
+            
+            // Auto Term & Year
             const now = new Date();
             document.getElementById("yearVal").innerText = now.getFullYear();
-            // Term I: Jan-June (Months 0-5), Term II: July-Dec (Months 6-11)
             document.getElementById("termVal").innerText = (now.getMonth() < 6) ? "I" : "II";
 
             const rSnap = await getDocs(query(collection(db, "results"), where("studentId", "==", studentId)));
@@ -222,34 +222,27 @@
 
             subjects.forEach(sub => {
                 const res = myResMap[sub.code];
-                let jaribioStr = "-", mtihaniStr = "-", jumlaStr = "-", wastaniStr = "-", grade = "-", maoni = "-";
+                let jarStr = "-", exStr = "-", totStr = "-", avgStr = "-", grade = "-", maoni = "-";
 
                 if(res) {
-                    let jScores = [];
-                    if(res.test1 && res.test1 !== "") jScores.push(parseFloat(res.test1));
-                    if(res.midTerm && res.midTerm !== "") jScores.push(parseFloat(res.midTerm));
-                    if(res.test2 && res.test2 !== "") jScores.push(parseFloat(res.test2));
-                    
-                    const hasJaribio = jScores.length > 0;
-                    const jaribio = hasJaribio ? (jScores.reduce((a,b)=>a+b,0)/jScores.length) : 0;
-                    const hasMtihani = res.exam && res.exam !== "";
-                    const mtihani = hasMtihani ? parseFloat(res.exam) : 0;
+                    let jScores = [res.test1, res.midTerm, res.test2].filter(v => v && v !== "").map(v => parseFloat(v));
+                    const hasJar = jScores.length > 0;
+                    const jar = hasJar ? (jScores.reduce((a,b)=>a+b,0)/jScores.length) : 0;
+                    const hasEx = res.exam && res.exam !== "";
+                    const ex = hasEx ? parseFloat(res.exam) : 0;
 
-                    if (hasJaribio || hasMtihani) {
-                        const jumla = jaribio + mtihani;
-                        const wastani = (jumla / 2).toFixed(1);
+                    if (hasJar || hasEx) {
+                        const total = jar + ex;
+                        const wastani = (total / 2).toFixed(1);
                         const w = parseFloat(wastani);
+                        
+                        jarStr = hasJar ? jar.toFixed(0) : "-";
+                        exStr = hasEx ? ex : "-";
+                        totStr = total.toFixed(0);
+                        avgStr = wastani;
 
-                        jaribioStr = hasJaribio ? jaribio.toFixed(0) : "-";
-                        mtihaniStr = hasMtihani ? mtihani : "-";
-                        jumlaStr = jumla.toFixed(0);
-                        wastaniStr = wastani;
-
-                        grade = "F"; maoni = "FELI";
-                        if(w >= 75) { grade="A"; maoni="VIZURI SANA"; }
-                        else if(w >= 65) { grade="B"; maoni="VIZURI"; }
-                        else if(w >= 45) { grade="C"; maoni="WASTANI"; }
-                        else if(w >= 30) { grade="D"; maoni="INARIDHISHA"; }
+                        grade = w >= 75 ? "A" : w >= 65 ? "B" : w >= 45 ? "C" : w >= 30 ? "D" : "F";
+                        maoni = w >= 75 ? "VIZURI SANA" : w >= 65 ? "VIZURI" : w >= 45 ? "WASTANI" : w >= 30 ? "INARIDHISHA" : "FELI";
 
                         sumW += w;
                         countS++;
@@ -259,30 +252,39 @@
 
                 tbody.innerHTML += `<tr>
                     <td class="subject-col">${sub.name}</td>
-                    <td>${jaribioStr}</td>
-                    <td>${mtihaniStr}</td>
-                    <td>${jumlaStr}</td>
-                    <td>${wastaniStr}</td>
-                    <td>${grade}</td>
-                    <td>${maoni}</td>
+                    <td>${jarStr}</td><td>${exStr}</td><td>${totStr}</td>
+                    <td>${avgStr}</td><td>${grade}</td><td>${maoni}</td>
                 </tr>`;
             });
 
+            // STATS & DIVISION
+            let finalDiv = "-";
             document.getElementById("overallAvg").innerText = countS > 0 ? (sumW / countS).toFixed(1) : "-";
             
             if(countS >= 7) {
                 ptsArr.sort((a,b)=>a-b);
                 const b7 = ptsArr.slice(0, 7).reduce((a,b)=>a+b, 0);
                 document.getElementById("totalPoints").innerText = b7;
-                let d = "IV";
-                if(b7 <= 17) d="I"; else if(b7 <= 21) d="II"; else if(b7 <= 25) d="III";
-                document.getElementById("division").innerText = d;
+                finalDiv = b7 <= 17 ? "I" : b7 <= 21 ? "II" : b7 <= 25 ? "III" : "IV";
+                document.getElementById("division").innerText = finalDiv;
             } else {
                 document.getElementById("totalPoints").innerText = "INC";
                 document.getElementById("division").innerText = "-";
             }
 
-            // Ranking Logic
+            // DYNAMIC COMMENTS
+            let teacherComment = "";
+            if (finalDiv === "I" || finalDiv === "II") {
+                teacherComment = "Hongera, soma kwa bidii zaidi.";
+            } else if (finalDiv === "III") {
+                teacherComment = "Ongeza bidii kwenye masomo.";
+            } else {
+                teacherComment = "Matokeo yako sio mazuri soma kwa bidii zaidi.";
+            }
+            document.getElementById("classTeacherComment").innerText = teacherComment;
+            document.getElementById("headmasterComment").innerText = teacherComment;
+
+            // RANKING
             let rankingData = [];
             allStudSnap.forEach(sDoc => {
                 let sSum = 0, sCount = 0, sPts = [];
@@ -311,9 +313,7 @@
             const myRank = rankingData.findIndex(x => x.id === studentId) + 1;
             document.getElementById("rank").innerText = myRank > 0 ? myRank : "-";
 
-        } catch (e) { 
-            console.error(e); 
-        }
+        } catch (e) { console.error(e); }
     }
     generateReport();
 </script>
