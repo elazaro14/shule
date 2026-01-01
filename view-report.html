@@ -79,21 +79,18 @@
         .parent-section { margin-top: 20px; border: 1px solid #000; padding: 10px; }
         .comment-box { height: 50px; border-bottom: 1px dotted #000; }
 
-        /* Timestamp styling */
-        .print-timestamp { 
-            font-size: 9px; 
-            color: #555; 
-            position: absolute; 
-            bottom: 10px; 
-            left: 25px; 
+        .screen-timestamp { 
+            font-size: 10px; 
+            color: #666; 
+            text-align: right; 
+            margin-top: 5px; 
             font-style: italic;
         }
 
         @media print {
-            /* Removes browser's default URL/Header/Footer */
             @page { margin: 10mm; }
             body { margin: 0; background: none; }
-            .no-print { display: none; }
+            .no-print { display: none !important; }
             .report-page { box-shadow: none; width: 100%; margin: 0; border: none; padding: 10px; }
         }
     </style>
@@ -101,9 +98,14 @@
 <body>
 
 <div class="no-print">
-    <a href="dashboard.html" class="btn btn-dash">🏠 DASHBOARD</a>
-    <button onclick="window.print()" class="btn btn-print">🖨️ CHAPA (PRINT)</button>
-    <button onclick="goBack()" class="btn btn-back">⬅️ RUDI (BACK)</button>
+    <div style="display: flex; flex-direction: column; align-items: center; gap: 10px; width: 100%;">
+        <div style="display: flex; gap: 15px;">
+            <a href="dashboard.html" class="btn btn-dash">🏠 DASHBOARD</a>
+            <button onclick="window.print()" class="btn btn-print">🖨️ CHAPA (PRINT)</button>
+            <button onclick="goBack()" class="btn btn-back">⬅️ RUDI (BACK)</button>
+        </div>
+        <div id="printTime" class="screen-timestamp"></div>
+    </div>
 </div>
 
 <div class="report-page">
@@ -186,8 +188,6 @@
             <span>Tarehe: ...........................</span>
         </div>
     </div>
-
-    <div id="printTime" class="print-timestamp"></div>
 </div>
 
 <script type="module">
@@ -219,9 +219,9 @@
             document.getElementById("yearVal").innerText = now.getFullYear();
             document.getElementById("termVal").innerText = (now.getMonth() < 6) ? "I" : "II";
 
-            // Update timestamp
+            // Timestamp displayed only on screen (inside no-print div)
             const options = { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' };
-            document.getElementById("printTime").innerText = "Ripoti imetolewa tarehe: " + now.toLocaleDateString('sw-TZ', options);
+            document.getElementById("printTime").innerText = "Muda wa sasa: " + now.toLocaleDateString('sw-TZ', options);
 
             const rSnap = await getDocs(query(collection(db, "results"), where("studentId", "==", studentId)));
             const myResMap = {};
