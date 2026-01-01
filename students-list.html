@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Student List | Olmoti ERP</title>
+    <title>Student Registry | Olmoti ERP</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
         :root { --primary: #1a237e; --gold: #c5a059; --bg: #f4f7f6; }
@@ -16,76 +16,85 @@
         
         .card { background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); margin-bottom: 20px; }
         
-        /* Form Styling */
-        .reg-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 15px; margin-top: 15px; }
-        input, select { padding: 10px; border: 1px solid #ddd; border-radius: 6px; outline: none; }
-        .btn-add { background: var(--primary); color: white; border: none; padding: 10px; border-radius: 6px; cursor: pointer; font-weight: bold; }
+        /* Form & Filter Grid */
+        .grid-container { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; margin-bottom: 15px; }
+        input, select { padding: 10px; border: 1px solid #ddd; border-radius: 6px; outline: none; font-size: 14px; }
         
-        /* Upload Styling */
-        .upload-box { border: 2px dashed #ccc; padding: 20px; text-align: center; border-radius: 10px; background: #f9f9f9; margin-top: 10px; }
-        
-        table { width: 100%; border-collapse: collapse; margin-top: 20px; background: white; }
-        th, td { padding: 12px; text-align: left; border-bottom: 1px solid #eee; }
-        th { background: #f8f9fa; color: var(--primary); font-size: 12px; text-transform: uppercase; }
+        .btn { padding: 10px 15px; border-radius: 6px; border: none; font-weight: bold; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; transition: 0.2s; }
+        .btn-add { background: var(--primary); color: white; }
+        .btn-template { background: #546e7a; color: white; margin-top: 10px; font-size: 12px; }
+        .btn-report { background: #2e7d32; color: white; font-size: 12px; text-decoration: none; }
+        .btn-del { color: #d32f2f; background: none; }
 
-        .btn-report { 
-            background: #2e7d32; color: white; border: none; padding: 7px 14px; 
-            border-radius: 4px; cursor: pointer; text-decoration: none; font-size: 13px; 
-            font-weight: bold; display: inline-flex; align-items: center; gap: 5px;
-        }
-        .btn-del { color: #d32f2f; cursor: pointer; border: none; background: none; margin-left: 15px; }
+        /* Search & Filter Bar */
+        .search-bar { background: #e8eaf6; padding: 20px; border-radius: 10px; display: flex; gap: 15px; align-items: center; margin-bottom: 25px; border-left: 5px solid var(--primary); }
+
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        th, td { padding: 12px; text-align: left; border-bottom: 1px solid #eee; }
+        th { background: #f8f9fa; color: var(--primary); font-size: 11px; text-transform: uppercase; letter-spacing: 1px; }
+        
+        .badge { padding: 4px 8px; border-radius: 4px; font-size: 11px; font-weight: bold; }
+        .badge-m { background: #e3f2fd; color: #1565c0; }
+        .badge-f { background: #fce4ec; color: #c2185b; }
     </style>
 </head>
 <body>
 
-    <div id="loader">
-        <div><i class="fas fa-spinner fa-spin fa-2x"></i> Verifying Access...</div>
-    </div>
+    <div id="loader"><div><i class="fas fa-spinner fa-spin fa-2x"></i> Verifying Access...</div></div>
 
     <div id="wrapper">
         <div class="sidebar">
             <h2 style="color:var(--gold);">OLMOTI SEC</h2>
-            <hr>
-            <p><a href="dashboard.html" style="color:white; text-decoration:none;">🏠 Dashboard</a></p>
-            <p><a href="mark-entry.html" style="color:white; text-decoration:none;">📝 Mark Entry</a></p>
+            <hr style="opacity:0.2;">
+            <p><a href="dashboard.html" style="color:white; text-decoration:none;"><i class="fas fa-home"></i> Dashboard</a></p>
+            <p><a href="mark-entry.html" style="color:white; text-decoration:none;"><i class="fas fa-edit"></i> Mark Entry</a></p>
         </div>
 
         <div class="main-content">
             <div class="card">
-                <h3><i class="fas fa-user-plus"></i> Add New Student</h3>
-                <div class="reg-grid">
-                    <input type="text" id="newName" placeholder="Full Name">
-                    <select id="newSex">
-                        <option value="Male">Male</option>
-                        <option value="Female">Female</option>
-                    </select>
+                <h3><i class="fas fa-user-plus"></i> Quick Register / Bulk Upload</h3>
+                <div class="grid-container">
+                    <input type="text" id="newName" placeholder="Student Full Name">
+                    <select id="newSex"><option value="Male">Male</option><option value="Female">Female</option></select>
                     <select id="newCls">
-                        <option value="Form 1">Form 1</option>
-                        <option value="Form 2">Form 2</option>
-                        <option value="Form 3">Form 3</option>
-                        <option value="Form 4">Form 4</option>
+                        <option value="Form 1">Form 1</option><option value="Form 2">Form 2</option>
+                        <option value="Form 3">Form 3</option><option value="Form 4">Form 4</option>
                     </select>
                     <select id="newStrm">
-                        <option value="A">A</option><option value="B">B</option>
-                        <option value="C">C</option><option value="D">D</option>
-                        <option value="E">E</option><option value="F">F</option>
-                        <option value="G">G</option>
+                        <option value="A">A</option><option value="B">B</option><option value="C">C</option>
+                        <option value="D">D</option><option value="E">E</option><option value="F">F</option><option value="G">G</option>
                     </select>
-                    <button onclick="addStudent()" class="btn-add">REGISTER</button>
+                    <button onclick="addStudent()" class="btn btn-add">REGISTER</button>
                 </div>
-
-                <hr style="margin: 30px 0;">
                 
-                <h3><i class="fas fa-file-import"></i> Bulk Upload (CSV)</h3>
-                <div class="upload-box">
+                <div style="background: #f9f9f9; padding: 15px; border-radius: 8px; border: 1px dashed #ccc;">
+                    <label style="font-weight:bold; font-size: 13px;">Bulk Import via CSV:</label><br><br>
                     <input type="file" id="csvFile" accept=".csv">
-                    <p style="font-size: 12px; color: #666; margin-top: 10px;">Format: Name, Sex, Class, Stream (e.g., John Doe, Male, Form 1, A)</p>
-                    <button onclick="uploadCSV()" class="btn-add" style="background:#455a64;">UPLOAD LIST</button>
+                    <button onclick="uploadCSV()" class="btn btn-add" style="background:#455a64;">UPLOAD FILE</button>
+                    <button onclick="downloadCSVTemplate()" class="btn btn-template"><i class="fas fa-download"></i> CSV TEMPLATE</button>
+                </div>
+            </div>
+
+            <div class="search-bar">
+                <div style="flex: 2;">
+                    <label style="font-size:11px; font-weight:800;">SEARCH BY NAME</label><br>
+                    <input type="text" id="searchInp" onkeyup="filterTable()" placeholder="Start typing student name..." style="width:100%;">
+                </div>
+                <div style="flex: 1;">
+                    <label style="font-size:11px; font-weight:800;">FILTER CLASS</label><br>
+                    <select id="filterCls" onchange="filterTable()" style="width:100%;">
+                        <option value="ALL">All Classes</option>
+                        <option value="Form 1">Form 1</option><option value="Form 2">Form 2</option>
+                        <option value="Form 3">Form 3</option><option value="Form 4">Form 4</option>
+                    </select>
                 </div>
             </div>
 
             <div class="card">
-                <h3><i class="fas fa-users"></i> Student Registry</h3>
+                <div style="display:flex; justify-content: space-between; align-items:center;">
+                    <h3><i class="fas fa-users"></i> Student Registry</h3>
+                    <span id="rowCount" style="font-weight:bold; color:var(--primary);">Total: 0</span>
+                </div>
                 <table>
                     <thead>
                         <tr>
@@ -103,107 +112,103 @@
     import { collection, getDocs, doc, query, orderBy, getDoc, deleteDoc, addDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
     import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
-    const wrapper = document.getElementById('wrapper');
-    const loader = document.getElementById('loader');
+    let allStudents = [];
 
     onAuthStateChanged(auth, async (user) => {
         if (!user) { window.location.href = "index.html"; return; }
-
-        try {
-            const userSnap = await getDoc(doc(db, "users", user.uid));
-            if (userSnap.exists()) {
-                const role = userSnap.data().role;
-                if (role === "admin" || role === "academic") {
-                    loader.style.display = "none";
-                    wrapper.style.display = "block";
-                    loadStuds();
-                } else {
-                    alert("Unauthorized access!");
-                    window.location.href = "dashboard.html";
-                }
-            }
-        } catch (err) { console.error(err); }
+        const userSnap = await getDoc(doc(db, "users", user.uid));
+        if (userSnap.exists() && (userSnap.data().role === "admin" || userSnap.data().role === "academic")) {
+            document.getElementById('loader').style.display = "none";
+            document.getElementById('wrapper').style.display = "block";
+            loadStuds();
+        } else {
+            alert("Unauthorized!"); window.location.href = "dashboard.html";
+        }
     });
 
-    // 1. Load List
     async function loadStuds() {
-        const tbody = document.getElementById('sTable');
         const snap = await getDocs(query(collection(db, "students"), orderBy("name")));
+        allStudents = snap.docs.map(d => ({id: d.id, ...d.data()}));
+        renderTable(allStudents);
+    }
+
+    function renderTable(data) {
+        const tbody = document.getElementById('sTable');
         tbody.innerHTML = "";
-        let i = 1;
-        
-        snap.forEach(d => {
-            const s = d.data();
+        data.forEach((s, i) => {
+            const sexBadge = s.sex === 'Male' ? 'badge-m' : 'badge-f';
             tbody.innerHTML += `
                 <tr>
-                    <td>${i++}</td>
+                    <td>${i+1}</td>
                     <td><b>${s.name}</b></td>
-                    <td>${s.sex}</td>
+                    <td><span class="badge ${sexBadge}">${s.sex}</span></td>
                     <td>${s.cls}</td>
-                    <td>${s.stream}</td>
+                    <td><span style="font-weight:bold;">${s.stream}</span></td>
                     <td>
-                        <a href="view-report.html?id=${d.id}" target="_blank" class="btn-report">
-                            <i class="fas fa-file-pdf"></i> Report
-                        </a>
-                        <button onclick="delStud('${d.id}')" class="btn-del">
-                            <i class="fas fa-trash-alt"></i>
-                        </button>
+                        <a href="view-report.html?id=${s.id}" target="_blank" class="btn btn-report"><i class="fas fa-file-pdf"></i> Report</a>
+                        <button onclick="delStud('${s.id}')" class="btn btn-del"><i class="fas fa-trash-alt"></i></button>
                     </td>
                 </tr>`;
         });
+        document.getElementById('rowCount').innerText = `Total: ${data.length}`;
     }
 
-    // 2. Add Single Student
+    window.filterTable = () => {
+        const nameVal = document.getElementById('searchInp').value.toLowerCase();
+        const clsVal = document.getElementById('filterCls').value;
+
+        const filtered = allStudents.filter(s => {
+            const matchesName = s.name.toLowerCase().includes(nameVal);
+            const matchesClass = (clsVal === "ALL" || s.cls === clsVal);
+            return matchesName && matchesClass;
+        });
+        renderTable(filtered);
+    };
+
     window.addStudent = async () => {
         const name = document.getElementById('newName').value;
         const sex = document.getElementById('newSex').value;
         const cls = document.getElementById('newCls').value;
         const stream = document.getElementById('newStrm').value;
 
-        if(!name) return alert("Enter Name");
-
-        await addDoc(collection(db, "students"), {
-            name: name,
-            sex: sex,
-            cls: cls,
-            stream: stream
-        });
-
+        if(!name) return alert("Please enter a name");
+        await addDoc(collection(db, "students"), { name, sex, cls, stream });
         document.getElementById('newName').value = "";
         loadStuds();
-        alert("Student Added!");
     };
 
-    // 3. Bulk Upload
     window.uploadCSV = function() {
         const fileInput = document.getElementById('csvFile');
-        if (!fileInput.files[0]) return alert("Select a CSV file first");
-
+        if (!fileInput.files[0]) return alert("Select CSV first");
+        
         const reader = new FileReader();
         reader.onload = async function(e) {
-            const lines = e.target.result.split('\n');
-            let count = 0;
-            
-            for (let line of lines) {
-                const data = line.split(',');
-                if (data.length >= 4) {
+            const rows = e.target.result.split('\n').slice(1); // Skip header
+            for (let row of rows) {
+                const cols = row.split(',');
+                if (cols.length >= 4) {
                     await addDoc(collection(db, "students"), {
-                        name: data[0].trim(),
-                        sex: data[1].trim(),
-                        cls: data[2].trim(),
-                        stream: data[3].trim()
+                        name: cols[0].trim(), sex: cols[1].trim(), cls: cols[2].trim(), stream: cols[3].trim()
                     });
-                    count++;
                 }
             }
-            alert(`Uploaded ${count} students!`);
-            loadStuds();
+            alert("Bulk Upload Complete!"); loadStuds();
         };
         reader.readAsText(fileInput.files[0]);
     };
 
+    window.downloadCSVTemplate = () => {
+        const csvContent = "data:text/csv;charset=utf-8,Full Name,Sex,Class,Stream\nJohn Doe,Male,Form 1,A\nJane Smith,Female,Form 3,B";
+        const encodedUri = encodeURI(csvContent);
+        const link = document.createElement("a");
+        link.setAttribute("href", encodedUri);
+        link.setAttribute("download", "student_template.csv");
+        document.body.appendChild(link);
+        link.click();
+    };
+
     window.delStud = async (id) => {
-        if(confirm("Delete this student?")) {
+        if(confirm("Permanently delete student?")) {
             await deleteDoc(doc(db, "students", id));
             loadStuds();
         }
