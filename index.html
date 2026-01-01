@@ -3,15 +3,60 @@
 <head>
     <meta charset="UTF-8">
     <title>School ERP Login</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        body { font-family: 'Segoe UI', sans-serif; background: #1a237e; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
-        .card { background: white; padding: 40px; border-radius: 12px; width: 320px; text-align: center; box-shadow: 0 10px 25px rgba(0,0,0,0.2); }
-        input { width: 100%; padding: 12px; margin: 10px 0; border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box; }
-        button { width: 100%; padding: 12px; background: #c5a059; color: white; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; }
+        body { 
+            font-family: 'Segoe UI', sans-serif; 
+            background: #1a237e; 
+            display: flex; 
+            flex-direction: column; /* Inaruhusu footer kukaa chini */
+            justify-content: center; 
+            align-items: center; 
+            height: 100vh; 
+            margin: 0; 
+        }
+        .card { 
+            background: white; 
+            padding: 40px; 
+            border-radius: 12px; 
+            width: 320px; 
+            text-align: center; 
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2); 
+        }
+        input { 
+            width: 100%; 
+            padding: 12px; 
+            margin: 10px 0; 
+            border: 1px solid #ddd; 
+            border-radius: 6px; 
+            box-sizing: border-box; 
+        }
+        button { 
+            width: 100%; 
+            padding: 12px; 
+            background: #c5a059; 
+            color: white; 
+            border: none; 
+            border-radius: 6px; 
+            font-weight: bold; 
+            cursor: pointer; 
+            transition: 0.3s;
+        }
+        button:hover { background: #b08d4b; }
         button:disabled { background: #ccc; }
+
+        /* Footer Style */
+        .footer {
+            margin-top: 20px;
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 13px;
+            text-align: center;
+        }
+        .footer b { color: #c5a059; }
     </style>
 </head>
 <body>
+
     <div class="card">
         <h2 style="color: #1a237e;">🏫 Olmoti Portal</h2>
         <input id="email" type="email" placeholder="Email Address">
@@ -19,6 +64,15 @@
         <button onclick="login()">Login</button>
     </div>
 
-    <script type="module" src="auth.js"></script>
+    <div class="footer">
+        Developed by <b>elazaro14</b> | &copy; <span id="year"></span>
+    </div>
+
+    <script type="module">
+        // Inasoma mwaka wa sasa kiotomatiki
+        document.getElementById('year').textContent = new Date().getFullYear();
+
+        // Unaweza kuongeza logic ya login hapa au kwenye auth.js
+    </script>
 </body>
 </html>
