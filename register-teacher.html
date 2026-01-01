@@ -8,7 +8,6 @@
         :root { --primary: #1a237e; --gold: #c5a059; --bg: #f4f7f6; }
         body { font-family: 'Segoe UI', sans-serif; background: var(--bg); margin: 0; display: flex; }
         
-        /* Gatekeeper styles */
         #wrapper { display: none; width: 100%; }
         #loader { 
             width: 100%; height: 100vh; display: flex; flex-direction: column; 
@@ -19,13 +18,16 @@
         .main-content { margin-left: 250px; padding: 40px; width: calc(100% - 250px); }
         .card { background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
         .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 15px; }
-        label { display: block; margin-bottom: 5px; font-weight: bold; font-size: 13px; }
-        input, select { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box; }
-        .btn-save { background: var(--primary); color: white; border: none; padding: 15px; width: 100%; border-radius: 6px; cursor: pointer; font-weight: bold; margin-top: 20px; }
+        label { display: block; margin-bottom: 5px; font-weight: bold; font-size: 13px; color: var(--primary); }
+        input, select { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box; outline: none; }
+        input:focus, select:focus { border-color: var(--gold); }
+        .btn-save { background: var(--primary); color: white; border: none; padding: 15px; width: 100%; border-radius: 6px; cursor: pointer; font-weight: bold; margin-top: 20px; transition: 0.3s; }
+        .btn-save:hover { background: #283593; }
         
-        table { width: 100%; border-collapse: collapse; margin-top: 30px; background: white; border-radius: 8px; overflow: hidden; }
-        th, td { padding: 12px; border: 1px solid #eee; text-align: left; }
-        th { background: #f8f9fa; color: var(--primary); }
+        table { width: 100%; border-collapse: collapse; margin-top: 30px; background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
+        th, td { padding: 15px; border-bottom: 1px solid #eee; text-align: left; font-size: 14px; }
+        th { background: #f8f9fa; color: var(--primary); text-transform: uppercase; font-size: 12px; letter-spacing: 1px; }
+        .badge { background:#eee; padding:4px 10px; border-radius:4px; font-size: 12px; font-weight: bold; }
     </style>
 </head>
 <body>
@@ -37,10 +39,10 @@
 
     <div id="wrapper">
         <div class="sidebar">
-            <h2>OLMOTI SEC</h2>
-            <hr>
-            <p><a href="dashboard.html" style="color:white; text-decoration:none;">🏠 Dashboard</a></p>
-            <p><a href="students-list.html" style="color:white; text-decoration:none;">👥 Wanafunzi</a></p>
+            <h2 style="color:var(--gold);">OLMOTI SEC</h2>
+            <hr style="opacity:0.2;">
+            <p><a href="dashboard.html" style="color:white; text-decoration:none;"><i class="fas fa-home"></i> Dashboard</a></p>
+            <p><a href="students-list.html" style="color:white; text-decoration:none;"><i class="fas fa-users"></i> Wanafunzi</a></p>
         </div>
 
         <div class="main-content">
@@ -49,51 +51,75 @@
                 <div class="grid">
                     <div>
                         <label>Jina Kamili</label>
-                        <input type="text" id="tName">
+                        <input type="text" id="tName" placeholder="Mfn: John W. Doe">
                     </div>
                     <div>
-                        <label>Barua Pepe</label>
-                        <input type="email" id="tEmail">
+                        <label>Jinsia (Sex)</label>
+                        <select id="tSex">
+                            <option value="Male">Mwanaume (Male)</option>
+                            <option value="Female">Mwanamke (Female)</option>
+                        </select>
                     </div>
                     <div>
-                        <label>UID ya Firebase (Kutoka Auth)</label>
-                        <input type="text" id="tUID">
+                        <label>Barua Pepe (Email)</label>
+                        <input type="email" id="tEmail" placeholder="mwalimu@olmoti.ac.tz">
+                    </div>
+                    <div>
+                        <label>UID ya Firebase (User ID)</label>
+                        <input type="text" id="tUID" placeholder="Weka UID kutoka Firebase Auth">
                     </div>
                     <div>
                         <label>Cheo (Role)</label>
                         <select id="tRole">
-                            <option value="teacher">Teacher (Subject)</option>
+                            <option value="teacher">Teacher (Somo)</option>
                             <option value="academic">Academic Master</option>
                             <option value="admin">Administrator</option>
                         </select>
                     </div>
                     <div>
-                        <label>Darasa (Class)</label>
+                        <label>Darasa Analofundisha</label>
                         <select id="tClass">
-                            <option>Form 1</option><option>Form 2</option>
-                            <option>Form 3</option><option>Form 4</option>
+                            <option value="ALL">Madarasa Yote (ALL)</option>
+                            <option value="Form 1">Form 1</option>
+                            <option value="Form 2">Form 2</option>
+                            <option value="Form 3">Form 3</option>
+                            <option value="Form 4">Form 4</option>
                         </select>
                     </div>
                     <div>
                         <label>Mkondo (Stream)</label>
-                        <select id="tStream"><option>A</option><option>B</option><option>C</option></select>
+                        <select id="tStream">
+                            <option value="ALL">Mikondo Yote (ALL)</option>
+                            <option value="A">A</option><option value="B">B</option>
+                            <option value="C">C</option><option value="D">D</option>
+                            <option value="E">E</option><option value="F">F</option>
+                            <option value="G">G</option>
+                        </select>
                     </div>
                 </div>
-                <button class="btn-save" id="saveBtn">HIFADHI MWALIMU</button>
+                <button class="btn-save" id="saveBtn"><i class="fas fa-save"></i> HIFADHI TAARIFA ZA MWALIMU</button>
             </div>
 
             <table>
                 <thead>
-                    <tr><th>Jina</th><th>Email</th><th>Role</th><th>Darasa</th><th>Kitendo</th></tr>
+                    <tr>
+                        <th>Jina</th>
+                        <th>Jinsia</th>
+                        <th>Role</th>
+                        <th>Darasa / Mkondo</th>
+                        <th>Kitendo</th>
+                    </tr>
                 </thead>
-                <tbody id="tTable"></tbody>
+                <tbody id="tTable">
+                    <tr><td colspan="5" style="text-align:center;">Inapakia walimu...</td></tr>
+                </tbody>
             </table>
         </div>
     </div>
 
 <script type="module">
     import { db, auth } from "./firebase.js";
-    import { collection, setDoc, doc, getDocs, getDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+    import { collection, setDoc, doc, getDocs, getDoc, deleteDoc, orderBy, query } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
     import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
     const wrapper = document.getElementById('wrapper');
@@ -105,9 +131,8 @@
 
         const userSnap = await getDoc(doc(db, "users", user.uid));
         if (userSnap.exists() && userSnap.data().role === "admin") {
-            // ONLY Admin can enter
             loader.style.display = "none";
-            wrapper.style.display = "flex";
+            wrapper.style.display = "block";
             loadTeachers();
         } else {
             alert("Ruhusa imekataliwa! Ukurasa huu ni wa Admin pekee.");
@@ -116,40 +141,74 @@
     });
 
     async function loadTeachers() {
-        const snap = await getDocs(collection(db, "users"));
+        // Query walimu wote na wapange kwa majina
+        const q = query(collection(db, "users"), orderBy("name"));
+        const snap = await getDocs(q);
         const tbody = document.getElementById('tTable');
         tbody.innerHTML = "";
+        
         snap.forEach(d => {
             const t = d.data();
             tbody.innerHTML += `
                 <tr>
-                    <td>${t.name}</td>
-                    <td>${t.email}</td>
-                    <td><span style="background:#eee; padding:3px 8px; border-radius:4px;">${t.role}</span></td>
-                    <td>${t.assignedClass} ${t.assignedStream}</td>
-                    <td><button onclick="delT('${d.id}')" style="color:red; border:none; background:none; cursor:pointer;">Futa</button></td>
+                    <td><b>${t.name}</b><br><small style="color:#666">${t.email}</small></td>
+                    <td>${t.gender || 'N/A'}</td>
+                    <td><span class="badge">${t.role}</span></td>
+                    <td>${t.assignedClass} | ${t.assignedStream}</td>
+                    <td>
+                        <button onclick="delT('${d.id}')" style="color:#d32f2f; border:none; background:none; cursor:pointer; font-weight:bold;">
+                            <i class="fas fa-trash-alt"></i> Futa
+                        </button>
+                    </td>
                 </tr>`;
         });
     }
 
     document.getElementById('saveBtn').onclick = async () => {
-        const uid = document.getElementById('tUID').value;
-        const name = document.getElementById('tName').value;
-        if(!uid || !name) return alert("Jaza Jina na UID!");
+        const uid = document.getElementById('tUID').value.trim();
+        const name = document.getElementById('tName').value.trim();
+        const email = document.getElementById('tEmail').value.trim();
+        const sex = document.getElementById('tSex').value;
+        const role = document.getElementById('tRole').value;
+        const cls = document.getElementById('tClass').value;
+        const strm = document.getElementById('tStream').value;
 
-        await setDoc(doc(db, "users", uid), {
-            name: name,
-            email: document.getElementById('tEmail').value,
-            role: document.getElementById('tRole').value,
-            assignedClass: document.getElementById('tClass').value,
-            assignedStream: document.getElementById('tStream').value
-        });
-        alert("Mwalimu Amesajiliwa!");
-        loadTeachers();
+        if(!uid || !name || !email) return alert("Tafadhali jaza Jina, Email na UID ya mwalimu!");
+
+        const btn = document.getElementById('saveBtn');
+        btn.innerText = "Inahifadhi...";
+        btn.disabled = true;
+
+        try {
+            await setDoc(doc(db, "users", uid), {
+                name: name,
+                email: email,
+                gender: sex,
+                role: role,
+                assignedClass: cls,
+                assignedStream: strm,
+                assignedSubject: "None" // Itapangwa baadaye kwenye Dashboard
+            });
+            
+            alert("Mwalimu " + name + " amesajiliwa kikamilifu!");
+            
+            // Safisha fomu
+            document.getElementById('tUID').value = "";
+            document.getElementById('tName').value = "";
+            document.getElementById('tEmail').value = "";
+            
+            loadTeachers();
+        } catch (error) {
+            console.error("Error saving teacher:", error);
+            alert("Hitilafu imetokea! Hakikisha UID ni sahihi.");
+        } finally {
+            btn.innerText = "HIFADHI TAARIFA ZA MWALIMU";
+            btn.disabled = false;
+        }
     };
 
     window.delT = async (id) => {
-        if(confirm("Futa mwalimu?")) {
+        if(confirm("Je, una uhakika unataka kumfuta mwalimu huyu? Hatua hii haiwezi kurudishwa.")) {
             await deleteDoc(doc(db, "users", id));
             loadTeachers();
         }
