@@ -16,17 +16,16 @@
         
         .card { background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); margin-bottom: 20px; }
         
-        /* Form & Filter Grid */
         .grid-container { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; margin-bottom: 15px; }
         input, select { padding: 10px; border: 1px solid #ddd; border-radius: 6px; outline: none; font-size: 14px; }
         
         .btn { padding: 10px 15px; border-radius: 6px; border: none; font-weight: bold; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; transition: 0.2s; }
         .btn-add { background: var(--primary); color: white; }
         .btn-template { background: #546e7a; color: white; margin-top: 10px; font-size: 12px; }
-        .btn-report { background: #2e7d32; color: white; font-size: 12px; text-decoration: none; }
+        .btn-report { background: #2e7d32; color: white; font-size: 11px; text-decoration: none; padding: 5px 10px; }
+        .btn-edit { background: #f57c00; color: white; font-size: 11px; padding: 5px 10px; }
         .btn-del { color: #d32f2f; background: none; }
 
-        /* Search & Filter Bar */
         .search-bar { background: #e8eaf6; padding: 20px; border-radius: 10px; display: flex; gap: 15px; align-items: center; margin-bottom: 25px; border-left: 5px solid var(--primary); }
 
         table { width: 100%; border-collapse: collapse; margin-top: 10px; }
@@ -36,11 +35,41 @@
         .badge { padding: 4px 8px; border-radius: 4px; font-size: 11px; font-weight: bold; }
         .badge-m { background: #e3f2fd; color: #1565c0; }
         .badge-f { background: #fce4ec; color: #c2185b; }
+
+        /* Modal Styles */
+        .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); }
+        .modal-content { background: white; margin: 10% auto; padding: 25px; border-radius: 12px; width: 400px; box-shadow: 0 5px 15px rgba(0,0,0,0.3); }
     </style>
 </head>
 <body>
 
     <div id="loader"><div><i class="fas fa-spinner fa-spin fa-2x"></i> Verifying Access...</div></div>
+
+    <div id="editModal" class="modal">
+        <div class="modal-content">
+            <h3 style="margin-top:0;"><i class="fas fa-user-edit"></i> Edit Student Mapping</h3>
+            <label>Full Name</label><br>
+            <input type="text" id="editName" style="width:100%; margin-bottom:15px;">
+            
+            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
+                <div>
+                    <label>Class</label><br>
+                    <select id="editCls" style="width:100%;">
+                        <option>Form 1</option><option>Form 2</option><option>Form 3</option><option>Form 4</option>
+                    </select>
+                </div>
+                <div>
+                    <label>Stream</label><br>
+                    <select id="editStrm" style="width:100%;">
+                        <option>A</option><option>B</option><option>C</option><option>D</option><option>E</option><option>F</option><option>G</option>
+                    </select>
+                </div>
+            </div>
+            <br>
+            <button onclick="updateStudent()" class="btn btn-add" style="width:100%;">UPDATE MAPPING</button>
+            <button onclick="closeModal()" style="width:100%; margin-top:10px; background:none; border:none; cursor:pointer; color:grey;">Cancel</button>
+        </div>
+    </div>
 
     <div id="wrapper">
         <div class="sidebar">
@@ -88,6 +117,14 @@
                         <option value="Form 3">Form 3</option><option value="Form 4">Form 4</option>
                     </select>
                 </div>
+                <div style="flex: 1;">
+                    <label style="font-size:11px; font-weight:800;">FILTER STREAM</label><br>
+                    <select id="filterStrm" onchange="filterTable()" style="width:100%;">
+                        <option value="ALL">All Streams</option>
+                        <option value="A">A</option><option value="B">B</option><option value="C">C</option>
+                        <option value="D">D</option><option value="E">E</option><option value="F">F</option><option value="G">G</option>
+                    </select>
+                </div>
             </div>
 
             <div class="card">
@@ -109,10 +146,11 @@
 
 <script type="module">
     import { db, auth } from "./firebase.js";
-    import { collection, getDocs, doc, query, orderBy, getDoc, deleteDoc, addDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+    import { collection, getDocs, doc, query, orderBy, getDoc, deleteDoc, addDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
     import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
     let allStudents = [];
+    let currentEditId = null;
 
     onAuthStateChanged(auth, async (user) => {
         if (!user) { window.location.href = "index.html"; return; }
@@ -145,6 +183,7 @@
                     <td>${s.cls}</td>
                     <td><span style="font-weight:bold;">${s.stream}</span></td>
                     <td>
+                        <button onclick="openEditModal('${s.id}', '${s.name}', '${s.cls}', '${s.stream}')" class="btn btn-edit"><i class="fas fa-exchange-alt"></i> Map</button>
                         <a href="view-report.html?id=${s.id}" target="_blank" class="btn btn-report"><i class="fas fa-file-pdf"></i> Report</a>
                         <button onclick="delStud('${s.id}')" class="btn btn-del"><i class="fas fa-trash-alt"></i></button>
                     </td>
@@ -156,13 +195,37 @@
     window.filterTable = () => {
         const nameVal = document.getElementById('searchInp').value.toLowerCase();
         const clsVal = document.getElementById('filterCls').value;
+        const strmVal = document.getElementById('filterStrm').value;
 
         const filtered = allStudents.filter(s => {
             const matchesName = s.name.toLowerCase().includes(nameVal);
             const matchesClass = (clsVal === "ALL" || s.cls === clsVal);
-            return matchesName && matchesClass;
+            const matchesStrm = (strmVal === "ALL" || s.stream === strmVal);
+            return matchesName && matchesClass && matchesStrm;
         });
         renderTable(filtered);
+    };
+
+    // --- MODAL FUNCTIONS ---
+    window.openEditModal = (id, name, cls, strm) => {
+        currentEditId = id;
+        document.getElementById('editName').value = name;
+        document.getElementById('editCls').value = cls;
+        document.getElementById('editStrm').value = strm;
+        document.getElementById('editModal').style.display = 'block';
+    };
+
+    window.closeModal = () => document.getElementById('editModal').style.display = 'none';
+
+    window.updateStudent = async () => {
+        if (!currentEditId) return;
+        await updateDoc(doc(db, "students", currentEditId), {
+            name: document.getElementById('editName').value,
+            cls: document.getElementById('editCls').value,
+            stream: document.getElementById('editStrm').value
+        });
+        closeModal();
+        loadStuds();
     };
 
     window.addStudent = async () => {
@@ -170,7 +233,6 @@
         const sex = document.getElementById('newSex').value;
         const cls = document.getElementById('newCls').value;
         const stream = document.getElementById('newStrm').value;
-
         if(!name) return alert("Please enter a name");
         await addDoc(collection(db, "students"), { name, sex, cls, stream });
         document.getElementById('newName').value = "";
@@ -180,10 +242,9 @@
     window.uploadCSV = function() {
         const fileInput = document.getElementById('csvFile');
         if (!fileInput.files[0]) return alert("Select CSV first");
-        
         const reader = new FileReader();
         reader.onload = async function(e) {
-            const rows = e.target.result.split('\n').slice(1); // Skip header
+            const rows = e.target.result.split('\n').slice(1);
             for (let row of rows) {
                 const cols = row.split(',');
                 if (cols.length >= 4) {
