@@ -2,10 +2,10 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Registry & Bulk Upload | Olmoti ERP</title>
+    <title>Student Management | Olmoti ERP</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        :root { --primary: #1a237e; --gold: #c5a059; --bg: #f4f7f6; }
+        :root { --primary: #1a237e; --gold: #c5a059; --bg: #f4f7f6; --success: #2e7d32; --warn: #f57c00; }
         body { font-family: 'Segoe UI', sans-serif; background: var(--bg); margin: 0; display: flex; }
         
         #wrapper { display: none; width: 100%; } 
@@ -16,7 +16,6 @@
         
         .card { background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); margin-bottom: 20px; }
         
-        /* Bulk Action Bar */
         #bulkActionBar { 
             display: none; background: #fff9c4; border: 1px solid #fbc02d; 
             position: sticky; top: 10px; z-index: 100; padding: 15px; 
@@ -26,15 +25,15 @@
         .grid-container { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; }
         input, select { padding: 10px; border: 1px solid #ddd; border-radius: 6px; outline: none; font-size: 14px; }
         
-        .btn { padding: 10px 15px; border-radius: 6px; border: none; font-weight: bold; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; }
+        .btn { padding: 8px 12px; border-radius: 6px; border: none; font-weight: bold; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; transition: 0.2s; font-size: 12px; }
         .btn-add { background: var(--primary); color: white; }
-        .btn-bulk { background: #f57c00; color: white; }
-        .btn-csv { background: #455a64; color: white; }
+        .btn-edit { background: var(--warn); color: white; }
+        .btn-report { background: var(--success); color: white; text-decoration: none; }
         .btn-del { color: #d32f2f; background: none; }
 
         .search-bar { background: #e8eaf6; padding: 20px; border-radius: 10px; display: flex; gap: 15px; align-items: center; margin-bottom: 25px; border-left: 5px solid var(--primary); }
 
-        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; background: white; }
         th, td { padding: 12px; text-align: left; border-bottom: 1px solid #eee; }
         th { background: #f8f9fa; color: var(--primary); font-size: 11px; text-transform: uppercase; }
         
@@ -42,12 +41,34 @@
         .badge-m { background: #e3f2fd; color: #1565c0; }
         .badge-f { background: #fce4ec; color: #c2185b; }
 
+        /* Modal */
+        .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); }
+        .modal-content { background: white; margin: 10% auto; padding: 25px; border-radius: 12px; width: 400px; }
+
         @keyframes slideDown { from { transform: translateY(-20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
     </style>
 </head>
 <body>
 
     <div id="loader"><div><i class="fas fa-spinner fa-spin fa-2x"></i> Accessing Registry...</div></div>
+
+    <div id="editModal" class="modal">
+        <div class="modal-content">
+            <h3 style="margin-top:0;"><i class="fas fa-user-edit"></i> Edit Student</h3>
+            <label>Full Name</label><br>
+            <input type="text" id="editName" style="width:100%; margin-bottom:15px;"><br>
+            <label>Class</label><br>
+            <select id="editCls" style="width:100%; margin-bottom:15px;">
+                <option>Form 1</option><option>Form 2</option><option>Form 3</option><option>Form 4</option>
+            </select><br>
+            <label>Stream</label><br>
+            <select id="editStrm" style="width:100%; margin-bottom:15px;">
+                <option>A</option><option>B</option><option>C</option><option>D</option><option>E</option><option>F</option><option>G</option>
+            </select>
+            <button onclick="updateStudent()" class="btn btn-add" style="width:100%;">SAVE CHANGES</button>
+            <button onclick="closeModal()" style="width:100%; background:none; border:none; margin-top:10px; color:grey; cursor:pointer;">Cancel</button>
+        </div>
+    </div>
 
     <div id="wrapper">
         <div class="sidebar">
@@ -72,14 +93,14 @@
                             <option value="">Stream</option>
                             <option>A</option><option>B</option><option>C</option><option>D</option><option>E</option><option>F</option><option>G</option>
                         </select>
-                        <button onclick="applyBulkMap()" class="btn btn-bulk">APPLY BULK UPDATE</button>
+                        <button onclick="applyBulkMap()" class="btn btn-bulk" style="background:var(--warn);">APPLY BULK UPDATE</button>
                         <button onclick="clearSelection()" style="background:none; border:none; color:#666; cursor:pointer;">Cancel</button>
                     </div>
                 </div>
             </div>
 
             <div class="card">
-                <h3><i class="fas fa-user-plus"></i> Register / Bulk Upload</h3>
+                <h3><i class="fas fa-user-plus"></i> Student Registration & CSV Upload</h3>
                 <div class="grid-container">
                     <input type="text" id="newName" placeholder="Student Full Name">
                     <select id="newSex"><option value="Male">Male</option><option value="Female">Female</option></select>
@@ -87,12 +108,11 @@
                     <select id="newStrm"><option>A</option><option>B</option><option>C</option><option>D</option><option>E</option><option>F</option><option>G</option></select>
                     <button onclick="addStudent()" class="btn btn-add">REGISTER</button>
                 </div>
-                <hr style="margin: 20px 0; opacity: 0.1;">
-                <div style="display: flex; gap: 10px; align-items: center;">
-                    <label style="font-weight:bold; font-size: 13px;">CSV Import:</label>
+                <hr style="margin:20px 0; opacity:0.1;">
+                <div style="display:flex; gap:15px; align-items:center;">
                     <input type="file" id="csvFile" accept=".csv">
-                    <button onclick="uploadCSV()" class="btn btn-csv"><i class="fas fa-file-upload"></i> UPLOAD CSV</button>
-                    <button onclick="downloadCSVTemplate()" class="btn" style="font-size:12px;"><i class="fas fa-download"></i> Template</button>
+                    <button onclick="uploadCSV()" class="btn" style="background:#455a64; color:white;"><i class="fas fa-upload"></i> UPLOAD CSV</button>
+                    <button onclick="downloadCSVTemplate()" class="btn" style="color:#666;"><i class="fas fa-download"></i> Template</button>
                 </div>
             </div>
 
@@ -105,7 +125,7 @@
             <div class="card">
                 <div style="display:flex; justify-content: space-between; align-items:center;">
                     <h3><i class="fas fa-list"></i> Student Registry</h3>
-                    <span id="rowCount">Total: 0</span>
+                    <span id="rowCount" style="font-weight:bold; color:var(--primary);">Total: 0</span>
                 </div>
                 <table>
                     <thead>
@@ -122,10 +142,11 @@
 
 <script type="module">
     import { db, auth } from "./firebase.js";
-    import { collection, getDocs, doc, query, orderBy, getDoc, deleteDoc, addDoc, writeBatch } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+    import { collection, getDocs, doc, query, orderBy, getDoc, deleteDoc, addDoc, writeBatch, updateDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
     import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
     let allStudents = [];
+    let currentEditId = null;
 
     onAuthStateChanged(auth, async (user) => {
         if (!user) { window.location.href = "index.html"; return; }
@@ -155,7 +176,13 @@
                     <td><span class="badge ${sexBadge}">${s.sex}</span></td>
                     <td>${s.cls}</td>
                     <td>${s.stream}</td>
-                    <td><button onclick="delStud('${s.id}')" class="btn btn-del"><i class="fas fa-trash"></i></button></td>
+                    <td>
+                        <div style="display:flex; gap:5px;">
+                            <button onclick="openEditModal('${s.id}', '${s.name}', '${s.cls}', '${s.stream}')" class="btn btn-edit"><i class="fas fa-edit"></i> Edit</button>
+                            <a href="view-report.html?id=${s.id}" target="_blank" class="btn btn-report"><i class="fas fa-file-alt"></i> Report</a>
+                            <button onclick="delStud('${s.id}')" class="btn btn-del"><i class="fas fa-trash"></i></button>
+                        </div>
+                    </td>
                 </tr>`;
         });
         document.getElementById('rowCount').innerText = `Total: ${data.length}`;
@@ -166,115 +193,97 @@
         const nameVal = document.getElementById('searchInp').value.toLowerCase();
         const clsVal = document.getElementById('filterCls').value;
         const strmVal = document.getElementById('filterStrm').value;
-
         const filtered = allStudents.filter(s => {
-            const matchesName = s.name.toLowerCase().includes(nameVal);
-            const matchesClass = (clsVal === "ALL" || s.cls === clsVal);
-            const matchesStrm = (strmVal === "ALL" || s.stream === strmVal);
-            return matchesName && matchesClass && matchesStrm;
+            return s.name.toLowerCase().includes(nameVal) && (clsVal === "ALL" || s.cls === clsVal) && (strmVal === "ALL" || s.stream === strmVal);
         });
         renderTable(filtered);
     };
 
-    // --- Bulk Mapping Functions ---
+    // Edit Modal Logic
+    window.openEditModal = (id, name, cls, strm) => {
+        currentEditId = id;
+        document.getElementById('editName').value = name;
+        document.getElementById('editCls').value = cls;
+        document.getElementById('editStrm').value = strm;
+        document.getElementById('editModal').style.display = 'block';
+    };
+    window.closeModal = () => document.getElementById('editModal').style.display = 'none';
+    window.updateStudent = async () => {
+        await updateDoc(doc(db, "students", currentEditId), {
+            name: document.getElementById('editName').value,
+            cls: document.getElementById('editCls').value,
+            stream: document.getElementById('editStrm').value
+        });
+        closeModal(); loadStuds();
+    };
+
+    // Bulk Logic
     window.toggleSelectAll = () => {
         const master = document.getElementById('selectAll');
         document.querySelectorAll('.stud-check').forEach(c => c.checked = master.checked);
         updateSelectedCount();
     };
-
     window.updateSelectedCount = () => {
         const selected = document.querySelectorAll('.stud-check:checked').length;
         document.getElementById('selectedCount').innerText = selected;
         document.getElementById('bulkActionBar').style.display = selected > 0 ? 'block' : 'none';
     };
-
     window.clearSelection = () => {
         document.getElementById('selectAll').checked = false;
         document.querySelectorAll('.stud-check').forEach(c => c.checked = false);
         updateSelectedCount();
     };
-
     window.applyBulkMap = async () => {
         const newCls = document.getElementById('bulkCls').value;
         const newStrm = document.getElementById('bulkStrm').value;
         if (!newCls && !newStrm) return alert("Select target Class/Stream");
-
-        const checks = document.querySelectorAll('.stud-check:checked');
         const batch = writeBatch(db);
-        
-        checks.forEach(check => {
+        document.querySelectorAll('.stud-check:checked').forEach(check => {
             const ref = doc(db, "students", check.value);
-            const data = {};
-            if(newCls) data.cls = newCls;
-            if(newStrm) data.stream = newStrm;
-            batch.update(ref, data);
+            const d = {}; if(newCls) d.cls = newCls; if(newStrm) d.stream = newStrm;
+            batch.update(ref, d);
         });
-
         await batch.commit();
-        alert("Bulk Mapping Successful!");
-        clearSelection(); loadStuds();
+        alert("Bulk Mapping Successful!"); clearSelection(); loadStuds();
     };
 
-    // --- Upload & CSV Functions ---
+    // CSV Logic
     window.uploadCSV = function() {
-        const fileInput = document.getElementById('csvFile');
-        if (!fileInput.files[0]) return alert("Please select a CSV file first!");
-        
+        const file = document.getElementById('csvFile').files[0];
+        if (!file) return alert("Select CSV file");
         const reader = new FileReader();
-        reader.onload = async function(e) {
-            const rows = e.target.result.split('\n').slice(1); // Skip Header
+        reader.onload = async (e) => {
+            const rows = e.target.result.split('\n').slice(1);
             const batch = writeBatch(db);
-            let count = 0;
-
-            for (let row of rows) {
+            rows.forEach(row => {
                 const cols = row.split(',');
                 if (cols.length >= 4) {
-                    const newRef = doc(collection(db, "students"));
-                    batch.set(newRef, {
-                        name: cols[0].trim(),
-                        sex: cols[1].trim(),
-                        cls: cols[2].trim(),
-                        stream: cols[3].trim()
+                    batch.set(doc(collection(db, "students")), {
+                        name: cols[0].trim(), sex: cols[1].trim(), cls: cols[2].trim(), stream: cols[3].trim()
                     });
-                    count++;
                 }
-            }
+            });
             await batch.commit();
-            alert(`Uploaded ${count} students successfully!`);
-            loadStuds();
+            alert("CSV Uploaded!"); loadStuds();
         };
-        reader.readAsText(fileInput.files[0]);
+        reader.readAsText(file);
     };
-
     window.downloadCSVTemplate = () => {
-        const csvContent = "data:text/csv;charset=utf-8,Name,Sex,Class,Stream\nJohn Doe,Male,Form 1,A\nJane Smith,Female,Form 2,B";
-        const encodedUri = encodeURI(csvContent);
-        const link = document.createElement("a");
-        link.setAttribute("href", encodedUri);
-        link.setAttribute("download", "student_template.csv");
-        document.body.appendChild(link);
-        link.click();
+        window.open("data:text/csv;charset=utf-8,Name,Sex,Class,Stream\nJohn Doe,Male,Form 1,A");
     };
 
     window.addStudent = async () => {
         const name = document.getElementById('newName').value;
         if(!name) return alert("Enter Name");
         await addDoc(collection(db, "students"), {
-            name, 
-            sex: document.getElementById('newSex').value,
-            cls: document.getElementById('newCls').value,
-            stream: document.getElementById('newStrm').value
+            name, sex: document.getElementById('newSex').value,
+            cls: document.getElementById('newCls').value, stream: document.getElementById('newStrm').value
         });
-        document.getElementById('newName').value = "";
-        loadStuds();
+        document.getElementById('newName').value = ""; loadStuds();
     };
 
     window.delStud = async (id) => {
-        if(confirm("Delete student?")) {
-            await deleteDoc(doc(db, "students", id));
-            loadStuds();
-        }
+        if(confirm("Delete student?")) { await deleteDoc(doc(db, "students", id)); loadStuds(); }
     };
 </script>
 </body>
