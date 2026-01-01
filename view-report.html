@@ -89,7 +89,7 @@
 <div class="no-print">
     <a href="dashboard.html" class="btn btn-dash">🏠 DASHBOARD</a>
     <button onclick="window.print()" class="btn btn-print">🖨️ CHAPA (PRINT)</button>
-    <button onclick="window.history.back()" class="btn btn-back">⬅️ RUDI (BACK)</button>
+    <button onclick="goBack()" class="btn btn-back">⬅️ RUDI (BACK)</button>
 </div>
 
 <div class="report-page">
@@ -104,9 +104,9 @@
 
     <div class="student-info">
         <div><strong>JINA:</strong> <span id="studentName">...</span></div>
-        <div><strong>MWAKA:</strong> <span id="yearVal">2025</span></div>
+        <div><strong>MWAKA:</strong> <span id="yearVal">...</span></div>
         <div><strong>KIDATO:</strong> <span id="studentClass">...</span></div>
-        <div><strong>MUHULA:</strong> <span>I</span></div>
+        <div><strong>MUHULA:</strong> <span id="termVal">...</span></div>
     </div>
 
     <table>
@@ -177,6 +177,15 @@
     import { subjectLists } from "./data.js";
     import { doc, getDoc, getDocs, collection, query, where } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
+    // BACK BUTTON LOGIC
+    window.goBack = function() {
+        if (document.referrer === "" || document.referrer.indexOf(window.location.host) === -1) {
+            window.location.href = "dashboard.html";
+        } else {
+            window.history.back();
+        }
+    };
+
     async function generateReport() {
         const urlParams = new URLSearchParams(window.location.search);
         const studentId = urlParams.get('id');
@@ -186,8 +195,16 @@
             const sSnap = await getDoc(doc(db, "students", studentId));
             if(!sSnap.exists()) return;
             const student = sSnap.data();
+            
+            // Set basic info
             document.getElementById("studentName").innerText = student.name;
             document.getElementById("studentClass").innerText = student.cls;
+
+            // DYNAMIC YEAR AND TERM
+            const now = new Date();
+            document.getElementById("yearVal").innerText = now.getFullYear();
+            // Term I: Jan-June (Months 0-5), Term II: July-Dec (Months 6-11)
+            document.getElementById("termVal").innerText = (now.getMonth() < 6) ? "I" : "II";
 
             const rSnap = await getDocs(query(collection(db, "results"), where("studentId", "==", studentId)));
             const myResMap = {};
@@ -272,17 +289,13 @@
                 allResSnap.forEach(rDoc => {
                     const r = rDoc.data();
                     if(r.studentId === sDoc.id) {
-                        let sjScores = [];
-                        if(r.test1) sjScores.push(parseFloat(r.test1));
-                        if(r.midTerm) sjScores.push(parseFloat(r.midTerm));
-                        if(r.test2) sjScores.push(parseFloat(r.test2));
-                        const sj = sjScores.length > 0 ? (sjScores.reduce((a,b)=>a+b,0)/sjScores.length) : 0;
-                        const sm = parseFloat(r.exam) || 0;
+                        let sjScores = [r.test1, r.midTerm, r.test2].filter(v => v && v !== "").map(v => parseFloat(v));
+                        let sj = sjScores.length > 0 ? (sjScores.reduce((a,b)=>a+b,0)/sjScores.length) : 0;
+                        let sm = parseFloat(r.exam) || 0;
                         if(sj > 0 || sm > 0) {
-                            const sw = (sj + sm) / 2;
+                            let sw = (sj + sm) / 2;
                             sSum += sw; sCount++;
-                            let sg = "F";
-                            if(sw >= 75) sg="A"; else if(sw >= 65) sg="B"; else if(sw >= 45) sg="C"; else if(sw >= 30) sg="D";
+                            let sg = sw >= 75 ? "A" : sw >= 65 ? "B" : sw >= 45 ? "C" : sw >= 30 ? "D" : "F";
                             sPts.push({"A":1,"B":2,"C":3,"D":4,"F":5}[sg]);
                         }
                     }
@@ -300,10 +313,9 @@
 
         } catch (e) { 
             console.error(e); 
-            document.getElementById("reportTbody").innerHTML = "<tr><td colspan='7'>Tatizo limetokea wakati wa kupakia matokeo.</td></tr>";
         }
     }
     generateReport();
 </script>
 </body>
-</html>>
+</html>
