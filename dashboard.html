@@ -9,26 +9,21 @@
         :root { --primary: #1a237e; --gold: #c5a059; --bg: #f4f7f6; --white: #ffffff; }
         body { margin: 0; font-family: 'Segoe UI', sans-serif; display: flex; background: var(--bg); }
         
-        /* SIDEBAR */
         .sidebar { width: 260px; background: #1a1c23; color: white; height: 100vh; position: fixed; box-shadow: 2px 0 10px rgba(0,0,0,0.1); z-index: 1000; }
         .sidebar-header { padding: 30px 20px; text-align: center; border-bottom: 1px solid var(--gold); background: rgba(0,0,0,0.1); }
         .nav-links { list-style: none; padding: 20px 0; margin: 0; }
         .nav-links li a { color: #cfd8dc; text-decoration: none; padding: 15px 25px; display: block; transition: 0.3s; font-size: 15px; }
         .nav-links li.active a, .nav-links li a:hover { background: rgba(255,255,255,0.1); border-left: 5px solid var(--gold); color: white; }
 
-        /* MAIN CONTENT */
         .main-content { margin-left: 260px; padding: 40px; width: calc(100% - 260px); box-sizing: border-box; }
         .header-row { margin-bottom: 30px; display: flex; justify-content: space-between; align-items: center; }
         
-        /* STATS CARDS */
         .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 25px; margin-bottom: 40px; }
         .stat-card { background: var(--white); padding: 25px; border-radius: 15px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); border-left: 6px solid var(--primary); }
         .stat-card.teachers { border-left-color: var(--gold); }
         .stat-card h4 { margin: 0; font-size: 13px; color: #777; text-transform: uppercase; letter-spacing: 1px; }
         .stat-card .val { font-size: 38px; font-weight: 800; color: #2d3436; margin: 10px 0; }
-        .stat-card .sub { font-size: 14px; color: #636e72; font-weight: 500; }
-
-        /* ADMIN BOXES */
+        
         .section-title { color: var(--primary); border-left: 5px solid var(--gold); padding-left: 15px; margin: 40px 0 20px; font-size: 20px; font-weight: bold; }
         .admin-box { background: var(--white); border-radius: 12px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.05); padding: 25px; margin-bottom: 30px;}
         
@@ -37,8 +32,7 @@
         th { background: #f8f9fa; font-size: 11px; color: var(--primary); text-transform: uppercase; font-weight: 800; }
         
         select { padding: 6px; border-radius: 6px; border: 1px solid #ddd; font-size: 13px; background: #fff; outline: none; width: 100%; }
-        .btn-save { background: var(--primary); color: white; border: none; padding: 10px 15px; border-radius: 6px; cursor: pointer; font-weight: bold; transition: 0.2s; display: inline-flex; align-items: center; gap: 8px; white-space: nowrap; }
-        .btn-save:hover { background: #283593; transform: translateY(-1px); box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
+        .btn-save { background: var(--primary); color: white; border: none; padding: 10px 15px; border-radius: 6px; cursor: pointer; font-weight: bold; transition: 0.2s; display: inline-flex; align-items: center; gap: 8px; }
         .badge { background:#e3f2fd; color:#1565c0; padding:4px 12px; border-radius:20px; font-size:11px; font-weight: 800; text-transform: uppercase;}
 
         @media (max-width: 1024px) {
@@ -77,57 +71,16 @@
             <div class="stat-card">
                 <h4>Total Students</h4>
                 <div class="val" id="countS">0</div>
-                <div class="sub" id="genderS"><i class="fas fa-venus-mars"></i> Male: 0 | Female: 0</div>
+                <div class="sub" id="genderS">Loading...</div>
             </div>
             <div class="stat-card teachers">
                 <h4>Staff Population</h4>
                 <div class="val" id="countT">0</div>
-                <div class="sub" id="genderT"><i class="fas fa-user-tie"></i> Male: 0 | Female: 0</div>
+                <div class="sub" id="genderT">Loading...</div>
             </div>
         </div>
 
         <div id="adminArea" style="display: none;">
-            <h3 class="section-title">Bulk Student Stream Mapping</h3>
-            <div class="admin-box">
-                <div style="display: flex; gap: 20px; margin-bottom: 25px; align-items: flex-end; flex-wrap: wrap; background: #f8f9fa; padding: 20px; border-radius: 10px;">
-                    <div>
-                        <label style="display:block; font-size: 11px; font-weight: 800; margin-bottom: 8px; color: #555;">1. CHOOSE CLASS</label>
-                        <select id="mapClass" onchange="loadStudentsForMapping()" style="width: 180px;">
-                            <option value="">-- Select Class --</option>
-                            <option value="Form 1">Form 1</option>
-                            <option value="Form 2">Form 2</option>
-                            <option value="Form 3">Form 3</option>
-                            <option value="Form 4">Form 4</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label style="display:block; font-size: 11px; font-weight: 800; margin-bottom: 8px; color: #555;">2. TARGET STREAM</label>
-                        <select id="targetStream" style="width: 120px;">
-                            <option value="A">Stream A</option>
-                            <option value="B">Stream B</option>
-                            <option value="C">Stream C</option>
-                        </select>
-                    </div>
-                    <button class="btn-save" onclick="applyStreamMapping()">
-                        <i class="fas fa-layer-group"></i> MAP SELECTED STUDENTS
-                    </button>
-                </div>
-
-                <table>
-                    <thead>
-                        <tr>
-                            <th style="width: 40px;"><input type="checkbox" id="masterCheck" style="transform: scale(1.2);"></th>
-                            <th>Student Name</th>
-                            <th>Current Stream</th>
-                            <th>Gender</th>
-                        </tr>
-                    </thead>
-                    <tbody id="mappingTable">
-                        <tr><td colspan="4" style="text-align:center; padding:40px; color:#999;">Select a class above to manage streams</td></tr>
-                    </tbody>
-                </table>
-            </div>
-
             <h3 class="section-title">Teacher Rights & Assignments</h3>
             <div class="admin-box">
                 <table>
@@ -135,9 +88,9 @@
                         <tr>
                             <th>Staff Member</th>
                             <th>Role</th>
-                            <th>Class</th>
+                            <th>Class Level</th>
                             <th>Stream</th>
-                            <th>Subject Assigned</th>
+                            <th>Assigned Subject</th>
                             <th>Action</th>
                         </tr>
                     </thead>
@@ -146,26 +99,26 @@
                     </tbody>
                 </table>
             </div>
-        </div>
+            
+            </div>
     </div>
 
 <script type="module">
     import { db, auth } from "./firebase.js";
-    import { collection, getDocs, doc, getDoc, updateDoc, query, where, writeBatch } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+    import { collection, getDocs, doc, getDoc, updateDoc, query, where } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
     import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
-    // Global Subject List
-    const subjects = ["Mathematics", "English", "Kiswahili", "History", "Geography", "Civics", "Physics", "Chemistry", "Biology", "Book-keeping", "Commerce"];
+    // --- Subject Definitions ---
+    const subjectsF1_F2 = ["Biology", "Book-keeping", "Chemistry", "Historia ya Tanzania na maadili", "Business study", "English", "Geography", "History", "Kiswahili", "Mathematics", "Physics"];
+    const subjectsF3_F4 = ["Mathematics", "Biology", "Book-keeping", "Chemistry", "Civics", "Commerce", "English", "Geography", "History", "Kiswahili", "Literature", "Physics"];
 
     onAuthStateChanged(auth, async (user) => {
         if (!user) { window.location.href = "index.html"; return; }
-        
         const userSnap = await getDoc(doc(db, "users", user.uid));
         if (userSnap.exists()) {
             const u = userSnap.data();
             document.getElementById('welcomeMsg').innerText = `Logged in as: ${u.name || user.email}`;
             document.getElementById('roleIndicator').innerHTML = `<span class="badge" style="background:var(--gold); color:white">${u.role}</span>`;
-            
             if (u.role === 'admin') {
                 document.getElementById('adminArea').style.display = 'block';
                 loadStaffList();
@@ -177,21 +130,14 @@
     async function loadDashboardStats() {
         const [sSnap, uSnap] = await Promise.all([getDocs(collection(db, "students")), getDocs(collection(db, "users"))]);
         let sm = 0, sf = 0, tm = 0, tf = 0, tCount = 0;
-        
-        sSnap.forEach(d => {
-            const g = (d.data().gender || "").toUpperCase();
-            g.startsWith("M") ? sm++ : sf++;
-        });
-
+        sSnap.forEach(d => { (d.data().gender || "").toUpperCase().startsWith("M") ? sm++ : sf++; });
         uSnap.forEach(d => {
             const data = d.data();
             if (data.role === 'teacher' || data.role === 'admin') {
                 tCount++;
-                const g = (data.gender || "").toUpperCase();
-                g.startsWith("M") ? tm++ : tf++;
+                (data.gender || "").toUpperCase().startsWith("M") ? tm++ : tf++;
             }
         });
-
         document.getElementById('countS').innerText = sSnap.size;
         document.getElementById('genderS').innerHTML = `<i class="fas fa-mars"></i> ${sm} | <i class="fas fa-venus"></i> ${sf}`;
         document.getElementById('countT').innerText = tCount;
@@ -206,10 +152,14 @@
         snap.forEach(userDoc => {
             const u = userDoc.data();
             const id = userDoc.id;
+            const currentClass = u.assignedClass || "None";
 
-            // Generate Subject Options
+            // Determine initial list
+            let list = (currentClass.includes("1") || currentClass.includes("2")) ? subjectsF1_F2 : subjectsF3_F4;
+            if (currentClass === "None") list = [...new Set([...subjectsF1_F2, ...subjectsF3_F4])].sort();
+
             let subjOptions = `<option value="None">None</option>`;
-            subjects.forEach(s => {
+            list.forEach(s => {
                 subjOptions += `<option value="${s}" ${u.assignedSubject === s ? 'selected' : ''}>${s}</option>`;
             });
 
@@ -223,12 +173,12 @@
                         </select>
                     </td>
                     <td>
-                        <select id="cls-${id}">
+                        <select id="cls-${id}" onchange="refreshSubjectDropdown('${id}')">
                             <option value="None">None</option>
-                            <option value="Form 1" ${u.assignedClass==='Form 1'?'selected':''}>Form 1</option>
-                            <option value="Form 2" ${u.assignedClass==='Form 2'?'selected':''}>Form 2</option>
-                            <option value="Form 3" ${u.assignedClass==='Form 3'?'selected':''}>Form 3</option>
-                            <option value="Form 4" ${u.assignedClass==='Form 4'?'selected':''}>Form 4</option>
+                            <option value="Form 1" ${currentClass==='Form 1'?'selected':''}>Form 1</option>
+                            <option value="Form 2" ${currentClass==='Form 2'?'selected':''}>Form 2</option>
+                            <option value="Form 3" ${currentClass==='Form 3'?'selected':''}>Form 3</option>
+                            <option value="Form 4" ${currentClass==='Form 4'?'selected':''}>Form 4</option>
                         </select>
                     </td>
                     <td>
@@ -240,14 +190,25 @@
                         </select>
                     </td>
                     <td>
-                        <select id="subj-${id}">
-                            ${subjOptions}
-                        </select>
+                        <select id="subj-${id}">${subjOptions}</select>
                     </td>
                     <td><button class="btn-save" onclick="saveStaff('${id}')"><i class="fas fa-save"></i> Update</button></td>
                 </tr>`;
         });
     }
+
+    // This handles the instant update of the subject dropdown when the class is changed
+    window.refreshSubjectDropdown = (id) => {
+        const selectedClass = document.getElementById(`cls-${id}`).value;
+        const subjSelect = document.getElementById(`subj-${id}`);
+        let list = (selectedClass.includes("1") || selectedClass.includes("2")) ? subjectsF1_F2 : subjectsF3_F4;
+        
+        if (selectedClass === "None") list = [...new Set([...subjectsF1_F2, ...subjectsF3_F4])].sort();
+
+        let html = `<option value="None">None</option>`;
+        list.forEach(s => { html += `<option value="${s}">${s}</option>`; });
+        subjSelect.innerHTML = html;
+    };
 
     window.saveStaff = async (id) => {
         const updates = {
@@ -257,46 +218,7 @@
             assignedSubject: document.getElementById(`subj-${id}`).value
         };
         await updateDoc(doc(db, "users", id), updates);
-        alert("Teacher assignment and subject updated!");
-    };
-
-    window.loadStudentsForMapping = async () => {
-        const cls = document.getElementById('mapClass').value;
-        const tbody = document.getElementById('mappingTable');
-        if (!cls) return;
-
-        tbody.innerHTML = "<tr><td colspan='4' style='text-align:center;'>Fetching students...</td></tr>";
-        const q = query(collection(db, "students"), where("cls", "==", cls));
-        const snap = await getDocs(q);
-        
-        tbody.innerHTML = "";
-        snap.forEach(sDoc => {
-            const s = sDoc.data();
-            tbody.innerHTML += `
-                <tr>
-                    <td><input type="checkbox" class="map-check" value="${sDoc.id}"></td>
-                    <td>${s.name}</td>
-                    <td><span class="badge">${s.stream || 'NOT ASSIGNED'}</span></td>
-                    <td>${s.gender || '-'}</td>
-                </tr>`;
-        });
-    }
-
-    document.getElementById('masterCheck').onclick = (e) => {
-        document.querySelectorAll('.map-check').forEach(cb => cb.checked = e.target.checked);
-    };
-
-    window.applyStreamMapping = async () => {
-        const stream = document.getElementById('targetStream').value;
-        const selected = document.querySelectorAll('.map-check:checked');
-        if (selected.length === 0) return alert("Please select students first!");
-
-        const batch = writeBatch(db);
-        selected.forEach(cb => batch.update(doc(db, "students", cb.value), { stream: stream }));
-        
-        await batch.commit();
-        alert(`Successfully assigned ${selected.length} students to Stream ${stream}`);
-        loadStudentsForMapping();
+        alert("Assignment updated for " + updates.assignedSubject);
     };
 
     window.logout = () => signOut(auth).then(() => window.location.href="index.html");
