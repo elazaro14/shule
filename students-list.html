@@ -168,7 +168,7 @@
         const tbody = document.getElementById('sTable');
         tbody.innerHTML = "";
         data.forEach((s) => {
-            const sexBadge = s.sex === 'Male' ? 'badge-m' : 'badge-f';
+            const sexBadge = s.sex === 'Boy' ? 'badge-m' : 'badge-f';
             tbody.innerHTML += `
                 <tr>
                     <td><input type="checkbox" class="stud-check" value="${s.id}" onclick="updateSelectedCount()"></td>
