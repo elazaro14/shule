@@ -10,24 +10,17 @@
         .sidebar { width: var(--sidebar-width); background: var(--nav-blue); color: white; height: 100vh; position: fixed; }
         .main-content { margin-left: var(--sidebar-width); padding: 40px; flex-grow: 1; }
         .entry-header { background: white; padding: 25px; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); margin-bottom: 20px; border-left: 5px solid var(--gold); }
-        
         .filter-grid { display: grid; grid-template-columns: 1fr 200px; gap: 15px; align-items: flex-end; }
         label { display: block; font-size: 11px; font-weight: 800; margin-bottom: 5px; color: var(--nav-blue); }
         select, .btn-load { width: 100%; padding: 12px; border-radius: 6px; border: 1px solid #ccc; font-size: 14px; outline: none; }
-        
         .btn-load { background: var(--nav-blue); color: white; border: none; cursor: pointer; font-weight: bold; transition: 0.3s; height: 45px;}
-        .btn-load:hover { background: #283593; }
-
         .table-container { background: white; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); overflow-x: auto; margin-bottom: 80px;}
         table { width: 100%; border-collapse: collapse; }
         th, td { border-bottom: 1px solid #eee; padding: 15px; text-align: center; }
-        th { background: #f8f9fa; color: var(--nav-blue); font-size: 11px; text-transform: uppercase; letter-spacing: 1px; }
-        
+        th { background: #f8f9fa; color: var(--nav-blue); font-size: 11px; text-transform: uppercase; }
         .score-in { width: 60px; text-align: center; padding: 8px; border: 1px solid #ddd; border-radius: 4px; font-weight: bold; }
-        .score-in:focus { border-color: var(--gold); outline: none; background: #fffde7; }
-        
         .save-bar { position: fixed; bottom: 0; right: 0; width: calc(100% - var(--sidebar-width)); background: white; padding: 20px; border-top: 3px solid var(--nav-blue); text-align: center; display: none; z-index: 100; box-sizing: border-box; }
-        .btn-save { background: #2e7d32; color: white; padding: 15px 80px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 16px; box-shadow: 0 4px 10px rgba(0,0,0,0.2); }
+        .btn-save { background: #2e7d32; color: white; padding: 15px 80px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 16px; }
         .badge { background: #e8eaf6; padding: 2px 6px; border-radius: 4px; font-size: 10px; color: #3f51b5; font-weight: bold; }
     </style>
 </head>
@@ -47,17 +40,12 @@
     <div class="main-content">
         <div class="entry-header">
             <h2 style="margin-top:0; color:var(--nav-blue);"><i class="fas fa-pen-nib"></i> Mark Entry Sheet</h2>
-            
             <div class="filter-grid">
                 <div>
                     <label>CHAGUA MAJUKUMU YAKO</label>
-                    <select id="taskSelector">
-                        <option value="">-- Inapakia Majukumu... --</option>
-                    </select>
+                    <select id="taskSelector"><option value="">-- Inapakia... --</option></select>
                 </div>
-                <div>
-                    <button id="loadBtn" class="btn-load">PAKUA WANAFUNZI</button>
-                </div>
+                <div><button id="loadBtn" class="btn-load">PAKUA WANAFUNZI</button></div>
             </div>
             <div id="statusMsg" style="margin-top:15px; font-size:13px; font-weight:600; color:#d32f2f;"></div>
         </div>
@@ -90,169 +78,118 @@
 
     onAuthStateChanged(auth, async (user) => {
         if (!user) { window.location.href = "index.html"; return; }
-        
         const uSnap = await getDoc(doc(db, "users", user.uid));
         if (uSnap.exists()) {
-            const data = uSnap.data();
-            // Use the new assignments array
-            myTasks = data.assignments || [];
-            
-            const taskSelector = document.getElementById('taskSelector');
-            if (myTasks.length === 0) {
-                taskSelector.innerHTML = '<option value="">Huna majukumu yaliyopangwa (Assignments)</option>';
-                document.getElementById('statusMsg').innerText = "Wasiliana na Admin akupangie madarasa na masomo.";
-            } else {
-                taskSelector.innerHTML = '<option value="">-- Chagua Darasa na Somo --</option>' + 
-                    myTasks.map((t, i) => `<option value="${i}">${t.cls} ${t.strm} - ${t.subj}</option>`).join('');
-                document.getElementById('statusMsg').innerText = "";
-            }
+            myTasks = uSnap.data().assignments || [];
+            document.getElementById('taskSelector').innerHTML = myTasks.length ? 
+                '<option value="">-- Chagua Kazi --</option>' + myTasks.map((t, i) => `<option value="${i}">${t.cls} ${t.strm} - ${t.subj}</option>`).join('') :
+                '<option value="">Huna Kazi zilizopangwa</option>';
         }
     });
 
     document.getElementById('loadBtn').onclick = async () => {
-        const taskIndex = document.getElementById('taskSelector').value;
-        if (taskIndex === "") return alert("Chagua jukumu kwanza!");
-
-        const task = myTasks[taskIndex];
-        const loadBtn = document.getElementById('loadBtn');
-        const statusMsg = document.getElementById('statusMsg');
+        const idx = document.getElementById('taskSelector').value;
+        if (!idx) return alert("Chagua kazi!");
         
-        loadBtn.innerText = "Inatafuta...";
-        statusMsg.style.color = "#666";
-        statusMsg.innerText = `Inapakia wanafunzi wa ${task.cls} ${task.strm}...`;
-
+        const task = myTasks[idx];
+        const statusMsg = document.getElementById('statusMsg');
+        document.getElementById('loadBtn').innerText = "Inatafuta...";
+        
         try {
-            // FIX: Querying both 'class' and 'cls' to be safe, filtering by 'class' as per standard registration
-            let qS;
-            if (task.strm === "ALL") {
-                qS = query(collection(db, "students"), where("class", "==", task.cls), orderBy("name"));
-            } else {
-                qS = query(collection(db, "students"), where("class", "==", task.cls), where("stream", "==", task.strm), orderBy("name"));
-            }
+            // STEP 1: Fetch ALL students in that form (Robust approach)
+            const allStudsSnap = await getDocs(collection(db, "students"));
             
-            const studSnap = await getDocs(qS);
+            // STEP 2: Filter manually to avoid Index errors and handle field naming variations
+            const filtered = [];
+            allStudsSnap.forEach(d => {
+                const s = d.data();
+                const sClass = (s.class || s.cls || "").toString().trim();
+                const sStream = (s.stream || s.strm || "").toString().trim();
+                
+                const matchClass = sClass === task.cls.trim();
+                const matchStream = (task.strm === "ALL") || (sStream === task.strm.trim());
 
-            // Fetch Existing Results to populate fields
-            const qR = query(collection(db, "results"), 
-                where("subject", "==", task.subj), 
-                where("cls", "==", task.cls)
-            );
-            const resSnap = await getDocs(qR);
+                if (matchClass && matchStream) {
+                    filtered.push({ id: d.id, ...s });
+                }
+            });
+
+            // STEP 3: Fetch Results
+            const resSnap = await getDocs(query(collection(db, "results"), where("subject", "==", task.subj)));
             const resMap = {};
             resSnap.forEach(d => resMap[d.data().studentId] = d.data());
 
+            // STEP 4: Render
             const tbody = document.getElementById('mTbody');
-            tbody.innerHTML = "";
+            tbody.innerHTML = filtered.length ? "" : "<tr><td colspan='9'>Hakuna wanafunzi waliopatikana.</td></tr>";
             
-            if(studSnap.empty) {
-                tbody.innerHTML = `<tr><td colspan='9' style="padding:50px;">
-                    <i class="fas fa-search fa-2x" style="color:#ccc;"></i><br>
-                    Hakuna wanafunzi waliopatikana ${task.cls} ${task.strm}.<br>
-                    <small>Hakikisha wanafunzi wamesajiliwa kwenye darasa na mkondo huu.</small>
-                </td></tr>`;
-                document.getElementById('mTable').style.display = "table";
-            } else {
-                studSnap.forEach((d, i) => {
-                    const s = d.data();
-                    const r = resMap[d.id] || {};
-                    tbody.innerHTML += `
-                        <tr class="row" data-id="${d.id}" data-strm="${s.stream}">
-                            <td>${i+1}</td>
-                            <td style="text-align:left; font-weight:bold;">
-                                ${s.name} <br>
-                                <span class="badge">${s.stream}</span>
-                            </td>
-                            <td><input type="number" class="score-in t1" value="${r.test1 || ''}" onwheel="return false;"></td>
-                            <td><input type="number" class="score-in mid" value="${r.midTerm || ''}"></td>
-                            <td><input type="number" class="score-in t2" value="${r.test2 || ''}"></td>
-                            <td><input type="number" class="score-in ex" value="${r.exam || ''}"></td>
-                            <td class="total" style="font-weight:800;">${r.total || 0}</td>
-                            <td class="avg" style="color:var(--nav-blue); font-weight:bold;">${r.average || '-'}</td>
-                            <td class="grade" style="font-weight:900;">${r.grade || '-'}</td>
-                        </tr>`;
-                });
-                document.getElementById('mTable').style.display = "table";
-                document.getElementById('saveBar').style.display = "block";
-                statusMsg.innerText = `Tayari! Wanafunzi ${studSnap.size} wamepatikana.`;
-                statusMsg.style.color = "green";
-            }
-        } catch (error) {
-            console.error(error);
-            statusMsg.innerText = "Error: Hakikisha Indexes za Firestore zimewekwa.";
-            statusMsg.style.color = "red";
+            filtered.sort((a,b) => a.name.localeCompare(b.name)).forEach((s, i) => {
+                const r = resMap[s.id] || {};
+                tbody.innerHTML += `
+                    <tr class="row" data-id="${s.id}" data-strm="${s.stream || s.strm}">
+                        <td>${i+1}</td>
+                        <td style="text-align:left; font-weight:bold;">${s.name} <br><span class="badge">${s.stream || s.strm}</span></td>
+                        <td><input type="number" class="score-in t1" value="${r.test1 || ''}"></td>
+                        <td><input type="number" class="score-in mid" value="${r.midTerm || ''}"></td>
+                        <td><input type="number" class="score-in t2" value="${r.test2 || ''}"></td>
+                        <td><input type="number" class="score-in ex" value="${r.exam || ''}"></td>
+                        <td class="total" style="font-weight:800;">${r.total || 0}</td>
+                        <td class="avg" style="color:var(--nav-blue); font-weight:bold;">${r.average || '-'}</td>
+                        <td class="grade" style="font-weight:900;">${r.grade || '-'}</td>
+                    </tr>`;
+            });
+
+            document.getElementById('mTable').style.display = "table";
+            document.getElementById('saveBar').style.display = "block";
+            statusMsg.innerText = filtered.length ? `Wanafunzi ${filtered.length} wamepatikana.` : "Check student registration.";
+            statusMsg.style.color = filtered.length ? "green" : "red";
+
+        } catch (e) {
+            console.error(e);
+            statusMsg.innerText = "Error loading data.";
         }
-        loadBtn.innerText = "PAKUA WANAFUNZI";
+        document.getElementById('loadBtn').innerText = "PAKUA WANAFUNZI";
     };
 
-    // Auto-Calculations
+    // Keep your Calculation and Save Logic the same as before...
     document.addEventListener('input', e => {
         if(e.target.classList.contains('score-in')) {
             const row = e.target.closest('tr');
-            const t1 = parseFloat(row.querySelector('.t1').value) || 0;
-            const mid = parseFloat(row.querySelector('.mid').value) || 0;
-            const t2 = parseFloat(row.querySelector('.t2').value) || 0;
-            const ex = parseFloat(row.querySelector('.ex').value) || 0;
-
-            const total = t1 + mid + t2 + ex;
-            const inputs = [row.querySelector('.t1').value, row.querySelector('.mid').value, row.querySelector('.t2').value, row.querySelector('.ex').value];
-            const filledCount = inputs.filter(v => v !== "").length;
+            const vals = ['.t1', '.mid', '.t2', '.ex'].map(sel => parseFloat(row.querySelector(sel).value) || 0);
+            const total = vals.reduce((a, b) => a + b, 0);
+            const filled = ['.t1', '.mid', '.t2', '.ex'].filter(sel => row.querySelector(sel).value !== "").length;
+            const avg = filled > 0 ? (total / filled).toFixed(1) : "-";
             
-            let average = 0;
-            if(filledCount > 0) average = (total / filledCount).toFixed(1);
-
             row.querySelector('.total').innerText = total;
-            row.querySelector('.avg').innerText = filledCount > 0 ? average : "-";
-
-            let g = "-";
-            if(filledCount > 0) {
-                if(average >= 75) g = "A";
-                else if(average >= 65) g = "B";
-                else if(average >= 45) g = "C";
-                else if(average >= 30) g = "D";
-                else g = "F";
-            }
+            row.querySelector('.avg').innerText = avg;
             
-            const gEl = row.querySelector('.grade');
-            gEl.innerText = g;
-            gEl.style.color = (g==="A"||g==="B") ? "green" : (g==="F" ? "red" : "orange");
+            let g = "-";
+            if(filled > 0) {
+                if(avg >= 75) g = "A"; else if(avg >= 65) g = "B"; else if(avg >= 45) g = "C"; else if(avg >= 30) g = "D"; else g = "F";
+            }
+            row.querySelector('.grade').innerText = g;
         }
     });
 
     document.getElementById('saveBtn').onclick = async () => {
-        const btn = document.getElementById('saveBtn');
-        const taskIdx = document.getElementById('taskSelector').value;
-        const task = myTasks[taskIdx];
-        
-        btn.innerText = "Inahifadhi...";
+        const task = myTasks[document.getElementById('taskSelector').value];
         const rows = document.querySelectorAll(".row");
-
+        document.getElementById('saveBtn').innerText = "Inahifadhi...";
         try {
             for(let r of rows) {
                 const id = r.dataset.id;
-                const avg = r.querySelector('.avg').innerText;
-                if(avg === "-") continue;
-
-                const docName = `${id}_${task.subj.replace(/\s+/g, '')}`;
-                await setDoc(doc(db, "results", docName), {
-                    studentId: id,
-                    subject: task.subj,
-                    cls: task.cls,
-                    stream: r.dataset.strm,
-                    test1: r.querySelector('.t1').value,
-                    midTerm: r.querySelector('.mid').value,
-                    test2: r.querySelector('.t2').value,
-                    exam: r.querySelector('.ex').value,
-                    total: r.querySelector('.total').innerText,
-                    average: avg,
-                    grade: r.querySelector('.grade').innerText,
-                    timestamp: new Date()
+                if (r.querySelector('.avg').innerText === "-") continue;
+                await setDoc(doc(db, "results", `${id}_${task.subj.replace(/\s+/g, '')}`), {
+                    studentId: id, subject: task.subj, cls: task.cls, stream: r.dataset.strm,
+                    test1: r.querySelector('.t1').value, midTerm: r.querySelector('.mid').value,
+                    test2: r.querySelector('.t2').value, exam: r.querySelector('.ex').value,
+                    total: r.querySelector('.total').innerText, average: r.querySelector('.avg').innerText,
+                    grade: r.querySelector('.grade').innerText, timestamp: new Date()
                 }, { merge: true });
             }
-            alert("Alama zimehifadhiwa!");
-        } catch (e) {
-            alert("Hitilafu imetokea!");
-        }
-        btn.innerHTML = '<i class="fas fa-cloud-upload-alt"></i> HIFADHI ALAMA ZOTE';
+            alert("Success!");
+        } catch (e) { alert("Error!"); }
+        document.getElementById('saveBtn').innerText = "HIFADHI ALAMA ZOTE";
     };
 </script>
 </body>
