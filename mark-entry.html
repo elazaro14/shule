@@ -11,11 +11,11 @@
         .main-content { margin-left: var(--sidebar-width); padding: 40px; flex-grow: 1; }
         .entry-header { background: white; padding: 25px; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); margin-bottom: 20px; border-left: 5px solid var(--gold); }
         
-        .filter-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; align-items: flex-end; }
+        .filter-grid { display: grid; grid-template-columns: 1fr 200px; gap: 15px; align-items: flex-end; }
         label { display: block; font-size: 11px; font-weight: 800; margin-bottom: 5px; color: var(--nav-blue); }
         select, .btn-load { width: 100%; padding: 12px; border-radius: 6px; border: 1px solid #ccc; font-size: 14px; outline: none; }
         
-        .btn-load { background: var(--nav-blue); color: white; border: none; cursor: pointer; font-weight: bold; transition: 0.3s; }
+        .btn-load { background: var(--nav-blue); color: white; border: none; cursor: pointer; font-weight: bold; transition: 0.3s; height: 45px;}
         .btn-load:hover { background: #283593; }
 
         .table-container { background: white; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); overflow-x: auto; margin-bottom: 80px;}
@@ -28,6 +28,7 @@
         
         .save-bar { position: fixed; bottom: 0; right: 0; width: calc(100% - var(--sidebar-width)); background: white; padding: 20px; border-top: 3px solid var(--nav-blue); text-align: center; display: none; z-index: 100; box-sizing: border-box; }
         .btn-save { background: #2e7d32; color: white; padding: 15px 80px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 16px; box-shadow: 0 4px 10px rgba(0,0,0,0.2); }
+        .badge { background: #e8eaf6; padding: 2px 6px; border-radius: 4px; font-size: 10px; color: #3f51b5; font-weight: bold; }
     </style>
 </head>
 <body>
@@ -48,17 +49,17 @@
             <h2 style="margin-top:0; color:var(--nav-blue);"><i class="fas fa-pen-nib"></i> Mark Entry Sheet</h2>
             
             <div class="filter-grid">
-                <div style="grid-column: span 3;">
-                    <label>CHAGUA KAZI (Class - Subject)</label>
+                <div>
+                    <label>CHAGUA MAJUKUMU YAKO</label>
                     <select id="taskSelector">
-                        <option value="">-- Inapakia Majukumu yako... --</option>
+                        <option value="">-- Inapakia Majukumu... --</option>
                     </select>
                 </div>
                 <div>
-                    <button id="loadBtn" class="btn-load">TAFUTA WANAFUNZI</button>
+                    <button id="loadBtn" class="btn-load">PAKUA WANAFUNZI</button>
                 </div>
             </div>
-            <div id="statusMsg" style="margin-top:15px; font-size:13px; font-weight:600; color:#666;"></div>
+            <div id="statusMsg" style="margin-top:15px; font-size:13px; font-weight:600; color:#d32f2f;"></div>
         </div>
 
         <div class="table-container">
@@ -66,7 +67,7 @@
                 <thead>
                     <tr>
                         <th>S/N</th>
-                        <th style="text-align: left;">Jina la Mwanafunzi</th>
+                        <th style="text-align: left;">Jina Kamili</th>
                         <th>T1 (10)</th><th>Mid (20)</th><th>T2 (10)</th><th>Ex (60)</th>
                         <th>Total</th><th>Avg</th><th>Grade</th>
                     </tr>
@@ -82,7 +83,7 @@
 
 <script type="module">
     import { db, auth } from "./firebase.js";
-    import { collection, getDocs, query, where, setDoc, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+    import { collection, getDocs, query, where, setDoc, doc, getDoc, orderBy } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
     import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
     let myTasks = [];
@@ -93,75 +94,97 @@
         const uSnap = await getDoc(doc(db, "users", user.uid));
         if (uSnap.exists()) {
             const data = uSnap.data();
+            // Use the new assignments array
             myTasks = data.assignments || [];
             
             const taskSelector = document.getElementById('taskSelector');
             if (myTasks.length === 0) {
-                taskSelector.innerHTML = '<option value="">Huna majukumu yaliyopangwa</option>';
+                taskSelector.innerHTML = '<option value="">Huna majukumu yaliyopangwa (Assignments)</option>';
+                document.getElementById('statusMsg').innerText = "Wasiliana na Admin akupangie madarasa na masomo.";
             } else {
                 taskSelector.innerHTML = '<option value="">-- Chagua Darasa na Somo --</option>' + 
-                    myTasks.map((t, i) => `<option value="${i}">${t.cls} ${t.strm} - ${t.subj} (${t.type})</option>`).join('');
+                    myTasks.map((t, i) => `<option value="${i}">${t.cls} ${t.strm} - ${t.subj}</option>`).join('');
+                document.getElementById('statusMsg').innerText = "";
             }
         }
     });
 
     document.getElementById('loadBtn').onclick = async () => {
         const taskIndex = document.getElementById('taskSelector').value;
-        if (taskIndex === "") return alert("Tafadhali chagua kazi kwanza!");
+        if (taskIndex === "") return alert("Chagua jukumu kwanza!");
 
         const task = myTasks[taskIndex];
         const loadBtn = document.getElementById('loadBtn');
-        loadBtn.innerText = "Inapakia...";
+        const statusMsg = document.getElementById('statusMsg');
         
-        // Query logic for Students (handle ALL streams)
-        let qS;
-        if (task.strm === "ALL") {
-            qS = query(collection(db, "students"), where("class", "==", task.cls));
-        } else {
-            qS = query(collection(db, "students"), where("class", "==", task.cls), where("stream", "==", task.strm));
+        loadBtn.innerText = "Inatafuta...";
+        statusMsg.style.color = "#666";
+        statusMsg.innerText = `Inapakia wanafunzi wa ${task.cls} ${task.strm}...`;
+
+        try {
+            // FIX: Querying both 'class' and 'cls' to be safe, filtering by 'class' as per standard registration
+            let qS;
+            if (task.strm === "ALL") {
+                qS = query(collection(db, "students"), where("class", "==", task.cls), orderBy("name"));
+            } else {
+                qS = query(collection(db, "students"), where("class", "==", task.cls), where("stream", "==", task.strm), orderBy("name"));
+            }
+            
+            const studSnap = await getDocs(qS);
+
+            // Fetch Existing Results to populate fields
+            const qR = query(collection(db, "results"), 
+                where("subject", "==", task.subj), 
+                where("cls", "==", task.cls)
+            );
+            const resSnap = await getDocs(qR);
+            const resMap = {};
+            resSnap.forEach(d => resMap[d.data().studentId] = d.data());
+
+            const tbody = document.getElementById('mTbody');
+            tbody.innerHTML = "";
+            
+            if(studSnap.empty) {
+                tbody.innerHTML = `<tr><td colspan='9' style="padding:50px;">
+                    <i class="fas fa-search fa-2x" style="color:#ccc;"></i><br>
+                    Hakuna wanafunzi waliopatikana ${task.cls} ${task.strm}.<br>
+                    <small>Hakikisha wanafunzi wamesajiliwa kwenye darasa na mkondo huu.</small>
+                </td></tr>`;
+                document.getElementById('mTable').style.display = "table";
+            } else {
+                studSnap.forEach((d, i) => {
+                    const s = d.data();
+                    const r = resMap[d.id] || {};
+                    tbody.innerHTML += `
+                        <tr class="row" data-id="${d.id}" data-strm="${s.stream}">
+                            <td>${i+1}</td>
+                            <td style="text-align:left; font-weight:bold;">
+                                ${s.name} <br>
+                                <span class="badge">${s.stream}</span>
+                            </td>
+                            <td><input type="number" class="score-in t1" value="${r.test1 || ''}" onwheel="return false;"></td>
+                            <td><input type="number" class="score-in mid" value="${r.midTerm || ''}"></td>
+                            <td><input type="number" class="score-in t2" value="${r.test2 || ''}"></td>
+                            <td><input type="number" class="score-in ex" value="${r.exam || ''}"></td>
+                            <td class="total" style="font-weight:800;">${r.total || 0}</td>
+                            <td class="avg" style="color:var(--nav-blue); font-weight:bold;">${r.average || '-'}</td>
+                            <td class="grade" style="font-weight:900;">${r.grade || '-'}</td>
+                        </tr>`;
+                });
+                document.getElementById('mTable').style.display = "table";
+                document.getElementById('saveBar').style.display = "block";
+                statusMsg.innerText = `Tayari! Wanafunzi ${studSnap.size} wamepatikana.`;
+                statusMsg.style.color = "green";
+            }
+        } catch (error) {
+            console.error(error);
+            statusMsg.innerText = "Error: Hakikisha Indexes za Firestore zimewekwa.";
+            statusMsg.style.color = "red";
         }
-        
-        const studSnap = await getDocs(qS);
-
-        // Fetch Existing Results
-        const qR = query(collection(db, "results"), 
-            where("subject", "==", task.subj), 
-            where("cls", "==", task.cls)
-        );
-        const resSnap = await getDocs(qR);
-        const resMap = {};
-        resSnap.forEach(d => resMap[d.data().studentId] = d.data());
-
-        const tbody = document.getElementById('mTbody');
-        tbody.innerHTML = "";
-        
-        if(studSnap.empty) {
-            tbody.innerHTML = "<tr><td colspan='9'>Hakuna wanafunzi waliopatikana kwenye kundi hili.</td></tr>";
-        }
-
-        studSnap.forEach((d, i) => {
-            const r = resMap[d.id] || {};
-            tbody.innerHTML += `
-                <tr class="row" data-id="${d.id}" data-strm="${d.data().stream}">
-                    <td>${i+1}</td>
-                    <td style="text-align:left; font-weight:bold;">${d.data().name} <br><small style="color:#888">${d.data().stream}</small></td>
-                    <td><input type="number" class="score-in t1" value="${r.test1 || ''}" max="10"></td>
-                    <td><input type="number" class="score-in mid" value="${r.midTerm || ''}" max="20"></td>
-                    <td><input type="number" class="score-in t2" value="${r.test2 || ''}" max="10"></td>
-                    <td><input type="number" class="score-in ex" value="${r.exam || ''}" max="60"></td>
-                    <td class="total" style="font-weight:800;">${r.total || 0}</td>
-                    <td class="avg" style="color:var(--nav-blue); font-weight:bold;">${r.average || '-'}</td>
-                    <td class="grade" style="font-weight:900;">${r.grade || '-'}</td>
-                </tr>`;
-        });
-
-        document.getElementById('mTable').style.display = "table"; 
-        document.getElementById('saveBar').style.display = "block"; 
-        loadBtn.innerText = "TAFUTA WANAFUNZI";
-        document.getElementById('statusMsg').innerText = `Ukurasa wa: ${task.subj} | ${task.cls} | ${task.strm}`;
+        loadBtn.innerText = "PAKUA WANAFUNZI";
     };
 
-    // Calculation Logic
+    // Auto-Calculations
     document.addEventListener('input', e => {
         if(e.target.classList.contains('score-in')) {
             const row = e.target.closest('tr');
@@ -196,45 +219,40 @@
     });
 
     document.getElementById('saveBtn').onclick = async () => {
-        const saveBtn = document.getElementById('saveBtn');
-        const taskIndex = document.getElementById('taskSelector').value;
-        const task = myTasks[taskIndex];
+        const btn = document.getElementById('saveBtn');
+        const taskIdx = document.getElementById('taskSelector').value;
+        const task = myTasks[taskIdx];
         
-        saveBtn.innerText = "Inahifadhi...";
+        btn.innerText = "Inahifadhi...";
         const rows = document.querySelectorAll(".row");
 
         try {
             for(let r of rows) {
                 const id = r.dataset.id;
                 const avg = r.querySelector('.avg').innerText;
-                const studentStream = r.dataset.strm;
-                
-                if(avg !== "-") {
-                    // ID pattern: studentID_subjectName (avoids duplicates)
-                    const docName = `${id}_${task.subj.replace(/\s+/g, '')}`;
-                    await setDoc(doc(db, "results", docName), {
-                        studentId: id,
-                        subject: task.subj,
-                        cls: task.cls,
-                        stream: studentStream,
-                        test1: r.querySelector('.t1').value,
-                        midTerm: r.querySelector('.mid').value,
-                        test2: r.querySelector('.t2').value,
-                        exam: r.querySelector('.ex').value,
-                        total: r.querySelector('.total').innerText,
-                        average: avg,
-                        grade: r.querySelector('.grade').innerText,
-                        recordedBy: auth.currentUser.uid,
-                        timestamp: new Date()
-                    }, { merge: true });
-                }
+                if(avg === "-") continue;
+
+                const docName = `${id}_${task.subj.replace(/\s+/g, '')}`;
+                await setDoc(doc(db, "results", docName), {
+                    studentId: id,
+                    subject: task.subj,
+                    cls: task.cls,
+                    stream: r.dataset.strm,
+                    test1: r.querySelector('.t1').value,
+                    midTerm: r.querySelector('.mid').value,
+                    test2: r.querySelector('.t2').value,
+                    exam: r.querySelector('.ex').value,
+                    total: r.querySelector('.total').innerText,
+                    average: avg,
+                    grade: r.querySelector('.grade').innerText,
+                    timestamp: new Date()
+                }, { merge: true });
             }
-            alert("Alama zote zimehifadhiwa kikamilifu!");
+            alert("Alama zimehifadhiwa!");
         } catch (e) {
-            console.error(e);
-            alert("Hitilafu imetokea wakati wa kuhifadhi.");
+            alert("Hitilafu imetokea!");
         }
-        saveBtn.innerText = "HIFADHI ALAMA ZOTE";
+        btn.innerHTML = '<i class="fas fa-cloud-upload-alt"></i> HIFADHI ALAMA ZOTE';
     };
 </script>
 </body>
