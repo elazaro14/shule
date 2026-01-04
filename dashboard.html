@@ -3,39 +3,58 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Olmoti Dashboard | Admin Portal</title>
+    <title>Olmoti Dashboard | Multi-Task Management</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        :root { --primary: #1a237e; --gold: #c5a059; --bg: #f4f7f6; --white: #ffffff; --success: #2e7d32; }
+        :root { --primary: #1a237e; --gold: #c5a059; --bg: #f4f7f6; --white: #ffffff; --danger: #d32f2f; }
         body { margin: 0; font-family: 'Segoe UI', sans-serif; display: flex; background: var(--bg); min-height: 100vh; flex-direction: column; }
         
+        /* Sidebar */
         .sidebar { width: 260px; background: #1a1c23; color: white; height: 100vh; position: fixed; box-shadow: 2px 0 10px rgba(0,0,0,0.1); z-index: 1000; }
         .sidebar-header { padding: 30px 20px; text-align: center; border-bottom: 1px solid var(--gold); background: rgba(0,0,0,0.1); }
         .nav-links { list-style: none; padding: 20px 0; margin: 0; }
         .nav-links li a { color: #cfd8dc; text-decoration: none; padding: 15px 25px; display: block; transition: 0.3s; font-size: 15px; }
         .nav-links li.active a, .nav-links li a:hover { background: rgba(255,255,255,0.1); border-left: 5px solid var(--gold); color: white; }
 
+        /* Main Content */
         .main-content { margin-left: 260px; padding: 40px; width: calc(100% - 260px); box-sizing: border-box; flex-grow: 1; }
         .header-row { margin-bottom: 30px; display: flex; justify-content: space-between; align-items: center; }
         
-        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 25px; margin-bottom: 40px; }
+        /* Stats */
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 25px; margin-bottom: 40px; }
         .stat-card { background: var(--white); padding: 25px; border-radius: 15px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); border-left: 6px solid var(--primary); }
         .stat-card h4 { margin: 0; font-size: 13px; color: #777; text-transform: uppercase; letter-spacing: 1px; }
         .stat-card .val { font-size: 38px; font-weight: 800; color: #2d3436; margin: 10px 0; }
         
+        /* Assignment Table */
         .admin-box { background: var(--white); border-radius: 12px; overflow-x: auto; box-shadow: 0 4px 15px rgba(0,0,0,0.05); padding: 25px; margin-bottom: 30px;}
         table { width: 100%; border-collapse: collapse; }
-        th, td { padding: 12px 15px; text-align: left; border-bottom: 1px solid #eee; font-size: 13px; }
+        th, td { padding: 15px; text-align: left; border-bottom: 1px solid #eee; font-size: 13px; vertical-align: top; }
         th { background: #f8f9fa; font-size: 11px; color: var(--primary); text-transform: uppercase; font-weight: 800; }
         
-        select { padding: 6px; border-radius: 6px; border: 1px solid #ddd; font-size: 12px; outline: none; width: 100%; }
-        .btn-save { background: var(--primary); color: white; border: none; padding: 8px 12px; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 11px; }
-        
-        /* Role Toggles */
-        .role-check { display: flex; align-items: center; gap: 5px; font-size: 11px; font-weight: bold; color: var(--success); }
+        /* Task Tags */
+        .assignment-container { background: #f9f9f9; padding: 15px; border-radius: 8px; border: 1px dashed #ccc; }
+        .task-tag { 
+            display: inline-flex; align-items: center; background: #e3f2fd; color: #1565c0; 
+            padding: 5px 10px; border-radius: 4px; margin: 4px; font-size: 11px; font-weight: bold; border: 1px solid #bbdefb;
+        }
+        .task-tag i { margin-left: 8px; cursor: pointer; color: var(--danger); transition: 0.2s; }
+        .task-tag i:hover { transform: scale(1.2); }
 
+        /* Form Elements */
+        .task-inputs { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-top: 10px; }
+        select { padding: 8px; border-radius: 6px; border: 1px solid #ddd; font-size: 12px; outline: none; }
+        .btn-add-task { background: var(--gold); color: white; border: none; padding: 8px; border-radius: 6px; cursor: pointer; font-weight: bold; margin-top: 8px; width: 100%; }
+        
+        /* Footer */
         .footer { text-align: center; padding: 20px; color: #777; font-size: 13px; background: #fff; margin-left: 260px; border-top: 1px solid #eee; }
         .footer b { color: var(--gold); }
+
+        @media (max-width: 1024px) {
+            .sidebar { width: 70px; }
+            .sidebar span, .sidebar small, .sidebar h2 { display: none; }
+            .main-content, .footer { margin-left: 70px; width: calc(100% - 70px); }
+        }
     </style>
 </head>
 <body>
@@ -56,8 +75,8 @@
     <div class="main-content">
         <div class="header-row">
             <div>
-                <h1 style="color: var(--primary); margin:0;">Staff & Assignments</h1>
-                <p id="welcomeMsg" style="color:#666;">Loading profile...</p>
+                <h1 style="color: var(--primary); margin:0;">Staff Multi-Tasking</h1>
+                <p id="welcomeMsg" style="color:#666;">Loading session...</p>
             </div>
         </div>
 
@@ -67,25 +86,25 @@
                 <div class="val" id="countS">0</div>
             </div>
             <div class="stat-card">
-                <h4>Active Staff</h4>
+                <h4>Registered Staff</h4>
                 <div class="val" id="countT">0</div>
             </div>
         </div>
 
         <div id="adminArea" style="display: none;">
+            <h3 style="color:var(--primary); margin-bottom:15px;"><i class="fas fa-tasks"></i> Staff Assignment Manager</h3>
             <div class="admin-box">
                 <table>
                     <thead>
                         <tr>
                             <th>Staff Member</th>
-                            <th>Class Teacher?</th>
-                            <th>Class Level</th>
-                            <th>Stream</th>
-                            <th>Subject Teacher</th>
-                            <th>Action</th>
+                            <th>Active Assignments</th>
+                            <th>Add New Task</th>
                         </tr>
                     </thead>
-                    <tbody id="staffTable"></tbody>
+                    <tbody id="staffTable">
+                        <tr><td colspan="3" style="text-align:center;">Fetching staff data...</td></tr>
+                    </tbody>
                 </table>
             </div>
         </div>
@@ -100,23 +119,23 @@
     import { collection, getDocs, doc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
     import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
-    // --- AUTO LOGOUT LOGIC (30 MINS) ---
+    // --- 30 MINUTE AUTO-LOGOUT ---
     let logoutTimer;
     const resetTimer = () => {
         clearTimeout(logoutTimer);
         logoutTimer = setTimeout(() => {
-            alert("Session expired due to inactivity.");
+            alert("Your session has expired (30 mins). Log in again.");
             logout();
         }, 30 * 60 * 1000);
     };
-    ['mousedown', 'mousemove', 'keypress', 'scroll'].forEach(e => document.addEventListener(e, resetTimer));
+    ['mousedown', 'mousemove', 'keypress', 'scroll', 'touchstart'].forEach(e => document.addEventListener(e, resetTimer));
 
     onAuthStateChanged(auth, async (user) => {
         if (!user) { window.location.href = "index.html"; return; }
         const userSnap = await getDoc(doc(db, "users", user.uid));
         if (userSnap.exists()) {
             const u = userSnap.data();
-            document.getElementById('welcomeMsg').innerText = `Admin: ${u.name || user.email}`;
+            document.getElementById('welcomeMsg').innerText = `Administrator: ${u.name || user.email}`;
             if (u.role === 'admin') {
                 document.getElementById('adminArea').style.display = 'block';
                 loadStaffList();
@@ -140,54 +159,90 @@
         snap.forEach(userDoc => {
             const u = userDoc.data();
             const id = userDoc.id;
-            
+            const tasks = u.assignments || [];
+
             tbody.innerHTML += `
                 <tr>
-                    <td><b>${u.name || 'User'}</b><br><small>${u.email}</small></td>
                     <td>
-                        <div class="role-check">
-                            <input type="checkbox" id="isCT-${id}" ${u.isClassTeacher ? 'checked' : ''}> Yes
+                        <div style="display:flex; align-items:center; gap:10px;">
+                            <div style="width:40px; height:40px; background:#e0e0e0; border-radius:50%; display:flex; align-items:center; justify-content:center;">
+                                <i class="fas fa-user" style="color:#757575;"></i>
+                            </div>
+                            <div>
+                                <b>${u.name || 'Staff'}</b><br>
+                                <small style="color:gray;">${u.email}</small>
+                            </div>
                         </div>
                     </td>
                     <td>
-                        <select id="cls-${id}">
-                            <option value="None">None</option>
-                            <option value="Form 1" ${u.assignedClass==='Form 1'?'selected':''}>Form 1</option>
-                            <option value="Form 2" ${u.assignedClass==='Form 2'?'selected':''}>Form 2</option>
-                            <option value="Form 3" ${u.assignedClass==='Form 3'?'selected':''}>Form 3</option>
-                            <option value="Form 4" ${u.assignedClass==='Form 4'?'selected':''}>Form 4</option>
-                        </select>
+                        <div id="list-${id}" style="min-width:250px;">
+                            ${tasks.length === 0 ? '<em style="color:#bbb;">No tasks assigned</em>' : 
+                                tasks.map((t, idx) => `
+                                    <div class="task-tag">
+                                        ${t.type === 'Class Teacher' ? '⭐' : '📖'} 
+                                        ${t.cls} ${t.strm} : ${t.subj}
+                                        <i class="fas fa-times-circle" onclick="removeTask('${id}', ${idx})"></i>
+                                    </div>
+                                `).join('')}
+                        </div>
                     </td>
                     <td>
-                        <select id="strm-${id}">
-                            <option value="None">None</option>
-                            ${['A','B','C','D','E','F','G'].map(s => `<option value="${s}" ${u.assignedStream===s?'selected':''}>${s}</option>`).join('')}
-                        </select>
+                        <div class="assignment-container">
+                            <div class="task-inputs">
+                                <select id="type-${id}">
+                                    <option value="Subject Teacher">Subject Teacher</option>
+                                    <option value="Class Teacher">Class Teacher</option>
+                                </select>
+                                <select id="cls-${id}">
+                                    <option>Form 1</option><option>Form 2</option><option>Form 3</option><option>Form 4</option>
+                                </select>
+                                <select id="strm-${id}">
+                                    <option>A</option><option>B</option><option>C</option><option>D</option><option>E</option><option>F</option><option>G</option>
+                                </select>
+                            </div>
+                            <select id="subj-${id}" style="width:100%; margin-top:8px;">
+                                <option>Mathematics</option><option>English</option><option>Biology</option>
+                                <option>Chemistry</option><option>Physics</option><option>Geography</option>
+                                <option>History</option><option>Civics</option><option>Kiswahili</option>
+                            </select>
+                            <button class="btn-add-task" onclick="addTask('${id}')">Assign Task</button>
+                        </div>
                     </td>
-                    <td>
-                        <select id="subj-${id}">
-                            <option value="None">None</option>
-                            <option value="Mathematics" ${u.assignedSubject==='Mathematics'?'selected':''}>Mathematics</option>
-                            <option value="English" ${u.assignedSubject==='English'?'selected':''}>English</option>
-                            <option value="Biology" ${u.assignedSubject==='Biology'?'selected':''}>Biology</option>
-                            <option value="Chemistry" ${u.assignedSubject==='Chemistry'?'selected':''}>Chemistry</option>
-                            <option value="Physics" ${u.assignedSubject==='Physics'?'selected':''}>Physics</option>
-                        </select>
-                    </td>
-                    <td><button class="btn-save" onclick="saveStaff('${id}')">UPDATE</button></td>
                 </tr>`;
         });
     }
 
-    window.saveStaff = async (id) => {
-        const updates = {
-            isClassTeacher: document.getElementById(`isCT-${id}`).checked,
-            assignedClass: document.getElementById(`cls-${id}`).value,
-            assignedStream: document.getElementById(`strm-${id}`).value,
-            assignedSubject: document.getElementById(`subj-${id}`).value
+    // Task Logic
+    window.addTask = async (userId) => {
+        const task = {
+            type: document.getElementById(`type-${userId}`).value,
+            cls: document.getElementById(`cls-${userId}`).value,
+            strm: document.getElementById(`strm-${userId}`).value,
+            subj: document.getElementById(`subj-${userId}`).value,
+            assignedAt: new Date().toISOString()
         };
-        await updateDoc(doc(db, "users", id), updates);
-        alert("Teacher roles updated!");
+
+        const staffRef = doc(db, "users", userId);
+        const docSnap = await getDoc(staffRef);
+        let currentTasks = docSnap.data().assignments || [];
+        
+        // Prevent exact duplicates
+        const isDuplicate = currentTasks.some(t => t.cls === task.cls && t.strm === task.strm && t.subj === task.subj);
+        if(isDuplicate) return alert("This specific task is already assigned!");
+
+        currentTasks.push(task);
+        await updateDoc(staffRef, { assignments: currentTasks });
+        loadStaffList();
+    };
+
+    window.removeTask = async (userId, index) => {
+        if(!confirm("Remove this assignment?")) return;
+        const staffRef = doc(db, "users", userId);
+        const docSnap = await getDoc(staffRef);
+        let currentTasks = docSnap.data().assignments || [];
+        currentTasks.splice(index, 1);
+        await updateDoc(staffRef, { assignments: currentTasks });
+        loadStaffList();
     };
 
     window.logout = () => signOut(auth).then(() => window.location.href="index.html");
