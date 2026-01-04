@@ -18,7 +18,7 @@
         .btn-load { background: var(--nav-blue); color: white; border: none; cursor: pointer; font-weight: bold; transition: 0.3s; }
         .btn-load:hover { background: #283593; }
 
-        .table-container { background: white; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); overflow-x: auto; }
+        .table-container { background: white; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); overflow-x: auto; margin-bottom: 80px;}
         table { width: 100%; border-collapse: collapse; }
         th, td { border-bottom: 1px solid #eee; padding: 15px; text-align: center; }
         th { background: #f8f9fa; color: var(--nav-blue); font-size: 11px; text-transform: uppercase; letter-spacing: 1px; }
@@ -26,7 +26,7 @@
         .score-in { width: 60px; text-align: center; padding: 8px; border: 1px solid #ddd; border-radius: 4px; font-weight: bold; }
         .score-in:focus { border-color: var(--gold); outline: none; background: #fffde7; }
         
-        .save-bar { position: sticky; bottom: 0; background: white; padding: 20px; border-top: 3px solid var(--nav-blue); text-align: center; display: none; z-index: 100; }
+        .save-bar { position: fixed; bottom: 0; right: 0; width: calc(100% - var(--sidebar-width)); background: white; padding: 20px; border-top: 3px solid var(--nav-blue); text-align: center; display: none; z-index: 100; box-sizing: border-box; }
         .btn-save { background: #2e7d32; color: white; padding: 15px 80px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 16px; box-shadow: 0 4px 10px rgba(0,0,0,0.2); }
     </style>
 </head>
@@ -48,17 +48,11 @@
             <h2 style="margin-top:0; color:var(--nav-blue);"><i class="fas fa-pen-nib"></i> Mark Entry Sheet</h2>
             
             <div class="filter-grid">
-                <div>
-                    <label>1. DARASA</label>
-                    <select id="clsSel"></select>
-                </div>
-                <div>
-                    <label>2. MKONDO</label>
-                    <select id="strmSel"></select>
-                </div>
-                <div>
-                    <label>3. SOMO</label>
-                    <select id="subSel"></select>
+                <div style="grid-column: span 3;">
+                    <label>CHAGUA KAZI (Class - Subject)</label>
+                    <select id="taskSelector">
+                        <option value="">-- Inapakia Majukumu yako... --</option>
+                    </select>
                 </div>
                 <div>
                     <button id="loadBtn" class="btn-load">TAFUTA WANAFUNZI</button>
@@ -91,72 +85,48 @@
     import { collection, getDocs, query, where, setDoc, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
     import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
-    let currentUserData = null;
-    const streams = ["A", "B", "C", "D", "E", "F", "G"];
-    const forms = ["Form 1", "Form 2", "Form 3", "Form 4"];
-    
-    // Subject Lists
-    const subF1_2 = ["Biology", "Book-keeping", "Chemistry", "Historia ya Tz na maadili", "English", "Geography", "History", "Kiswahili", "Mathematics", "Physics"];
-    const subF3_4 = ["Biology", "Book-keeping", "Chemistry", "Civics", "Historia ya Tz na maadili", "English", "Geography", "History", "Kiswahili", "Mathematics", "Physics", "Literature"];
+    let myTasks = [];
 
     onAuthStateChanged(auth, async (user) => {
         if (!user) { window.location.href = "index.html"; return; }
         
         const uSnap = await getDoc(doc(db, "users", user.uid));
         if (uSnap.exists()) {
-            currentUserData = uSnap.data();
-            setupFilters(currentUserData);
+            const data = uSnap.data();
+            myTasks = data.assignments || [];
+            
+            const taskSelector = document.getElementById('taskSelector');
+            if (myTasks.length === 0) {
+                taskSelector.innerHTML = '<option value="">Huna majukumu yaliyopangwa</option>';
+            } else {
+                taskSelector.innerHTML = '<option value="">-- Chagua Darasa na Somo --</option>' + 
+                    myTasks.map((t, i) => `<option value="${i}">${t.cls} ${t.strm} - ${t.subj} (${t.type})</option>`).join('');
+            }
         }
     });
 
-    function setupFilters(u) {
-        // 1. Setup Class Dropdown
-        let clsHtml = '';
-        if (u.assignedClass === "ALL") {
-            clsHtml = forms.map(f => `<option value="${f}">${f}</option>`).join('');
-        } else {
-            clsHtml = `<option value="${u.assignedClass}">${u.assignedClass}</option>`;
-        }
-        document.getElementById('clsSel').innerHTML = clsHtml;
-
-        // 2. Setup Stream Dropdown
-        let strmHtml = '';
-        if (u.assignedStream === "ALL") {
-            strmHtml = streams.map(s => `<option value="${s}">${s}</option>`).join('');
-        } else {
-            strmHtml = `<option value="${u.assignedStream}">${u.assignedStream}</option>`;
-        }
-        document.getElementById('strmSel').innerHTML = strmHtml;
-
-        // 3. Setup Subject Dropdown
-        let subHtml = '';
-        if (u.assignedSubject === "ALL") {
-            const list = (u.assignedClass.includes("3") || u.assignedClass.includes("4")) ? subF3_4 : subF1_2;
-            subHtml = list.map(s => `<option value="${s}">${s}</option>`).join('');
-        } else {
-            subHtml = `<option value="${u.assignedSubject}">${u.assignedSubject}</option>`;
-        }
-        document.getElementById('subSel').innerHTML = subHtml;
-
-        document.getElementById('statusMsg').innerText = `Umeruhusiwa: ${u.assignedSubject} | ${u.assignedClass} | Mkondo ${u.assignedStream}`;
-    }
-
     document.getElementById('loadBtn').onclick = async () => {
-        const selCls = document.getElementById('clsSel').value;
-        const selStrm = document.getElementById('strmSel').value;
-        const selSub = document.getElementById('subSel').value;
+        const taskIndex = document.getElementById('taskSelector').value;
+        if (taskIndex === "") return alert("Tafadhali chagua kazi kwanza!");
 
+        const task = myTasks[taskIndex];
+        const loadBtn = document.getElementById('loadBtn');
         loadBtn.innerText = "Inapakia...";
         
-        // Fetch Students
-        const qS = query(collection(db, "students"), where("cls", "==", selCls), where("stream", "==", selStrm));
+        // Query logic for Students (handle ALL streams)
+        let qS;
+        if (task.strm === "ALL") {
+            qS = query(collection(db, "students"), where("class", "==", task.cls));
+        } else {
+            qS = query(collection(db, "students"), where("class", "==", task.cls), where("stream", "==", task.strm));
+        }
+        
         const studSnap = await getDocs(qS);
 
-        // Fetch Existing Results for this Subject/Class/Stream
+        // Fetch Existing Results
         const qR = query(collection(db, "results"), 
-            where("subject", "==", selSub), 
-            where("cls", "==", selCls), 
-            where("stream", "==", selStrm)
+            where("subject", "==", task.subj), 
+            where("cls", "==", task.cls)
         );
         const resSnap = await getDocs(qR);
         const resMap = {};
@@ -166,15 +136,15 @@
         tbody.innerHTML = "";
         
         if(studSnap.empty) {
-            tbody.innerHTML = "<tr><td colspan='9'>Hakuna wanafunzi waliopatikana.</td></tr>";
+            tbody.innerHTML = "<tr><td colspan='9'>Hakuna wanafunzi waliopatikana kwenye kundi hili.</td></tr>";
         }
 
         studSnap.forEach((d, i) => {
             const r = resMap[d.id] || {};
             tbody.innerHTML += `
-                <tr class="row" data-id="${d.id}">
+                <tr class="row" data-id="${d.id}" data-strm="${d.data().stream}">
                     <td>${i+1}</td>
-                    <td style="text-align:left; font-weight:bold;">${d.data().name}</td>
+                    <td style="text-align:left; font-weight:bold;">${d.data().name} <br><small style="color:#888">${d.data().stream}</small></td>
                     <td><input type="number" class="score-in t1" value="${r.test1 || ''}" max="10"></td>
                     <td><input type="number" class="score-in mid" value="${r.midTerm || ''}" max="20"></td>
                     <td><input type="number" class="score-in t2" value="${r.test2 || ''}" max="10"></td>
@@ -188,6 +158,7 @@
         document.getElementById('mTable').style.display = "table"; 
         document.getElementById('saveBar').style.display = "block"; 
         loadBtn.innerText = "TAFUTA WANAFUNZI";
+        document.getElementById('statusMsg').innerText = `Ukurasa wa: ${task.subj} | ${task.cls} | ${task.strm}`;
     };
 
     // Calculation Logic
@@ -200,8 +171,6 @@
             const ex = parseFloat(row.querySelector('.ex').value) || 0;
 
             const total = t1 + mid + t2 + ex;
-            
-            // Dynamic Average based on filled fields
             const inputs = [row.querySelector('.t1').value, row.querySelector('.mid').value, row.querySelector('.t2').value, row.querySelector('.ex').value];
             const filledCount = inputs.filter(v => v !== "").length;
             
@@ -211,7 +180,6 @@
             row.querySelector('.total').innerText = total;
             row.querySelector('.avg').innerText = filledCount > 0 ? average : "-";
 
-            // Grading (TZ Standards)
             let g = "-";
             if(filledCount > 0) {
                 if(average >= 75) g = "A";
@@ -228,24 +196,27 @@
     });
 
     document.getElementById('saveBtn').onclick = async () => {
+        const saveBtn = document.getElementById('saveBtn');
+        const taskIndex = document.getElementById('taskSelector').value;
+        const task = myTasks[taskIndex];
+        
         saveBtn.innerText = "Inahifadhi...";
         const rows = document.querySelectorAll(".row");
-        const selCls = document.getElementById('clsSel').value;
-        const selStrm = document.getElementById('strmSel').value;
-        const selSub = document.getElementById('subSel').value;
 
         try {
             for(let r of rows) {
                 const id = r.dataset.id;
                 const avg = r.querySelector('.avg').innerText;
+                const studentStream = r.dataset.strm;
                 
                 if(avg !== "-") {
-                    // Unique ID: studentId + subject + class
-                    await setDoc(doc(db, "results", `${id}_${selSub}`), {
+                    // ID pattern: studentID_subjectName (avoids duplicates)
+                    const docName = `${id}_${task.subj.replace(/\s+/g, '')}`;
+                    await setDoc(doc(db, "results", docName), {
                         studentId: id,
-                        subject: selSub,
-                        cls: selCls,
-                        stream: selStrm,
+                        subject: task.subj,
+                        cls: task.cls,
+                        stream: studentStream,
                         test1: r.querySelector('.t1').value,
                         midTerm: r.querySelector('.mid').value,
                         test2: r.querySelector('.t2').value,
@@ -253,12 +224,14 @@
                         total: r.querySelector('.total').innerText,
                         average: avg,
                         grade: r.querySelector('.grade').innerText,
+                        recordedBy: auth.currentUser.uid,
                         timestamp: new Date()
-                    });
+                    }, { merge: true });
                 }
             }
             alert("Alama zote zimehifadhiwa kikamilifu!");
         } catch (e) {
+            console.error(e);
             alert("Hitilafu imetokea wakati wa kuhifadhi.");
         }
         saveBtn.innerText = "HIFADHI ALAMA ZOTE";
