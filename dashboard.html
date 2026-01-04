@@ -3,70 +3,116 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Olmoti Dashboard | Assignment Pro</title>
+    <title>Olmoti Dashboard | Admin Portal</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
         :root { --primary: #1a237e; --gold: #c5a059; --bg: #f4f7f6; --white: #ffffff; --danger: #d32f2f; }
-        body { margin: 0; font-family: 'Segoe UI', sans-serif; display: flex; background: var(--bg); min-height: 100vh; flex-direction: column; }
+        body { margin: 0; font-family: 'Segoe UI', sans-serif; display: flex; background: var(--bg); }
         
-        .sidebar { width: 260px; background: #1a1c23; color: white; height: 100vh; position: fixed; z-index: 1000; }
-        .sidebar-header { padding: 30px 20px; text-align: center; border-bottom: 1px solid var(--gold); }
+        .sidebar { width: 260px; background: #1a1c23; color: white; height: 100vh; position: fixed; box-shadow: 2px 0 10px rgba(0,0,0,0.1); z-index: 1000; }
+        .sidebar-header { padding: 30px 20px; text-align: center; border-bottom: 1px solid var(--gold); background: rgba(0,0,0,0.1); }
         .nav-links { list-style: none; padding: 20px 0; margin: 0; }
-        .nav-links li a { color: #cfd8dc; text-decoration: none; padding: 15px 25px; display: block; transition: 0.3s; }
-        .nav-links li.active a { background: rgba(255,255,255,0.1); border-left: 5px solid var(--gold); }
+        .nav-links li a { color: #cfd8dc; text-decoration: none; padding: 15px 25px; display: block; transition: 0.3s; font-size: 15px; }
+        .nav-links li.active a, .nav-links li a:hover { background: rgba(255,255,255,0.1); border-left: 5px solid var(--gold); color: white; }
 
-        .main-content { margin-left: 260px; padding: 40px; width: calc(100% - 260px); box-sizing: border-box; flex-grow: 1; }
+        .main-content { margin-left: 260px; padding: 40px; width: calc(100% - 260px); box-sizing: border-box; min-height: 100vh; display: flex; flex-direction: column; }
+        .header-row { margin-bottom: 30px; display: flex; justify-content: space-between; align-items: center; }
         
-        .admin-box { background: var(--white); border-radius: 12px; padding: 25px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
-        table { width: 100%; border-collapse: collapse; }
-        th, td { padding: 12px; text-align: left; border-bottom: 1px solid #eee; vertical-align: top; font-size: 13px; }
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 25px; margin-bottom: 40px; }
+        .stat-card { background: var(--white); padding: 25px; border-radius: 15px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); border-left: 6px solid var(--primary); }
+        .stat-card.teachers { border-left-color: var(--gold); }
+        .stat-card h4 { margin: 0; font-size: 13px; color: #777; text-transform: uppercase; letter-spacing: 1px; }
+        .stat-card .val { font-size: 38px; font-weight: 800; color: #2d3436; margin: 10px 0; }
         
+        .section-title { color: var(--primary); border-left: 5px solid var(--gold); padding-left: 15px; margin: 40px 0 20px; font-size: 20px; font-weight: bold; }
+        .admin-box { background: var(--white); border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); padding: 25px; margin-bottom: 30px;}
+        
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        th, td { padding: 12px 15px; text-align: left; border-bottom: 1px solid #eee; font-size: 13px; vertical-align: top; }
+        th { background: #f8f9fa; font-size: 11px; color: var(--primary); text-transform: uppercase; font-weight: 800; }
+        
+        select { padding: 8px; border-radius: 6px; border: 1px solid #ddd; font-size: 12px; background: #fff; width: 100%; margin-bottom: 5px; }
+        select:disabled { background: #f0f0f0; cursor: not-allowed; }
+        
+        .btn-save { background: var(--primary); color: white; border: none; padding: 8px 12px; border-radius: 6px; cursor: pointer; font-weight: bold; transition: 0.2s; font-size: 11px; }
+        .badge { background:#e3f2fd; color:#1565c0; padding:4px 12px; border-radius:20px; font-size:11px; font-weight: 800; text-transform: uppercase;}
+
+        /* Assignment Tags */
         .task-tag { 
-            display: inline-flex; align-items: center; background: #e8eaf6; color: #3f51b5; 
-            padding: 4px 8px; border-radius: 4px; margin: 3px; font-size: 11px; font-weight: bold; border: 1px solid #c5cae9;
+            display: inline-flex; align-items: center; background: #f1f3f4; color: #3c4043; 
+            padding: 4px 8px; border-radius: 4px; margin: 2px; font-size: 11px; border: 1px solid #dadce0;
         }
         .task-tag.ct { background: #fff9c4; color: #827717; border-color: #fbc02d; }
-        .task-tag i { margin-left: 6px; cursor: pointer; color: var(--danger); }
+        .task-tag i { margin-left: 6px; cursor: pointer; color: var(--danger); font-size: 12px; }
 
-        .control-group { display: flex; flex-direction: column; gap: 8px; background: #fdfdfd; padding: 15px; border-radius: 8px; border: 1px solid #eee; }
-        select { padding: 8px; border-radius: 5px; border: 1px solid #ccc; font-size: 12px; outline: none; transition: 0.3s; }
-        select:disabled { background: #f0f0f0; cursor: not-allowed; color: #aaa; }
-        
-        .btn-assign { background: var(--primary); color: white; border: none; padding: 10px; border-radius: 5px; cursor: pointer; font-weight: bold; }
-        .footer { text-align: center; padding: 15px; color: #777; font-size: 12px; background: #fff; margin-left: 260px; }
+        .footer { text-align: center; padding: 20px; color: #777; font-size: 12px; background: transparent; border-top: 1px solid #eee; margin-top: auto; }
+
+        @media (max-width: 1024px) {
+            .sidebar { width: 70px; }
+            .sidebar h2, .sidebar small, .sidebar span { display: none; }
+            .main-content { margin-left: 70px; width: calc(100% - 70px); }
+        }
     </style>
 </head>
 <body>
 
     <div class="sidebar">
         <div class="sidebar-header">
-            <h2 style="color:var(--gold); margin:0;">OLMOTI</h2>
-            <small>ADMIN PORTAL</small>
+            <h2 style="margin:0; color:var(--gold);">OLMOTI</h2>
+            <small>SCHOOL PORTAL</small>
         </div>
         <ul class="nav-links">
-            <li class="active"><a href="#"><i class="fas fa-tasks"></i> Assignments</a></li>
-            <li><a href="#" onclick="logout()"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
+            <li class="active"><a href="dashboard.html"><i class="fas fa-th-large"></i> <span>Dashboard</span></a></li>
+            <li><a href="students-list.html"><i class="fas fa-user-graduate"></i> <span>Students</span></a></li>
+            <li><a href="mark-entry.html"><i class="fas fa-edit"></i> <span>Mark Entry</span></a></li>
+            <li><a href="register-teacher.html"><i class="fas fa-user-plus"></i> <span>Register Teacher</span></a></li>
+            <li><a href="#" onclick="logout()"><i class="fas fa-sign-out-alt"></i> <span>Logout</span></a></li>
         </ul>
     </div>
 
     <div class="main-content">
-        <div class="admin-box">
-            <h3 style="color:var(--primary);"><i class="fas fa-user-shield"></i> Staff Multi-Tasking Manager</h3>
-            <table>
-                <thead>
-                    <tr>
-                        <th width="25%">Teacher</th>
-                        <th width="45%">Current Assignments</th>
-                        <th width="30%">New Assignment</th>
-                    </tr>
-                </thead>
-                <tbody id="staffTable"></tbody>
-            </table>
+        <div class="header-row">
+            <div>
+                <h1 style="color: var(--primary); margin:0;">Dashboard & Management</h1>
+                <p id="welcomeMsg" style="color:#666; margin-top:5px;">Loading profile...</p>
+            </div>
+            <div id="roleIndicator"></div>
         </div>
-    </div>
 
-    <div class="footer">
-        Developed by <b>elazaro14</b> | &copy; 2026 Olmoti Secondary School
+        <div class="stats-grid">
+            <div class="stat-card">
+                <h4>Total Students</h4>
+                <div class="val" id="countS">0</div>
+                <div class="sub" id="genderS">Loading...</div>
+            </div>
+            <div class="stat-card teachers">
+                <h4>Staff Population</h4>
+                <div class="val" id="countT">0</div>
+                <div class="sub" id="genderT">Loading...</div>
+            </div>
+        </div>
+
+        <div id="adminArea" style="display: none;">
+            <h3 class="section-title">Staff Task Assignments</h3>
+            <div class="admin-box">
+                <table>
+                    <thead>
+                        <tr>
+                            <th width="20%">Staff Member</th>
+                            <th width="45%">Active Assignments</th>
+                            <th width="35%">New Task Assignment</th>
+                        </tr>
+                    </thead>
+                    <tbody id="staffTable">
+                        <tr><td colspan="3" style="text-align:center; padding:30px;">Loading Staff...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="footer">
+            Developed by <b>elazaro14</b> | &copy; 2026 Olmoti Secondary School
+        </div>
     </div>
 
 <script type="module">
@@ -74,15 +120,53 @@
     import { collection, getDocs, doc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
     import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
-    const SUBJECTS_LOW = ["Biology", "Book-keeping", "Chemistry", "Civics", "English", "Geography", "History", "Kiswahili", "Mathematics", "Physics", "Historia ya Tz"];
-    const SUBJECTS_HIGH = ["Biology", "Book-keeping", "Chemistry", "Civics", "Commerce", "English", "Geography", "History", "Kiswahili", "Literature", "Mathematics", "Physics"];
+    // --- Configurations ---
+    const subjectsF1_F2 = ["Biology", "Book-keeping", "Chemistry", "Civics", "Historia ya Tz", "English", "Geography", "History", "Kiswahili", "Mathematics", "Physics"];
+    const subjectsF3_F4 = ["Biology", "Book-keeping", "Chemistry", "Civics", "Commerce", "English", "Geography", "History", "Kiswahili", "Literature", "Mathematics", "Physics"];
 
-    // AUTO LOGOUT
-    let timer;
-    const reset = () => { clearTimeout(timer); timer = setTimeout(() => logout(), 30 * 60 * 1000); };
-    window.addEventListener('mousemove', reset);
+    // --- Auto Logout (30 Mins) ---
+    let sessionTimer;
+    const resetTimer = () => {
+        clearTimeout(sessionTimer);
+        sessionTimer = setTimeout(() => {
+            alert("Session expired. Logging out...");
+            logout();
+        }, 30 * 60 * 1000);
+    };
+    ['mousedown', 'mousemove', 'keypress', 'scroll', 'touchstart'].forEach(e => document.addEventListener(e, resetTimer));
 
-    onAuthStateChanged(auth, (user) => { if (user) { loadStaffList(); reset(); } else { window.location.href="index.html"; } });
+    onAuthStateChanged(auth, async (user) => {
+        if (!user) { window.location.href = "index.html"; return; }
+        const userSnap = await getDoc(doc(db, "users", user.uid));
+        if (userSnap.exists()) {
+            const u = userSnap.data();
+            document.getElementById('welcomeMsg').innerText = `Logged in as: ${u.name || user.email}`;
+            document.getElementById('roleIndicator').innerHTML = `<span class="badge" style="background:var(--gold); color:white">${u.role}</span>`;
+            if (u.role === 'admin') {
+                document.getElementById('adminArea').style.display = 'block';
+                loadStaffList();
+            }
+        }
+        loadDashboardStats();
+        resetTimer();
+    });
+
+    async function loadDashboardStats() {
+        const [sSnap, uSnap] = await Promise.all([getDocs(collection(db, "students")), getDocs(collection(db, "users"))]);
+        let sm = 0, sf = 0, tm = 0, tf = 0, tCount = 0;
+        sSnap.forEach(d => { (d.data().gender || "").toUpperCase().startsWith("M") ? sm++ : sf++; });
+        uSnap.forEach(d => {
+            const data = d.data();
+            if (data.role === 'teacher' || data.role === 'admin') {
+                tCount++;
+                (data.gender || "").toUpperCase().startsWith("M") ? tm++ : tf++;
+            }
+        });
+        document.getElementById('countS').innerText = sSnap.size;
+        document.getElementById('genderS').innerHTML = `<i class="fas fa-mars"></i> ${sm} | <i class="fas fa-venus"></i> ${sf}`;
+        document.getElementById('countT').innerText = tCount;
+        document.getElementById('genderT').innerHTML = `<i class="fas fa-mars"></i> ${tm} | <i class="fas fa-venus"></i> ${tf}`;
+    }
 
     async function loadStaffList() {
         const snap = await getDocs(collection(db, "users"));
@@ -96,78 +180,85 @@
 
             tbody.innerHTML += `
                 <tr>
-                    <td><b>${u.name || 'Staff'}</b><br><small>${u.email}</small></td>
-                    <td><div id="list-${id}">${tasks.map((t, i) => `
-                        <div class="task-tag ${t.type === 'Class Teacher' ? 'ct' : ''}">
-                            ${t.type === 'Class Teacher' ? '📌' : '📚'} ${t.cls} ${t.strm} ${t.subj !== 'N/A' ? ': '+t.subj : ''}
-                            <i class="fas fa-times" onclick="removeTask('${id}', ${i})"></i>
-                        </div>`).join('')}</div>
+                    <td><b>${u.name || 'Staff'}</b><br><small style="color:#888;">${u.email}</small></td>
+                    <td>
+                        <div id="list-${id}">
+                            ${tasks.length === 0 ? '<em style="color:#aaa">No tasks assigned</em>' : tasks.map((t, i) => `
+                                <div class="task-tag ${t.type === 'Class Teacher' ? 'ct' : ''}">
+                                    ${t.type === 'Class Teacher' ? '📌 CT' : '📚 ST'}: ${t.cls} ${t.strm} ${t.subj !== 'N/A' ? '['+t.subj+']' : ''}
+                                    <i class="fas fa-times-circle" onclick="removeTask('${id}', ${i})"></i>
+                                </div>`).join('')}
+                        </div>
                     </td>
                     <td>
-                        <div class="control-group">
-                            <select id="type-${id}" onchange="toggleSubject('${id}')">
+                        <div style="background:#f9f9f9; padding:10px; border-radius:8px;">
+                            <select id="type-${id}" onchange="toggleSubjectField('${id}')">
                                 <option value="Subject Teacher">Subject Teacher</option>
                                 <option value="Class Teacher">Class Teacher</option>
                             </select>
-                            <select id="cls-${id}" onchange="updateSubjList('${id}')">
+                            <select id="cls-${id}" onchange="updateSubjDropdown('${id}')">
                                 <option value="Form 1">Form 1</option><option value="Form 2">Form 2</option>
                                 <option value="Form 3">Form 3</option><option value="Form 4">Form 4</option>
                             </select>
                             <select id="strm-${id}">
                                 <option value="ALL">ALL STREAMS</option>
-                                <option>A</option><option>B</option><option>C</option><option>D</option><option>E</option><option>F</option><option>G</option>
+                                <option value="A">Stream A</option><option value="B">Stream B</option>
+                                <option value="C">Stream C</option><option value="D">Stream D</option>
+                                <option value="E">Stream E</option><option value="F">Stream F</option>
+                                <option value="G">Stream G</option>
                             </select>
-                            <select id="subj-${id}">${SUBJECTS_LOW.map(s => `<option>${s}</option>`).join('')}</select>
-                            <button class="btn-assign" onclick="addTask('${id}')">Assign Task</button>
+                            <select id="subj-${id}">
+                                ${subjectsF1_F2.map(s => `<option value="${s}">${s}</option>`).join('')}
+                            </select>
+                            <button class="btn-save" onclick="addTask('${id}')" style="width:100%; margin-top:5px;">
+                                <i class="fas fa-plus"></i> Add Assignment
+                            </button>
                         </div>
                     </td>
                 </tr>`;
         });
     }
 
-    // Logic to disable subject if Class Teacher is selected
-    window.toggleSubject = (id) => {
+    window.toggleSubjectField = (id) => {
         const type = document.getElementById(`type-${id}`).value;
         const subjBox = document.getElementById(`subj-${id}`);
-        if (type === "Class Teacher") {
-            subjBox.disabled = true;
-            subjBox.value = ""; 
-        } else {
-            subjBox.disabled = false;
-            updateSubjList(id);
-        }
+        subjBox.disabled = (type === "Class Teacher");
+        if (subjBox.disabled) subjBox.value = "";
     };
 
-    window.updateSubjList = (id) => {
+    window.updateSubjDropdown = (id) => {
         const cls = document.getElementById(`cls-${id}`).value;
         const subjBox = document.getElementById(`subj-${id}`);
         if (subjBox.disabled) return;
-        const list = (cls === "Form 1" || cls === "Form 2") ? SUBJECTS_LOW : SUBJECTS_HIGH;
-        subjBox.innerHTML = list.map(s => `<option>${s}</option>`).join('');
+        const list = (cls.includes("1") || cls.includes("2")) ? subjectsF1_F2 : subjectsF3_F4;
+        subjBox.innerHTML = list.map(s => `<option value="${s}">${s}</option>`).join('');
     };
 
     window.addTask = async (userId) => {
         const type = document.getElementById(`type-${userId}`).value;
-        const task = {
+        const newTask = {
             type: type,
             cls: document.getElementById(`cls-${userId}`).value,
             strm: document.getElementById(`strm-${userId}`).value,
             subj: type === "Class Teacher" ? "N/A" : document.getElementById(`subj-${userId}`).value
         };
+
         const ref = doc(db, "users", userId);
         const snap = await getDoc(ref);
-        let current = snap.data().assignments || [];
-        current.push(task);
-        await updateDoc(ref, { assignments: current });
+        let assignments = snap.data().assignments || [];
+        assignments.push(newTask);
+        
+        await updateDoc(ref, { assignments: assignments });
         loadStaffList();
     };
 
-    window.removeTask = async (userId, idx) => {
+    window.removeTask = async (userId, index) => {
         const ref = doc(db, "users", userId);
         const snap = await getDoc(ref);
-        let current = snap.data().assignments || [];
-        current.splice(idx, 1);
-        await updateDoc(ref, { assignments: current });
+        let assignments = snap.data().assignments || [];
+        assignments.splice(index, 1);
+        
+        await updateDoc(ref, { assignments: assignments });
         loadStaffList();
     };
 
