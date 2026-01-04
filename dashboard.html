@@ -3,110 +3,79 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Olmoti Dashboard | Multi-Task Management</title>
+    <title>Olmoti Dashboard | Assignment Pro</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
         :root { --primary: #1a237e; --gold: #c5a059; --bg: #f4f7f6; --white: #ffffff; --danger: #d32f2f; }
         body { margin: 0; font-family: 'Segoe UI', sans-serif; display: flex; background: var(--bg); min-height: 100vh; flex-direction: column; }
         
-        /* Sidebar */
-        .sidebar { width: 260px; background: #1a1c23; color: white; height: 100vh; position: fixed; box-shadow: 2px 0 10px rgba(0,0,0,0.1); z-index: 1000; }
-        .sidebar-header { padding: 30px 20px; text-align: center; border-bottom: 1px solid var(--gold); background: rgba(0,0,0,0.1); }
+        .sidebar { width: 260px; background: #1a1c23; color: white; height: 100vh; position: fixed; z-index: 1000; }
+        .sidebar-header { padding: 30px 20px; text-align: center; border-bottom: 1px solid var(--gold); }
         .nav-links { list-style: none; padding: 20px 0; margin: 0; }
-        .nav-links li a { color: #cfd8dc; text-decoration: none; padding: 15px 25px; display: block; transition: 0.3s; font-size: 15px; }
-        .nav-links li.active a, .nav-links li a:hover { background: rgba(255,255,255,0.1); border-left: 5px solid var(--gold); color: white; }
+        .nav-links li a { color: #cfd8dc; text-decoration: none; padding: 15px 25px; display: block; transition: 0.3s; }
+        .nav-links li.active a { background: rgba(255,255,255,0.1); border-left: 5px solid var(--gold); }
 
-        /* Main Content */
         .main-content { margin-left: 260px; padding: 40px; width: calc(100% - 260px); box-sizing: border-box; flex-grow: 1; }
-        .header-row { margin-bottom: 30px; display: flex; justify-content: space-between; align-items: center; }
         
         /* Stats */
-        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 25px; margin-bottom: 40px; }
-        .stat-card { background: var(--white); padding: 25px; border-radius: 15px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); border-left: 6px solid var(--primary); }
-        .stat-card h4 { margin: 0; font-size: 13px; color: #777; text-transform: uppercase; letter-spacing: 1px; }
-        .stat-card .val { font-size: 38px; font-weight: 800; color: #2d3436; margin: 10px 0; }
-        
-        /* Assignment Table */
-        .admin-box { background: var(--white); border-radius: 12px; overflow-x: auto; box-shadow: 0 4px 15px rgba(0,0,0,0.05); padding: 25px; margin-bottom: 30px;}
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-bottom: 30px; }
+        .stat-card { background: var(--white); padding: 20px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); border-left: 5px solid var(--primary); }
+        .stat-card h4 { margin: 0; color: #777; font-size: 12px; text-transform: uppercase; }
+        .stat-card .val { font-size: 30px; font-weight: 800; margin: 5px 0; }
+
+        /* Manager Box */
+        .admin-box { background: var(--white); border-radius: 12px; padding: 25px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
         table { width: 100%; border-collapse: collapse; }
-        th, td { padding: 15px; text-align: left; border-bottom: 1px solid #eee; font-size: 13px; vertical-align: top; }
-        th { background: #f8f9fa; font-size: 11px; color: var(--primary); text-transform: uppercase; font-weight: 800; }
+        th, td { padding: 12px; text-align: left; border-bottom: 1px solid #eee; vertical-align: top; font-size: 13px; }
         
-        /* Task Tags */
-        .assignment-container { background: #f9f9f9; padding: 15px; border-radius: 8px; border: 1px dashed #ccc; }
+        /* Tags */
         .task-tag { 
-            display: inline-flex; align-items: center; background: #e3f2fd; color: #1565c0; 
-            padding: 5px 10px; border-radius: 4px; margin: 4px; font-size: 11px; font-weight: bold; border: 1px solid #bbdefb;
+            display: inline-flex; align-items: center; background: #fff9c4; color: #827717; 
+            padding: 4px 8px; border-radius: 4px; margin: 3px; font-size: 11px; font-weight: bold; border: 1px solid #fbc02d;
         }
-        .task-tag i { margin-left: 8px; cursor: pointer; color: var(--danger); transition: 0.2s; }
-        .task-tag i:hover { transform: scale(1.2); }
+        .task-tag i { margin-left: 6px; cursor: pointer; color: var(--danger); }
 
-        /* Form Elements */
-        .task-inputs { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-top: 10px; }
-        select { padding: 8px; border-radius: 6px; border: 1px solid #ddd; font-size: 12px; outline: none; }
-        .btn-add-task { background: var(--gold); color: white; border: none; padding: 8px; border-radius: 6px; cursor: pointer; font-weight: bold; margin-top: 8px; width: 100%; }
-        
-        /* Footer */
-        .footer { text-align: center; padding: 20px; color: #777; font-size: 13px; background: #fff; margin-left: 260px; border-top: 1px solid #eee; }
-        .footer b { color: var(--gold); }
+        /* Input Controls */
+        .control-group { display: flex; flex-direction: column; gap: 8px; background: #fdfdfd; padding: 15px; border-radius: 8px; border: 1px solid #eee; }
+        select { padding: 8px; border-radius: 5px; border: 1px solid #ccc; font-size: 12px; outline: none; }
+        .btn-assign { background: var(--primary); color: white; border: none; padding: 10px; border-radius: 5px; cursor: pointer; font-weight: bold; transition: 0.2s; }
+        .btn-assign:hover { background: #0d145a; }
 
-        @media (max-width: 1024px) {
-            .sidebar { width: 70px; }
-            .sidebar span, .sidebar small, .sidebar h2 { display: none; }
-            .main-content, .footer { margin-left: 70px; width: calc(100% - 70px); }
-        }
+        .footer { text-align: center; padding: 15px; color: #777; font-size: 12px; background: #fff; margin-left: 260px; }
     </style>
 </head>
 <body>
 
     <div class="sidebar">
         <div class="sidebar-header">
-            <h2 style="margin:0; color:var(--gold);">OLMOTI</h2>
-            <small>SCHOOL PORTAL</small>
+            <h2 style="color:var(--gold); margin:0;">OLMOTI</h2>
+            <small>ADMIN PORTAL</small>
         </div>
         <ul class="nav-links">
-            <li class="active"><a href="#"><i class="fas fa-th-large"></i> <span>Dashboard</span></a></li>
-            <li><a href="students-list.html"><i class="fas fa-user-graduate"></i> <span>Students</span></a></li>
-            <li><a href="mark-entry.html"><i class="fas fa-edit"></i> <span>Mark Entry</span></a></li>
-            <li><a href="#" onclick="logout()"><i class="fas fa-sign-out-alt"></i> <span>Logout</span></a></li>
+            <li class="active"><a href="#"><i class="fas fa-tasks"></i> Assignments</a></li>
+            <li><a href="students-list.html"><i class="fas fa-user-graduate"></i> Students</a></li>
+            <li><a href="#" onclick="logout()"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
         </ul>
     </div>
 
     <div class="main-content">
-        <div class="header-row">
-            <div>
-                <h1 style="color: var(--primary); margin:0;">Staff Multi-Tasking</h1>
-                <p id="welcomeMsg" style="color:#666;">Loading session...</p>
-            </div>
-        </div>
-
         <div class="stats-grid">
-            <div class="stat-card">
-                <h4>Total Students</h4>
-                <div class="val" id="countS">0</div>
-            </div>
-            <div class="stat-card">
-                <h4>Registered Staff</h4>
-                <div class="val" id="countT">0</div>
-            </div>
+            <div class="stat-card"><h4>Students</h4><div class="val" id="countS">0</div></div>
+            <div class="stat-card" style="border-left-color: var(--gold);"><h4>Staff</h4><div class="val" id="countT">0</div></div>
         </div>
 
-        <div id="adminArea" style="display: none;">
-            <h3 style="color:var(--primary); margin-bottom:15px;"><i class="fas fa-tasks"></i> Staff Assignment Manager</h3>
-            <div class="admin-box">
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Staff Member</th>
-                            <th>Active Assignments</th>
-                            <th>Add New Task</th>
-                        </tr>
-                    </thead>
-                    <tbody id="staffTable">
-                        <tr><td colspan="3" style="text-align:center;">Fetching staff data...</td></tr>
-                    </tbody>
-                </table>
-            </div>
+        <div class="admin-box">
+            <h3 style="color:var(--primary);"><i class="fas fa-user-shield"></i> Multi-Task Staff Manager</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th width="25%">Teacher</th>
+                        <th width="45%">Current Assignments</th>
+                        <th width="30%">New Assignment</th>
+                    </tr>
+                </thead>
+                <tbody id="staffTable"></tbody>
+            </table>
         </div>
     </div>
 
@@ -119,36 +88,26 @@
     import { collection, getDocs, doc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
     import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
-    // --- 30 MINUTE AUTO-LOGOUT ---
-    let logoutTimer;
-    const resetTimer = () => {
-        clearTimeout(logoutTimer);
-        logoutTimer = setTimeout(() => {
-            alert("Your session has expired (30 mins). Log in again.");
-            logout();
-        }, 30 * 60 * 1000);
-    };
-    ['mousedown', 'mousemove', 'keypress', 'scroll', 'touchstart'].forEach(e => document.addEventListener(e, resetTimer));
+    // --- SUBJECT LISTS ---
+    const SUBJECTS_LOW = ["Biology", "Book-keeping", "Chemistry", "Civics", "English", "Geography", "History", "Kiswahili", "Mathematics", "Physics", "Historia ya Tz"];
+    const SUBJECTS_HIGH = ["Biology", "Book-keeping", "Chemistry", "Civics", "Commerce", "English", "Geography", "History", "Kiswahili", "Literature", "Mathematics", "Physics"];
+
+    // --- AUTO LOGOUT (30 MIN) ---
+    let timer;
+    const reset = () => { clearTimeout(timer); timer = setTimeout(() => { alert("Logged out due to inactivity."); logout(); }, 30 * 60 * 1000); };
+    window.addEventListener('mousemove', reset); window.addEventListener('keypress', reset);
 
     onAuthStateChanged(auth, async (user) => {
         if (!user) { window.location.href = "index.html"; return; }
-        const userSnap = await getDoc(doc(db, "users", user.uid));
-        if (userSnap.exists()) {
-            const u = userSnap.data();
-            document.getElementById('welcomeMsg').innerText = `Administrator: ${u.name || user.email}`;
-            if (u.role === 'admin') {
-                document.getElementById('adminArea').style.display = 'block';
-                loadStaffList();
-            }
-        }
         loadDashboardStats();
-        resetTimer();
+        loadStaffList();
+        reset();
     });
 
     async function loadDashboardStats() {
-        const [sSnap, uSnap] = await Promise.all([getDocs(collection(db, "students")), getDocs(collection(db, "users"))]);
-        document.getElementById('countS').innerText = sSnap.size;
-        document.getElementById('countT').innerText = uSnap.size;
+        const [sS, uS] = await Promise.all([getDocs(collection(db, "students")), getDocs(collection(db, "users"))]);
+        document.getElementById('countS').innerText = sS.size;
+        document.getElementById('countT').innerText = uS.size;
     }
 
     async function loadStaffList() {
@@ -163,85 +122,60 @@
 
             tbody.innerHTML += `
                 <tr>
-                    <td>
-                        <div style="display:flex; align-items:center; gap:10px;">
-                            <div style="width:40px; height:40px; background:#e0e0e0; border-radius:50%; display:flex; align-items:center; justify-content:center;">
-                                <i class="fas fa-user" style="color:#757575;"></i>
-                            </div>
-                            <div>
-                                <b>${u.name || 'Staff'}</b><br>
-                                <small style="color:gray;">${u.email}</small>
-                            </div>
-                        </div>
+                    <td><b>${u.name || 'Staff'}</b><br><small>${u.email}</small></td>
+                    <td><div id="list-${id}">${tasks.map((t, i) => `
+                        <div class="task-tag">
+                            ${t.type === 'Class Teacher' ? '📌' : '📚'} ${t.cls} ${t.strm} : ${t.subj}
+                            <i class="fas fa-times" onclick="removeTask('${id}', ${i})"></i>
+                        </div>`).join('')}</div>
                     </td>
                     <td>
-                        <div id="list-${id}" style="min-width:250px;">
-                            ${tasks.length === 0 ? '<em style="color:#bbb;">No tasks assigned</em>' : 
-                                tasks.map((t, idx) => `
-                                    <div class="task-tag">
-                                        ${t.type === 'Class Teacher' ? '⭐' : '📖'} 
-                                        ${t.cls} ${t.strm} : ${t.subj}
-                                        <i class="fas fa-times-circle" onclick="removeTask('${id}', ${idx})"></i>
-                                    </div>
-                                `).join('')}
-                        </div>
-                    </td>
-                    <td>
-                        <div class="assignment-container">
-                            <div class="task-inputs">
-                                <select id="type-${id}">
-                                    <option value="Subject Teacher">Subject Teacher</option>
-                                    <option value="Class Teacher">Class Teacher</option>
-                                </select>
-                                <select id="cls-${id}">
-                                    <option>Form 1</option><option>Form 2</option><option>Form 3</option><option>Form 4</option>
-                                </select>
-                                <select id="strm-${id}">
-                                    <option>A</option><option>B</option><option>C</option><option>D</option><option>E</option><option>F</option><option>G</option>
-                                </select>
-                            </div>
-                            <select id="subj-${id}" style="width:100%; margin-top:8px;">
-                                <option>Mathematics</option><option>English</option><option>Biology</option>
-                                <option>Chemistry</option><option>Physics</option><option>Geography</option>
-                                <option>History</option><option>Civics</option><option>Kiswahili</option>
+                        <div class="control-group">
+                            <select id="type-${id}"><option>Subject Teacher</option><option>Class Teacher</option></select>
+                            <select id="cls-${id}" onchange="updateSubjList('${id}')">
+                                <option value="Form 1">Form 1</option><option value="Form 2">Form 2</option>
+                                <option value="Form 3">Form 3</option><option value="Form 4">Form 4</option>
                             </select>
-                            <button class="btn-add-task" onclick="addTask('${id}')">Assign Task</button>
+                            <select id="strm-${id}">
+                                <option value="ALL">ALL STREAMS</option>
+                                <option>A</option><option>B</option><option>C</option><option>D</option><option>E</option><option>F</option><option>G</option>
+                            </select>
+                            <select id="subj-${id}">${SUBJECTS_LOW.map(s => `<option>${s}</option>`).join('')}</select>
+                            <button class="btn-assign" onclick="addTask('${id}')">Assign Task</button>
                         </div>
                     </td>
                 </tr>`;
         });
     }
 
-    // Task Logic
+    window.updateSubjList = (id) => {
+        const cls = document.getElementById(`cls-${id}`).value;
+        const subjBox = document.getElementById(`subj-${id}`);
+        const list = (cls === "Form 1" || cls === "Form 2") ? SUBJECTS_LOW : SUBJECTS_HIGH;
+        subjBox.innerHTML = list.map(s => `<option>${s}</option>`).join('');
+    };
+
     window.addTask = async (userId) => {
         const task = {
             type: document.getElementById(`type-${userId}`).value,
             cls: document.getElementById(`cls-${userId}`).value,
             strm: document.getElementById(`strm-${userId}`).value,
-            subj: document.getElementById(`subj-${userId}`).value,
-            assignedAt: new Date().toISOString()
+            subj: document.getElementById(`subj-${userId}`).value
         };
-
-        const staffRef = doc(db, "users", userId);
-        const docSnap = await getDoc(staffRef);
-        let currentTasks = docSnap.data().assignments || [];
-        
-        // Prevent exact duplicates
-        const isDuplicate = currentTasks.some(t => t.cls === task.cls && t.strm === task.strm && t.subj === task.subj);
-        if(isDuplicate) return alert("This specific task is already assigned!");
-
-        currentTasks.push(task);
-        await updateDoc(staffRef, { assignments: currentTasks });
+        const ref = doc(db, "users", userId);
+        const snap = await getDoc(ref);
+        let current = snap.data().assignments || [];
+        current.push(task);
+        await updateDoc(ref, { assignments: current });
         loadStaffList();
     };
 
-    window.removeTask = async (userId, index) => {
-        if(!confirm("Remove this assignment?")) return;
-        const staffRef = doc(db, "users", userId);
-        const docSnap = await getDoc(staffRef);
-        let currentTasks = docSnap.data().assignments || [];
-        currentTasks.splice(index, 1);
-        await updateDoc(staffRef, { assignments: currentTasks });
+    window.removeTask = async (userId, idx) => {
+        const ref = doc(db, "users", userId);
+        const snap = await getDoc(ref);
+        let current = snap.data().assignments || [];
+        current.splice(idx, 1);
+        await updateDoc(ref, { assignments: current });
         loadStaffList();
     };
 
