@@ -17,30 +17,22 @@
 
         .main-content { margin-left: 260px; padding: 40px; width: calc(100% - 260px); box-sizing: border-box; flex-grow: 1; }
         
-        /* Stats */
-        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-bottom: 30px; }
-        .stat-card { background: var(--white); padding: 20px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); border-left: 5px solid var(--primary); }
-        .stat-card h4 { margin: 0; color: #777; font-size: 12px; text-transform: uppercase; }
-        .stat-card .val { font-size: 30px; font-weight: 800; margin: 5px 0; }
-
-        /* Manager Box */
         .admin-box { background: var(--white); border-radius: 12px; padding: 25px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
         table { width: 100%; border-collapse: collapse; }
         th, td { padding: 12px; text-align: left; border-bottom: 1px solid #eee; vertical-align: top; font-size: 13px; }
         
-        /* Tags */
         .task-tag { 
-            display: inline-flex; align-items: center; background: #fff9c4; color: #827717; 
-            padding: 4px 8px; border-radius: 4px; margin: 3px; font-size: 11px; font-weight: bold; border: 1px solid #fbc02d;
+            display: inline-flex; align-items: center; background: #e8eaf6; color: #3f51b5; 
+            padding: 4px 8px; border-radius: 4px; margin: 3px; font-size: 11px; font-weight: bold; border: 1px solid #c5cae9;
         }
+        .task-tag.ct { background: #fff9c4; color: #827717; border-color: #fbc02d; }
         .task-tag i { margin-left: 6px; cursor: pointer; color: var(--danger); }
 
-        /* Input Controls */
         .control-group { display: flex; flex-direction: column; gap: 8px; background: #fdfdfd; padding: 15px; border-radius: 8px; border: 1px solid #eee; }
-        select { padding: 8px; border-radius: 5px; border: 1px solid #ccc; font-size: 12px; outline: none; }
-        .btn-assign { background: var(--primary); color: white; border: none; padding: 10px; border-radius: 5px; cursor: pointer; font-weight: bold; transition: 0.2s; }
-        .btn-assign:hover { background: #0d145a; }
-
+        select { padding: 8px; border-radius: 5px; border: 1px solid #ccc; font-size: 12px; outline: none; transition: 0.3s; }
+        select:disabled { background: #f0f0f0; cursor: not-allowed; color: #aaa; }
+        
+        .btn-assign { background: var(--primary); color: white; border: none; padding: 10px; border-radius: 5px; cursor: pointer; font-weight: bold; }
         .footer { text-align: center; padding: 15px; color: #777; font-size: 12px; background: #fff; margin-left: 260px; }
     </style>
 </head>
@@ -53,19 +45,13 @@
         </div>
         <ul class="nav-links">
             <li class="active"><a href="#"><i class="fas fa-tasks"></i> Assignments</a></li>
-            <li><a href="students-list.html"><i class="fas fa-user-graduate"></i> Students</a></li>
             <li><a href="#" onclick="logout()"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
         </ul>
     </div>
 
     <div class="main-content">
-        <div class="stats-grid">
-            <div class="stat-card"><h4>Students</h4><div class="val" id="countS">0</div></div>
-            <div class="stat-card" style="border-left-color: var(--gold);"><h4>Staff</h4><div class="val" id="countT">0</div></div>
-        </div>
-
         <div class="admin-box">
-            <h3 style="color:var(--primary);"><i class="fas fa-user-shield"></i> Multi-Task Staff Manager</h3>
+            <h3 style="color:var(--primary);"><i class="fas fa-user-shield"></i> Staff Multi-Tasking Manager</h3>
             <table>
                 <thead>
                     <tr>
@@ -88,27 +74,15 @@
     import { collection, getDocs, doc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
     import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
-    // --- SUBJECT LISTS ---
     const SUBJECTS_LOW = ["Biology", "Book-keeping", "Chemistry", "Civics", "English", "Geography", "History", "Kiswahili", "Mathematics", "Physics", "Historia ya Tz"];
     const SUBJECTS_HIGH = ["Biology", "Book-keeping", "Chemistry", "Civics", "Commerce", "English", "Geography", "History", "Kiswahili", "Literature", "Mathematics", "Physics"];
 
-    // --- AUTO LOGOUT (30 MIN) ---
+    // AUTO LOGOUT
     let timer;
-    const reset = () => { clearTimeout(timer); timer = setTimeout(() => { alert("Logged out due to inactivity."); logout(); }, 30 * 60 * 1000); };
-    window.addEventListener('mousemove', reset); window.addEventListener('keypress', reset);
+    const reset = () => { clearTimeout(timer); timer = setTimeout(() => logout(), 30 * 60 * 1000); };
+    window.addEventListener('mousemove', reset);
 
-    onAuthStateChanged(auth, async (user) => {
-        if (!user) { window.location.href = "index.html"; return; }
-        loadDashboardStats();
-        loadStaffList();
-        reset();
-    });
-
-    async function loadDashboardStats() {
-        const [sS, uS] = await Promise.all([getDocs(collection(db, "students")), getDocs(collection(db, "users"))]);
-        document.getElementById('countS').innerText = sS.size;
-        document.getElementById('countT').innerText = uS.size;
-    }
+    onAuthStateChanged(auth, (user) => { if (user) { loadStaffList(); reset(); } else { window.location.href="index.html"; } });
 
     async function loadStaffList() {
         const snap = await getDocs(collection(db, "users"));
@@ -124,14 +98,17 @@
                 <tr>
                     <td><b>${u.name || 'Staff'}</b><br><small>${u.email}</small></td>
                     <td><div id="list-${id}">${tasks.map((t, i) => `
-                        <div class="task-tag">
-                            ${t.type === 'Class Teacher' ? '📌' : '📚'} ${t.cls} ${t.strm} : ${t.subj}
+                        <div class="task-tag ${t.type === 'Class Teacher' ? 'ct' : ''}">
+                            ${t.type === 'Class Teacher' ? '📌' : '📚'} ${t.cls} ${t.strm} ${t.subj !== 'N/A' ? ': '+t.subj : ''}
                             <i class="fas fa-times" onclick="removeTask('${id}', ${i})"></i>
                         </div>`).join('')}</div>
                     </td>
                     <td>
                         <div class="control-group">
-                            <select id="type-${id}"><option>Subject Teacher</option><option>Class Teacher</option></select>
+                            <select id="type-${id}" onchange="toggleSubject('${id}')">
+                                <option value="Subject Teacher">Subject Teacher</option>
+                                <option value="Class Teacher">Class Teacher</option>
+                            </select>
                             <select id="cls-${id}" onchange="updateSubjList('${id}')">
                                 <option value="Form 1">Form 1</option><option value="Form 2">Form 2</option>
                                 <option value="Form 3">Form 3</option><option value="Form 4">Form 4</option>
@@ -148,19 +125,34 @@
         });
     }
 
+    // Logic to disable subject if Class Teacher is selected
+    window.toggleSubject = (id) => {
+        const type = document.getElementById(`type-${id}`).value;
+        const subjBox = document.getElementById(`subj-${id}`);
+        if (type === "Class Teacher") {
+            subjBox.disabled = true;
+            subjBox.value = ""; 
+        } else {
+            subjBox.disabled = false;
+            updateSubjList(id);
+        }
+    };
+
     window.updateSubjList = (id) => {
         const cls = document.getElementById(`cls-${id}`).value;
         const subjBox = document.getElementById(`subj-${id}`);
+        if (subjBox.disabled) return;
         const list = (cls === "Form 1" || cls === "Form 2") ? SUBJECTS_LOW : SUBJECTS_HIGH;
         subjBox.innerHTML = list.map(s => `<option>${s}</option>`).join('');
     };
 
     window.addTask = async (userId) => {
+        const type = document.getElementById(`type-${userId}`).value;
         const task = {
-            type: document.getElementById(`type-${userId}`).value,
+            type: type,
             cls: document.getElementById(`cls-${userId}`).value,
             strm: document.getElementById(`strm-${userId}`).value,
-            subj: document.getElementById(`subj-${userId}`).value
+            subj: type === "Class Teacher" ? "N/A" : document.getElementById(`subj-${userId}`).value
         };
         const ref = doc(db, "users", userId);
         const snap = await getDoc(ref);
