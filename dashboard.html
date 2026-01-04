@@ -23,6 +23,7 @@
         .stat-card.teachers { border-left-color: var(--gold); }
         .stat-card h4 { margin: 0; font-size: 13px; color: #777; text-transform: uppercase; letter-spacing: 1px; }
         .stat-card .val { font-size: 38px; font-weight: 800; color: #2d3436; margin: 10px 0; }
+        .stat-card .sub { font-weight: bold; font-size: 14px; color: #555; }
         
         .section-title { color: var(--primary); border-left: 5px solid var(--gold); padding-left: 15px; margin: 40px 0 20px; font-size: 20px; font-weight: bold; }
         .admin-box { background: var(--white); border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); padding: 25px; margin-bottom: 30px;}
@@ -32,12 +33,10 @@
         th { background: #f8f9fa; font-size: 11px; color: var(--primary); text-transform: uppercase; font-weight: 800; }
         
         select { padding: 8px; border-radius: 6px; border: 1px solid #ddd; font-size: 12px; background: #fff; width: 100%; margin-bottom: 5px; }
-        select:disabled { background: #f0f0f0; cursor: not-allowed; }
         
         .btn-save { background: var(--primary); color: white; border: none; padding: 8px 12px; border-radius: 6px; cursor: pointer; font-weight: bold; transition: 0.2s; font-size: 11px; }
         .badge { background:#e3f2fd; color:#1565c0; padding:4px 12px; border-radius:20px; font-size:11px; font-weight: 800; text-transform: uppercase;}
 
-        /* Assignment Tags */
         .task-tag { 
             display: inline-flex; align-items: center; background: #f1f3f4; color: #3c4043; 
             padding: 4px 8px; border-radius: 4px; margin: 2px; font-size: 11px; border: 1px solid #dadce0;
@@ -45,13 +44,7 @@
         .task-tag.ct { background: #fff9c4; color: #827717; border-color: #fbc02d; }
         .task-tag i { margin-left: 6px; cursor: pointer; color: var(--danger); font-size: 12px; }
 
-        .footer { text-align: center; padding: 20px; color: #777; font-size: 12px; background: transparent; border-top: 1px solid #eee; margin-top: auto; }
-
-        @media (max-width: 1024px) {
-            .sidebar { width: 70px; }
-            .sidebar h2, .sidebar small, .sidebar span { display: none; }
-            .main-content { margin-left: 70px; width: calc(100% - 70px); }
-        }
+        .footer { text-align: center; padding: 20px; color: #777; font-size: 12px; border-top: 1px solid #eee; margin-top: auto; }
     </style>
 </head>
 <body>
@@ -66,7 +59,7 @@
             <li><a href="students-list.html"><i class="fas fa-user-graduate"></i> <span>Students</span></a></li>
             <li><a href="mark-entry.html"><i class="fas fa-edit"></i> <span>Mark Entry</span></a></li>
             <li><a href="register-teacher.html"><i class="fas fa-user-plus"></i> <span>Register Teacher</span></a></li>
-            <li><a href="#" onclick="logout()"><i class="fas fa-sign-out-alt"></i> <span>Logout</span></a></li>
+            <li><a href="#" id="logoutBtn"><i class="fas fa-sign-out-alt"></i> <span>Logout</span></a></li>
         </ul>
     </div>
 
@@ -83,12 +76,12 @@
             <div class="stat-card">
                 <h4>Total Students</h4>
                 <div class="val" id="countS">0</div>
-                <div class="sub" id="genderS">Loading...</div>
+                <div class="sub" id="genderS">Checking gender...</div>
             </div>
             <div class="stat-card teachers">
                 <h4>Staff Population</h4>
                 <div class="val" id="countT">0</div>
-                <div class="sub" id="genderT">Loading...</div>
+                <div class="sub" id="genderT">Checking gender...</div>
             </div>
         </div>
 
@@ -120,52 +113,52 @@
     import { collection, getDocs, doc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
     import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
-    // --- Configurations ---
     const subjectsF1_F2 = ["Biology", "Book-keeping", "Chemistry", "Civics", "Historia ya Tz", "English", "Geography", "History", "Kiswahili", "Mathematics", "Physics"];
     const subjectsF3_F4 = ["Biology", "Book-keeping", "Chemistry", "Civics", "Commerce", "English", "Geography", "History", "Kiswahili", "Literature", "Mathematics", "Physics"];
 
-    // --- Auto Logout (30 Mins) ---
-    let sessionTimer;
-    const resetTimer = () => {
-        clearTimeout(sessionTimer);
-        sessionTimer = setTimeout(() => {
-            alert("Session expired. Logging out...");
-            logout();
-        }, 30 * 60 * 1000);
-    };
-    ['mousedown', 'mousemove', 'keypress', 'scroll', 'touchstart'].forEach(e => document.addEventListener(e, resetTimer));
-
     onAuthStateChanged(auth, async (user) => {
         if (!user) { window.location.href = "index.html"; return; }
+        
         const userSnap = await getDoc(doc(db, "users", user.uid));
         if (userSnap.exists()) {
             const u = userSnap.data();
             document.getElementById('welcomeMsg').innerText = `Logged in as: ${u.name || user.email}`;
             document.getElementById('roleIndicator').innerHTML = `<span class="badge" style="background:var(--gold); color:white">${u.role}</span>`;
+            
             if (u.role === 'admin') {
                 document.getElementById('adminArea').style.display = 'block';
                 loadStaffList();
             }
         }
         loadDashboardStats();
-        resetTimer();
     });
 
+    // --- FIX: Corrected Gender Counting Logic ---
     async function loadDashboardStats() {
         const [sSnap, uSnap] = await Promise.all([getDocs(collection(db, "students")), getDocs(collection(db, "users"))]);
+        
         let sm = 0, sf = 0, tm = 0, tf = 0, tCount = 0;
-        sSnap.forEach(d => { (d.data().gender || "").toUpperCase().startsWith("M") ? sm++ : sf++; });
+
+        sSnap.forEach(d => {
+            const g = (d.data().gender || d.data().Gender || "").toString().trim().toUpperCase();
+            if (g.startsWith("M")) sm++;
+            else if (g.startsWith("F")) sf++;
+        });
+
         uSnap.forEach(d => {
             const data = d.data();
             if (data.role === 'teacher' || data.role === 'admin') {
                 tCount++;
-                (data.gender || "").toUpperCase().startsWith("M") ? tm++ : tf++;
+                const g = (data.gender || data.Gender || "").toString().trim().toUpperCase();
+                if (g.startsWith("M")) tm++;
+                else if (g.startsWith("F")) tf++;
             }
         });
+
         document.getElementById('countS').innerText = sSnap.size;
-        document.getElementById('genderS').innerHTML = `<i class="fas fa-mars"></i> ${sm} | <i class="fas fa-venus"></i> ${sf}`;
+        document.getElementById('genderS').innerHTML = `<i class="fas fa-mars" style="color:#1a237e"></i> ${sm} Boys | <i class="fas fa-venus" style="color:#c2185b"></i> ${sf} Girls`;
         document.getElementById('countT').innerText = tCount;
-        document.getElementById('genderT').innerHTML = `<i class="fas fa-mars"></i> ${tm} | <i class="fas fa-venus"></i> ${tf}`;
+        document.getElementById('genderT').innerHTML = `<i class="fas fa-mars" style="color:#1a237e"></i> ${tm} Male | <i class="fas fa-venus" style="color:#c2185b"></i> ${tf} Female`;
     }
 
     async function loadStaffList() {
@@ -176,6 +169,8 @@
         snap.forEach(userDoc => {
             const u = userDoc.data();
             const id = userDoc.id;
+            if(u.role === 'student') return; // Only show staff
+
             const tasks = u.assignments || [];
 
             tbody.innerHTML += `
@@ -204,8 +199,6 @@
                                 <option value="ALL">ALL STREAMS</option>
                                 <option value="A">Stream A</option><option value="B">Stream B</option>
                                 <option value="C">Stream C</option><option value="D">Stream D</option>
-                                <option value="E">Stream E</option><option value="F">Stream F</option>
-                                <option value="G">Stream G</option>
                             </select>
                             <select id="subj-${id}">
                                 ${subjectsF1_F2.map(s => `<option value="${s}">${s}</option>`).join('')}
@@ -219,19 +212,16 @@
         });
     }
 
+    // --- Window Functions for Dynamic Elements ---
     window.toggleSubjectField = (id) => {
         const type = document.getElementById(`type-${id}`).value;
-        const subjBox = document.getElementById(`subj-${id}`);
-        subjBox.disabled = (type === "Class Teacher");
-        if (subjBox.disabled) subjBox.value = "";
+        document.getElementById(`subj-${id}`).disabled = (type === "Class Teacher");
     };
 
     window.updateSubjDropdown = (id) => {
         const cls = document.getElementById(`cls-${id}`).value;
-        const subjBox = document.getElementById(`subj-${id}`);
-        if (subjBox.disabled) return;
         const list = (cls.includes("1") || cls.includes("2")) ? subjectsF1_F2 : subjectsF3_F4;
-        subjBox.innerHTML = list.map(s => `<option value="${s}">${s}</option>`).join('');
+        document.getElementById(`subj-${id}`).innerHTML = list.map(s => `<option value="${s}">${s}</option>`).join('');
     };
 
     window.addTask = async (userId) => {
@@ -247,7 +237,6 @@
         const snap = await getDoc(ref);
         let assignments = snap.data().assignments || [];
         assignments.push(newTask);
-        
         await updateDoc(ref, { assignments: assignments });
         loadStaffList();
     };
@@ -257,12 +246,12 @@
         const snap = await getDoc(ref);
         let assignments = snap.data().assignments || [];
         assignments.splice(index, 1);
-        
         await updateDoc(ref, { assignments: assignments });
         loadStaffList();
     };
 
-    window.logout = () => signOut(auth).then(() => window.location.href="index.html");
+    document.getElementById('logoutBtn').onclick = () => signOut(auth).then(() => window.location.href="index.html");
+
 </script>
 </body>
 </html>
